@@ -4,16 +4,20 @@ from pydantic import BaseModel
 from typing import Optional
 import sys
 from pathlib import Path
+import numpy as np
 
 # Add parent to path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from authentication.unified_orchestrator import UnifiedOrchestrator, UnifiedContext
+from authentication.mfa_orchestrator import MFAOrchestrator, TransactionContext, AuthenticationFactors
+from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext
+from sar.generator import SARGenerator
 
 app = FastAPI(
-    title="Sonotheia Unified API",
-    description="Forensic audio authentication platform by doronpers",
-    version="0.1.0"
+    title="Sonotheia Enhanced API",
+    description="Multi-factor voice authentication & SAR reporting system",
+    version="1.0.0"
 )
 
 # CORS for development - allow all common React ports
@@ -25,10 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize orchestrator
+# Initialize orchestrators
 orchestrator = UnifiedOrchestrator()
+mfa_orchestrator = MFAOrchestrator()
+sar_generator = SARGenerator()
 
-# Request models
+# Request models (keeping backward compatibility)
 class AuthRequest(BaseModel):
     transaction_id: str
     customer_id: str
@@ -39,9 +45,15 @@ class AuthRequest(BaseModel):
 @app.get("/")
 async def root():
     return {
-        "service": "Sonotheia Unified Platform",
-        "version": "0.1.0",
+        "service": "Sonotheia Enhanced Platform",
+        "version": "1.0.0",
         "status": "operational",
+        "features": [
+            "Multi-Factor Authentication",
+            "Voice Deepfake Detection",
+            "SAR Generation",
+            "Risk Scoring"
+        ],
         "author": "doronpers"
     }
 
@@ -65,7 +77,78 @@ async def authenticate(request: AuthRequest):
 
 @app.get("/api/v1/health")
 async def health_check():
-    return {"status": "healthy", "service": "sonotheia-unified"}
+    return {"status": "healthy", "service": "sonotheia-enhanced"}
+
+
+@app.post("/api/authenticate", response_model=AuthenticationResponse)
+async def authenticate_transaction(request: AuthenticationRequest):
+    """Enhanced multi-factor authentication with detailed factor results"""
+    try:
+        context = TransactionContext(
+            transaction_id=request.transaction_id,
+            customer_id=request.customer_id,
+            transaction_type=request.channel,
+            amount_usd=request.amount_usd,
+            destination_country="US",  # Would come from request in production
+            is_new_beneficiary=True,  # Would come from request in production
+            channel=request.channel
+        )
+        
+        factors = AuthenticationFactors(
+            voice={'audio_data': request.voice_sample} if request.voice_sample else None,
+            device=request.device_info
+        )
+        
+        result = mfa_orchestrator.authenticate(context, factors)
+        return AuthenticationResponse(**result)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/sar/generate")
+async def generate_sar(context: SARContext):
+    """Generate SAR narrative from context data"""
+    try:
+        narrative = sar_generator.generate_sar(context)
+        validation = sar_generator.validate_sar_quality(narrative)
+        
+        return {
+            'narrative': narrative,
+            'validation': validation
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/demo/waveform/{sample_id}")
+async def get_demo_waveform(sample_id: str):
+    """Return demo waveform data for visualization"""
+    # Generate demo waveform data
+    x = np.linspace(0, 4, 1000)
+    y = np.sin(2 * np.pi * x) * np.exp(-x/2)
+    
+    return {
+        "x": x.tolist(),
+        "y": y.tolist(),
+        "segments": [
+            {
+                "start": 0.0,
+                "end": 2.0,
+                "type": "genuine",
+                "label": "Genuine",
+                "confidence": 0.95
+            },
+            {
+                "start": 2.0,
+                "end": 4.0,
+                "type": "synthetic",
+                "label": "Synthetic",
+                "confidence": 0.88
+            }
+        ],
+        "sample_id": sample_id
+    }
 
 if __name__ == "__main__":
     import uvicorn
