@@ -1,0 +1,26 @@
+# render.yaml
+
+services:
+  # Backend API Service
+  - type: web
+    name: sonotheia-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /
+    # PORT is automatically set by Render, no need to specify
+
+  # Frontend Service (Docker with nginx serving static HTML/CSS/JS)
+  - type: web
+    name: sonotheia-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: sonotheia-backend
+          property: hostport
