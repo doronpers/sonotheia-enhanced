@@ -17,55 +17,66 @@ class VoiceAuthenticator:
         self.deepfake_threshold = config.get('deepfake_threshold', 0.3)
         self.speaker_threshold = config.get('speaker_threshold', 0.85)
         self.min_quality = config.get('min_quality', 0.7)
+        self.demo_mode = config.get('demo_mode', True)
         logger.info(f"VoiceAuthenticator initialized with thresholds: "
                    f"deepfake={self.deepfake_threshold}, "
-                   f"speaker={self.speaker_threshold}")
+                   f"speaker={self.speaker_threshold}, "
+                   f"demo_mode={self.demo_mode}")
     
     def detect_deepfake(self, audio_bytes: bytes) -> float:
         """
         Detect synthetic/deepfake audio
         Returns a score from 0.0 (genuine) to 1.0 (synthetic)
         
-        TODO: Integrate actual deepfake detection model
+        DEMO MODE: This is a placeholder implementation.
+        In production, integrate your proprietary detection model.
         """
-        # Placeholder implementation
-        # In production, this would call your proprietary detection model
-        logger.info("Running deepfake detection")
-        return 0.15  # Demo value
+        if self.demo_mode:
+            logger.warning("Using demo mode for deepfake detection - not for production use")
+            return 0.15  # Demo value
+        else:
+            # TODO: Integrate actual deepfake detection model
+            raise NotImplementedError("Production deepfake detection not implemented")
     
     def check_liveness(self, audio_bytes: bytes) -> Dict:
         """
         Check for liveness (replay attack detection)
         Returns dict with 'passed' boolean and details
+        
+        DEMO MODE: This is a placeholder implementation.
+        In production, implement proper liveness detection.
         """
-        logger.info("Running liveness check")
-        
-        # Placeholder implementation
-        # In production, would check for:
-        # - Replay artifacts
-        # - Room acoustics consistency
-        # - Challenge-response validation
-        
-        return {
-            'passed': True,
-            'confidence': 0.95,
-            'method': 'acoustic_challenge'
-        }
+        if self.demo_mode:
+            logger.warning("Using demo mode for liveness check - not for production use")
+            return {
+                'passed': True,
+                'confidence': 0.95,
+                'method': 'acoustic_challenge'
+            }
+        else:
+            # TODO: In production, implement:
+            # - Replay artifacts detection
+            # - Room acoustics consistency
+            # - Challenge-response validation
+            raise NotImplementedError("Production liveness detection not implemented")
     
     def verify_speaker(self, audio_bytes: bytes, customer_id: str) -> float:
         """
         Verify speaker identity against enrolled voiceprint
         Returns similarity score from 0.0 to 1.0
+        
+        DEMO MODE: This is a placeholder implementation.
+        In production, implement proper speaker verification.
         """
-        logger.info(f"Running speaker verification for customer {customer_id}")
-        
-        # Placeholder implementation
-        # In production, would:
-        # - Extract speaker embedding
-        # - Compare to enrolled voiceprint
-        # - Return similarity score
-        
-        return 0.96  # Demo value
+        if self.demo_mode:
+            logger.warning("Using demo mode for speaker verification - not for production use")
+            return 0.96  # Demo value
+        else:
+            # TODO: In production:
+            # - Extract speaker embedding
+            # - Compare to enrolled voiceprint
+            # - Return similarity score
+            raise NotImplementedError("Production speaker verification not implemented")
     
     def validate(self, audio_bytes: bytes, customer_id: str) -> Dict:
         """

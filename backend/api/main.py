@@ -89,8 +89,8 @@ async def authenticate_transaction(request: AuthenticationRequest):
             customer_id=request.customer_id,
             transaction_type=request.channel,
             amount_usd=request.amount_usd,
-            destination_country="US",  # Would come from request in production
-            is_new_beneficiary=True,  # Would come from request in production
+            destination_country=request.destination_country,
+            is_new_beneficiary=request.is_new_beneficiary,
             channel=request.channel
         )
         

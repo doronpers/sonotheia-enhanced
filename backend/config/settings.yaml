@@ -1,6 +1,9 @@
 # Sonotheia Enhanced Configuration
 # Authentication policies and detection thresholds
 
+# Demo mode - set to false in production
+demo_mode: true
+
 authentication_policy:
   minimum_factors: 2
   require_different_categories: true

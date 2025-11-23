@@ -43,6 +43,8 @@ class AuthenticationRequest(BaseModel):
     voice_sample: Optional[str] = None  # base64 encoded
     device_info: Optional[dict] = None
     channel: str = "wire_transfer"
+    destination_country: str = "US"  # Default for demo purposes
+    is_new_beneficiary: bool = True  # Default for demo purposes
 
 
 class AuthenticationResponse(BaseModel):

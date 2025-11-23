@@ -16,7 +16,9 @@ class DeviceValidator:
         self.config = config
         self.require_enrollment = config.get('require_enrollment', True)
         self.trust_score_threshold = config.get('trust_score_threshold', 0.8)
-        logger.info(f"DeviceValidator initialized with trust_threshold={self.trust_score_threshold}")
+        self.demo_mode = config.get('demo_mode', True)
+        logger.info(f"DeviceValidator initialized with trust_threshold={self.trust_score_threshold}, "
+                   f"demo_mode={self.demo_mode}")
     
     def validate(self, device_data: Dict, customer_id: str) -> bool:
         """
@@ -49,11 +51,17 @@ class DeviceValidator:
         """
         Check if device is enrolled for customer
         
+        DEMO MODE: This is a placeholder that always returns True.
+        In production, implement proper device enrollment validation.
+        
         TODO: Integrate with device enrollment database
         """
-        # Placeholder implementation
-        # In production, would query device enrollment database
-        return True
+        if self.demo_mode:
+            logger.warning("Using demo mode for device enrollment - always returns True")
+            return True
+        else:
+            # TODO: In production, query device enrollment database
+            raise NotImplementedError("Production device enrollment check not implemented")
     
     def _calculate_trust_score(self, device_data: Dict, customer_id: str) -> float:
         """

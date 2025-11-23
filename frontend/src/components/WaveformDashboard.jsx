@@ -90,18 +90,22 @@ export default function WaveformDashboard({
       </Box>
 
       <Grid container spacing={2}>
-        {factorResults?.map((factor, idx) => (
-          <Grid item xs={12} sm={6} md={4} key={idx}>
-            <FactorCard
-              {...factor}
-              highlight={
-                playingSegment &&
-                segments[idx] &&
-                playingSegment.start === segments[idx].start
-              }
-            />
-          </Grid>
-        ))}
+        {factorResults?.map((factor, idx) => {
+          // Find corresponding segment for this factor if available
+          const correspondingSegment = segments?.[idx];
+          const isHighlighted = playingSegment && 
+                                correspondingSegment &&
+                                playingSegment.start === correspondingSegment.start;
+          
+          return (
+            <Grid item xs={12} sm={6} md={4} key={idx}>
+              <FactorCard
+                {...factor}
+                highlight={isHighlighted}
+              />
+            </Grid>
+          );
+        })}
       </Grid>
     </Box>
   );
