@@ -1,0 +1,52 @@
+# Sonotheia Enhanced Configuration
+# Authentication policies and detection thresholds
+
+# Demo mode - set to false in production
+demo_mode: true
+
+authentication_policy:
+  minimum_factors: 2
+  require_different_categories: true
+  
+  risk_thresholds:
+    low:
+      factors_required: 2
+      max_amount_usd: 5000
+    medium:
+      factors_required: 2
+      max_amount_usd: 25000
+    high:
+      factors_required: 3
+      max_amount_usd: 100000
+
+voice:
+  deepfake_threshold: 0.3
+  speaker_threshold: 0.85
+  min_quality: 0.7
+
+device:
+  require_enrollment: true
+  trust_score_threshold: 0.8
+
+high_risk_countries:
+  - "CN"
+  - "RU"
+  - "IR"
+  - "KP"
+  - "SY"
+  - "AF"
+
+sar_detection_rules:
+  structuring:
+    enabled: true
+    threshold_amount: 10000
+    threshold_percentage: 0.95
+    min_transactions: 3
+  
+  synthetic_voice:
+    enabled: true
+    threshold: 0.7
+  
+  high_value_high_risk:
+    enabled: true
+    amount_threshold: 50000

@@ -1,0 +1,16 @@
+SAR filed for {{ customer_name }} (ID: {{ customer_id }}), account {{ account_number }} opened {{ account_opened }}, occupation: {{ occupation }}.
+
+Between {{ start_date }} and {{ end_date }}, the customer conducted {{ count }} transactions totaling ${{ "{:,.2f}".format(amount) }}, matching {{ pattern }}.
+
+Transactions:
+{% for tx in transactions -%}
+- {{ tx.date }}: {{ tx.type|capitalize }} ${{ "{:,.2f}".format(tx.amount) }}{% if tx.destination %} to {{ tx.destination }}{% endif %}.
+{% endfor %}
+
+Red flags detected:
+{% for flag in red_flags -%}
+- {{ flag }}
+{% endfor %}
+
+Investigation summary: Customer contacted, explanations vague, documentation collected (ref {{ doc_id }}).
+Supporting docs: full transaction logs, customer communications, authentication records.
