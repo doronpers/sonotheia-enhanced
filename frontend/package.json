@@ -6,6 +6,7 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.14.0",
+    "ajv": "^8.17.1",
     "axios": "^1.6.0",
     "plotly.js": "^2.26.0",
     "react": "^18.3.1",
