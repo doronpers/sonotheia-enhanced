@@ -79,12 +79,16 @@ def validate_id(value: str, field_name: str = "id") -> str:
     if not value:
         raise ValidationError(f"{field_name} cannot be empty")
     
-    value = sanitize_string(value, max_length=100)
+    # Check length before sanitization
+    if len(value) > MAX_ID_LENGTH:
+        raise ValidationError(f"{field_name} exceeds maximum length of {MAX_ID_LENGTH} characters")
+    
+    value = sanitize_string(value, max_length=MAX_ID_LENGTH)
     
     if not SAFE_ID_PATTERN.match(value):
         raise ValidationError(
             f"{field_name} must contain only alphanumeric characters, "
-            "hyphens, and underscores (max 100 chars)"
+            f"hyphens, and underscores (max {MAX_ID_LENGTH} chars)"
         )
     
     return value
@@ -172,6 +176,10 @@ def validate_text_input(value: str, field_name: str = "input", max_length: int =
     if not value:
         return value
     
+    # Check length before sanitization
+    if len(value) > max_length:
+        raise ValidationError(f"{field_name} exceeds maximum length of {max_length} characters")
+    
     # Sanitize
     value = sanitize_string(value, max_length=max_length)
     
@@ -179,10 +187,6 @@ def validate_text_input(value: str, field_name: str = "input", max_length: int =
     check_sql_injection(value)
     check_xss(value)
     check_path_traversal(value)
-    
-    # Check length after sanitization
-    if len(value) > max_length:
-        raise ValidationError(f"{field_name} exceeds maximum length of {max_length} characters")
     
     return value
 

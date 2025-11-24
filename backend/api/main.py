@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 import sys
 from pathlib import Path
@@ -136,34 +136,8 @@ sar_generator = SARGenerator()
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
     """Basic authentication request model for backward compatibility"""
-    transaction_id: str = Field(
-        ..., 
-        description="Unique transaction identifier",
-        example="TXN-2024-001"
-    )
-    customer_id: str = Field(
-        ..., 
-        description="Customer unique identifier",
-        example="CUST-12345"
-    )
-    amount_usd: float = Field(
-        ..., 
-        description="Transaction amount in USD",
-        gt=0,
-        example=50000.00
-    )
-    channel: str = Field(
-        default="wire_transfer", 
-        description="Transaction channel",
-        example="wire_transfer"
-    )
-    has_consent: bool = Field(
-        default=True,
-        description="Whether customer has provided consent for authentication"
-    )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "transaction_id": "TXN-2024-001",
                 "customer_id": "CUST-12345",
@@ -172,6 +146,29 @@ class AuthRequest(BaseModel):
                 "has_consent": True
             }
         }
+    )
+    
+    transaction_id: str = Field(
+        ..., 
+        description="Unique transaction identifier"
+    )
+    customer_id: str = Field(
+        ..., 
+        description="Customer unique identifier"
+    )
+    amount_usd: float = Field(
+        ..., 
+        description="Transaction amount in USD",
+        gt=0
+    )
+    channel: str = Field(
+        default="wire_transfer", 
+        description="Transaction channel"
+    )
+    has_consent: bool = Field(
+        default=True,
+        description="Whether customer has provided consent for authentication"
+    )
 
 
 @app.get(
