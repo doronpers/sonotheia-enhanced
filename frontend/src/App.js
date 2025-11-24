@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Button } from "@mui/material";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Container, Typography, Box, CircularProgress, Button, AppBar, Toolbar, Tabs, Tab } from "@mui/material";
 import WaveformDashboard from "./components/WaveformDashboard";
 import EvidenceModal from "./components/EvidenceModal";
 import RiskScoreBox from "./components/RiskScoreBox";
+import Dashboard from "./components/Dashboard";
 
-function App() {
+function HomePage() {
   const [loading, setLoading] = useState(false);
   const [waveformData, setWaveformData] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -102,6 +104,41 @@ function App() {
         evidence={selectedEvidence?.evidence}
       />
     </Container>
+  );
+}
+
+function NavTabs() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const tabValue = currentPath === '/dashboard' ? 1 : 0;
+
+  return (
+    <Tabs value={tabValue} textColor="inherit" indicatorColor="secondary">
+      <Tab label="Authentication" component={Link} to="/" />
+      <Tab label="Dashboard" component={Link} to="/dashboard" />
+    </Tabs>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Box sx={{ flexGrow: 1 }}>
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Sonotheia Enhanced Platform
+            </Typography>
+            <NavTabs />
+          </Toolbar>
+        </AppBar>
+
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </Box>
+    </Router>
   );
 }
 
