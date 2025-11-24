@@ -1,0 +1,111 @@
+name: Auto-Generate Documentation
+
+on:
+  # Run when code changes
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'backend/**/*.py'
+      - 'frontend/src/**/*.{js,jsx}'
+      - 'backend/api/**'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  generate-api-docs:
+    name: Generate API Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install pydoc-markdown
+      
+      - name: Generate API documentation from docstrings
+        run: |
+          python .github/scripts/generate-api-docs.py
+      
+      - name: Generate component documentation
+        run: |
+          python .github/scripts/generate-component-docs.py
+      
+      - name: Check if documentation changed
+        id: check_changes
+        run: |
+          git diff --quiet docs/ || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs: Auto-generate documentation from code'
+          title: '📚 Auto-generated Documentation Updates'
+          body: |
+            ## Automated Documentation Generation
+            
+            This PR contains automatically generated documentation updates based on code changes.
+            
+            **Generated:**
+            - API endpoint documentation from FastAPI routes
+            - Component documentation from docstrings
+            - Module documentation from Python files
+            
+            **Action Required:**
+            - Review the changes
+            - Merge if accurate
+            - Update manually if corrections needed
+          branch: auto-docs/update
+          labels: documentation, automated
+
+  generate-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate changelog updates
+        run: |
+          python .github/scripts/update-changelog.py
+      
+      - name: Check if changelog changed
+        id: check_changes
+        run: |
+          git diff --quiet CHANGELOG.md || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs: Update CHANGELOG.md with recent changes'
+          title: '📝 Update Changelog'
+          body: |
+            ## Automated Changelog Update
+            
+            This PR updates CHANGELOG.md based on recent commits.
+            
+            **Action Required:**
+            - Review the generated changelog entries
+            - Edit version numbers if needed
+            - Add additional context if helpful
+            - Merge when ready for next release
+          branch: auto-docs/changelog
+          labels: documentation, changelog, automated
