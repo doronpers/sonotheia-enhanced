@@ -78,7 +78,52 @@ sonotheia-enhanced/
 
 ## Quick Start
 
-### Backend Setup
+### 🚀 One-Command Setup (Recommended)
+
+The fastest way to get started:
+
+#### Using Start Script (Cross-platform)
+
+**Linux/Mac:**
+```bash
+./start.sh
+```
+
+**Windows:**
+```bash
+start.bat
+```
+
+The script will automatically:
+- Detect and use Docker if available (recommended)
+- Fall back to local setup (Python + Node.js)
+- Install all dependencies
+- Start both backend and frontend services
+
+#### Using Docker Compose (Recommended)
+
+If you have Docker installed:
+
+```bash
+docker-compose up --build
+```
+
+This will start both services in containers. Access:
+- **Frontend Dashboard:** http://localhost:3000
+- **Backend API:** http://localhost:8000
+- **API Documentation:** http://localhost:8000/docs
+
+To stop:
+```bash
+docker-compose down
+# OR
+./stop.sh  # Linux/Mac
+stop.bat   # Windows
+```
+
+### Manual Setup
+
+#### Backend Setup
 
 1. Install dependencies:
 ```bash
@@ -96,7 +141,7 @@ The API will be available at:
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-### Frontend Setup
+#### Frontend Setup
 
 1. Install dependencies:
 ```bash
@@ -273,6 +318,102 @@ black .
 cd frontend
 npm run lint
 ```
+
+## Docker Setup
+
+### Building and Running with Docker
+
+The project includes Docker configuration for easy deployment:
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Run in detached mode (background)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+### Docker Configuration
+
+The `docker-compose.yml` file configures:
+- **Backend service** on port 8000
+- **Frontend service** on port 3000
+- Automatic health checks
+- Volume mounting for development
+- Network isolation
+
+Individual Dockerfiles are located in:
+- `backend/Dockerfile` - Python/FastAPI backend
+- `frontend/Dockerfile` - React frontend with nginx
+
+## Troubleshooting
+
+### Common Issues
+
+#### Port Already in Use
+If ports 3000 or 8000 are already in use:
+
+```bash
+# Find and kill process on port 8000 (backend)
+# Linux/Mac
+lsof -ti:8000 | xargs kill -9
+
+# Windows
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# Or use different ports
+docker-compose up --build  # Uses configured ports
+```
+
+#### Docker Build Fails
+```bash
+# Clear Docker cache and rebuild
+docker-compose down -v
+docker system prune -a
+docker-compose up --build
+```
+
+#### Frontend Can't Connect to Backend
+Ensure the backend is running and accessible:
+```bash
+# Check backend is responding
+curl http://localhost:8000/
+
+# Check Docker network
+docker network inspect sonotheia-network
+```
+
+#### Module Not Found (Python)
+```bash
+# Reinstall backend dependencies
+cd backend
+pip install --force-reinstall -r requirements.txt
+```
+
+#### npm Install Issues
+```bash
+# Clear npm cache and reinstall
+cd frontend
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+```
+
+### Getting Help
+
+- Check logs: `docker-compose logs -f`
+- Verify services: `docker-compose ps`
+- Test backend: http://localhost:8000/docs
+- Test frontend: http://localhost:3000
 
 ## Repositories Integrated
 
