@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import Optional, List, Dict
+from datetime import datetime
 import sys
 from pathlib import Path
 import numpy as np
@@ -465,8 +466,14 @@ async def get_demo_waveform(request: Request, sample_id: str):
 
 
 # Dashboard endpoints
-@app.get("/api/dashboard/status")
-async def get_dashboard_status():
+@app.get(
+    "/api/dashboard/status",
+    tags=["demo"],
+    summary="Dashboard Status",
+    description="Get system status and metrics for dashboard"
+)
+@limiter.limit("100/minute")
+async def get_dashboard_status(request: Request):
     """Get system status and metrics for dashboard"""
     return {
         "totalTests": 15,
@@ -478,8 +485,14 @@ async def get_dashboard_status():
     }
 
 
-@app.get("/api/dashboard/module-params")
-async def get_module_parameters():
+@app.get(
+    "/api/dashboard/module-params",
+    tags=["demo"],
+    summary="Module Parameters",
+    description="Get current module parameters"
+)
+@limiter.limit("100/minute")
+async def get_module_parameters(request: Request):
     """Get current module parameters"""
     return {
         "voice": {
@@ -511,8 +524,14 @@ async def get_module_parameters():
     }
 
 
-@app.post("/api/dashboard/module-params")
-async def update_module_parameters(params: Dict):
+@app.post(
+    "/api/dashboard/module-params",
+    tags=["demo"],
+    summary="Update Module Parameters",
+    description="Update module parameters"
+)
+@limiter.limit("50/minute")
+async def update_module_parameters(request: Request, params: Dict):
     """Update module parameters"""
     try:
         # In a real implementation, this would update the configuration
@@ -526,9 +545,8 @@ async def update_module_parameters(params: Dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/dashboard/test-results")
-async def get_test_results():
-    """Get test execution results"""
+def _get_test_results_data():
+    """Internal function to get test results data"""
     return [
         {
             "name": "Voice Deepfake Detection",
@@ -653,13 +671,31 @@ async def get_test_results():
     ]
 
 
-@app.post("/api/dashboard/run-tests")
-async def run_tests():
+@app.get(
+    "/api/dashboard/test-results",
+    tags=["demo"],
+    summary="Test Results",
+    description="Get test execution results"
+)
+@limiter.limit("100/minute")
+async def get_test_results(request: Request):
+    """Get test execution results"""
+    return _get_test_results_data()
+
+
+@app.post(
+    "/api/dashboard/run-tests",
+    tags=["demo"],
+    summary="Run Tests",
+    description="Execute test suite and return results"
+)
+@limiter.limit("20/minute")
+async def run_tests(request: Request):
     """Execute test suite and return results"""
     try:
         # Simulate test execution
         # In a real implementation, this would run actual tests
-        results = await get_test_results()
+        results = _get_test_results_data()
         return {
             "status": "success",
             "results": results,
@@ -670,6 +706,7 @@ async def run_tests():
             "warnings": len([r for r in results if r["status"] == "warn"])
         }
     except Exception as e:
+        logger.error(f"Error running tests: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
