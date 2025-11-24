@@ -443,7 +443,7 @@ logging.getLogger('backend.authentication').setLevel(logging.DEBUG)
 
 1. Review the [API Documentation](API.md) for detailed endpoint specifications
 2. Check the [Configuration Guide](backend/config/settings.yaml) for all available options
-3. Explore the [example implementations](examples/) for your use case
+3. Explore the example implementations for your use case (examples coming soon)
 4. Set up monitoring and alerting for production deployments
 
 For questions or support, contact the development team.

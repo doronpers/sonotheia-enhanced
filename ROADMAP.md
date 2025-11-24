@@ -932,10 +932,10 @@ spec:
 The project has excellent documentation coverage:
 
 1. **README.md**: Project overview and quick start
-2. **CODE_SYNTHESIS_SUMMARY.md**: Comprehensive code analysis
-3. **USAGE_GUIDE.md**: How to utilize code patterns
-4. **REUSABLE_CODE_CATALOG.md**: Catalog of reusable patterns
-5. **Sonotheia Multi-Factor Voice Authentication & SAR.md**: Implementation guide
+2. **CODE_SYNTHESIS_SUMMARY.md**: Comprehensive code analysis (archived)
+3. **USAGE_GUIDE.md**: How to utilize code patterns (archived)
+4. **REUSABLE_CODE_CATALOG.md**: Catalog of reusable patterns (archived)
+5. **Sonotheia Multi-Factor Voice Authentication & SAR.md**: Implementation guide (archived)
 6. **HYBRID_OOP_FP_GUIDE.md**: Programming paradigm guide
 
 #### Reusable Components Documentation
@@ -1175,10 +1175,10 @@ def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:
 
 ### Internal Documentation
 - [README.md](./README.md) - Project overview
-- [CODE_SYNTHESIS_SUMMARY.md](./CODE_SYNTHESIS_SUMMARY.md) - Code analysis
-- [USAGE_GUIDE.md](./USAGE_GUIDE.md) - How to use documentation
-- [REUSABLE_CODE_CATALOG.md](./REUSABLE_CODE_CATALOG.md) - Code patterns
-- [Sonotheia Multi-Factor Voice Authentication & SAR.md](./Sonotheia%20Multi-Factor%20Voice%20Authentication%20%26%20SAR.md) - MFA guide
+- [CODE_SYNTHESIS_SUMMARY.md](./archive/CODE_SYNTHESIS_SUMMARY.md) - Code analysis (archived)
+- [USAGE_GUIDE.md](./archive/USAGE_GUIDE.md) - How to use documentation (archived)
+- [REUSABLE_CODE_CATALOG.md](./archive/REUSABLE_CODE_CATALOG.md) - Code patterns (archived)
+- [Sonotheia Multi-Factor Voice Authentication & SAR.md](./archive/Sonotheia%20Multi-Factor%20Voice%20Authentication%20&%20SAR.md) - MFA guide (archived)
 - [HYBRID_OOP_FP_GUIDE.md](./reusable-components/HYBRID_OOP_FP_GUIDE.md) - Programming guide
 
 ### Component Documentation

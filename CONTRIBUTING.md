@@ -9,8 +9,9 @@ Thank you for your interest in contributing to Sonotheia Enhanced! This document
 3. [Code Standards](#code-standards)
 4. [Testing Guidelines](#testing-guidelines)
 5. [Documentation](#documentation)
-6. [Pull Request Process](#pull-request-process)
-7. [Architecture Guidelines](#architecture-guidelines)
+6. [Automated Documentation](#automated-documentation)
+7. [Pull Request Process](#pull-request-process)
+8. [Architecture Guidelines](#architecture-guidelines)
 
 ---
 
@@ -294,6 +295,70 @@ def authenticate_user(user_id: str, factors: dict) -> dict:
 - Add diagrams where helpful
 - Keep table of contents updated
 - Cross-reference related documents
+
+---
+
+## Automated Documentation
+
+### Overview
+
+The project includes automated documentation maintenance and generation systems. See [`.github/README.md`](.github/README.md) for complete details.
+
+### Quick Commands
+
+**Validate documentation before committing:**
+```bash
+python .github/scripts/validate-docs.py
+python .github/scripts/check-links.py
+```
+
+**Generate documentation from code:**
+```bash
+python .github/scripts/generate-api-docs.py
+python .github/scripts/generate-component-docs.py
+```
+
+**Update changelog:**
+```bash
+python .github/scripts/update-changelog.py
+```
+
+### Automated Workflows
+
+The following workflows run automatically:
+
+1. **Documentation Review** (Weekly + on push/PR)
+   - Validates all documentation
+   - Checks for broken links
+   - Detects outdated dates
+   - Creates issues for problems
+
+2. **Auto-Generate Docs** (On code changes)
+   - Generates API documentation from FastAPI routes
+   - Generates component docs from docstrings
+   - Updates CHANGELOG.md from commits
+   - Creates PRs for review
+
+### Best Practices
+
+**When writing code:**
+- Add comprehensive docstrings to all functions/classes
+- Update inline comments for complex logic
+- Document API endpoints with descriptions
+- Use type hints consistently
+
+**When writing documentation:**
+- Follow existing structure and style
+- Run validation before committing
+- Update dates when making significant changes
+- Test all links work correctly
+
+**For documentation PRs:**
+- The automation will comment with validation results
+- Address any errors before merging
+- Review auto-generated content carefully
+
+See [`.github/QUICK_REFERENCE.md`](.github/QUICK_REFERENCE.md) for more commands and tips.
 
 ---
 
