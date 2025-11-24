@@ -12,7 +12,15 @@ import re
 
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
-from config.constants import SAFE_ID_PATTERN, VALID_CHANNELS, MAX_AUDIO_SIZE_BYTES
+from config.constants import (
+    SAFE_ID_PATTERN, 
+    VALID_CHANNELS, 
+    MAX_AUDIO_SIZE_BYTES,
+    MAX_STRING_LENGTH,
+    MAX_TEXT_LENGTH,
+    MAX_RED_FLAGS,
+    MAX_TRANSACTIONS
+)
 
 
 class SARTransaction(BaseModel):
@@ -28,8 +36,8 @@ class SARTransaction(BaseModel):
     @field_validator('transaction_id', 'transaction_type', 'destination')
     @classmethod
     def validate_string_length(cls, v, info):
-        if v and len(v) > 200:
-            raise ValueError(f"{info.field_name} exceeds maximum length of 200 characters")
+        if v and len(v) > MAX_STRING_LENGTH:
+            raise ValueError(f"{info.field_name} exceeds maximum length of {MAX_STRING_LENGTH} characters")
         return v
 
 
@@ -53,31 +61,31 @@ class SARContext(BaseModel):
     @field_validator('red_flags')
     @classmethod
     def validate_red_flags_length(cls, v):
-        if len(v) > 50:
-            raise ValueError("Too many red flags (maximum 50)")
-        if any(len(flag) > 200 for flag in v):
-            raise ValueError("Each red flag must be 200 characters or less")
+        if len(v) > MAX_RED_FLAGS:
+            raise ValueError(f"Too many red flags (maximum {MAX_RED_FLAGS})")
+        if any(len(flag) > MAX_STRING_LENGTH for flag in v):
+            raise ValueError(f"Each red flag must be {MAX_STRING_LENGTH} characters or less")
         return v
     
     @field_validator('customer_name', 'customer_id', 'account_number', 'occupation', 'pattern', 'doc_id')
     @classmethod
     def validate_string_fields(cls, v, info):
-        if len(v) > 200:
-            raise ValueError(f"{info.field_name} exceeds maximum length of 200 characters")
+        if len(v) > MAX_STRING_LENGTH:
+            raise ValueError(f"{info.field_name} exceeds maximum length of {MAX_STRING_LENGTH} characters")
         return v
     
     @field_validator('suspicious_activity')
     @classmethod
     def validate_activity_length(cls, v):
-        if len(v) > 1000:
-            raise ValueError("Suspicious activity description exceeds maximum length of 1000 characters")
+        if len(v) > MAX_TEXT_LENGTH:
+            raise ValueError(f"Suspicious activity description exceeds maximum length of {MAX_TEXT_LENGTH} characters")
         return v
     
     @field_validator('transactions')
     @classmethod
     def validate_transactions_count(cls, v):
-        if len(v) > 1000:
-            raise ValueError("Too many transactions (maximum 1000)")
+        if len(v) > MAX_TRANSACTIONS:
+            raise ValueError(f"Too many transactions (maximum {MAX_TRANSACTIONS})")
         return v
 
 

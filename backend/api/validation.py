@@ -213,21 +213,11 @@ def validate_channel(value: str) -> str:
     """
     Validate a transaction channel
     """
-    valid_channels = [
-        "wire_transfer",
-        "ach",
-        "mobile",
-        "web",
-        "branch",
-        "atm",
-        "phone"
-    ]
-    
     value = value.lower().strip()
     
-    if value not in valid_channels:
+    if value not in VALID_CHANNELS:
         raise ValidationError(
-            f"Invalid channel. Must be one of: {', '.join(valid_channels)}"
+            f"Invalid channel. Must be one of: {', '.join(VALID_CHANNELS)}"
         )
     
     return value
@@ -247,9 +237,9 @@ def validate_base64_audio(value: Optional[str]) -> Optional[str]:
         # Try to decode
         decoded = base64.b64decode(value, validate=True)
         
-        # Check size (max 10MB)
-        if len(decoded) > 10 * 1024 * 1024:
-            raise ValidationError("Audio data exceeds maximum size of 10MB")
+        # Check size (use constant)
+        if len(decoded) > MAX_AUDIO_SIZE_BYTES:
+            raise ValidationError(f"Audio data exceeds maximum size of {MAX_AUDIO_SIZE_BYTES // (1024*1024)}MB")
         
         # Basic sanity check - should have some length
         if len(decoded) < 100:
