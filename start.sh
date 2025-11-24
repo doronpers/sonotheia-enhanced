@@ -118,8 +118,17 @@ else
     echo -e "${YELLOW}To stop:${NC} ./stop.sh or press Ctrl+C"
     echo ""
     
+    # Cleanup function for graceful shutdown
+    cleanup() {
+        echo ''
+        echo -e "${YELLOW}Stopping services...${NC}"
+        kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
+        rm -f .backend.pid .frontend.pid
+        exit 0
+    }
+    
     # Wait for user interrupt
-    trap "echo ''; echo -e '${YELLOW}Stopping services...${NC}'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; rm -f .backend.pid .frontend.pid; exit 0" INT TERM
+    trap cleanup INT TERM
     
     # Keep script running
     wait

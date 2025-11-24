@@ -15,7 +15,7 @@ services:
       - /app/__pycache__
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/')"]
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -34,9 +34,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-
-volumes:
-  backend_cache:
 
 networks:
   default:
