@@ -10,6 +10,10 @@
 - **Risk Scoring**: Transaction risk assessment with configurable thresholds
 - **Interactive Dashboard**: React-based dashboard with waveform visualization and factor-level explainability
 - **Demo Mode**: Safe demonstration mode with watermarked outputs
+- **🆕 Rate Limiting**: Protection against abuse with configurable rate limits
+- **🆕 API Documentation**: Complete OpenAPI/Swagger documentation at `/docs`
+- **🆕 Input Validation**: Comprehensive security-focused validation with SQL injection and XSS protection
+- **🆕 Request Tracking**: Unique request IDs and response time monitoring
 
 ## Architecture
 
@@ -41,7 +45,9 @@
 sonotheia-enhanced/
 ├── backend/                    # Python/FastAPI backend
 │   ├── api/
-│   │   └── main.py            # FastAPI entry point
+│   │   ├── main.py            # FastAPI entry point with OpenAPI docs
+│   │   ├── middleware.py      # Rate limiting, auth, request tracking
+│   │   └── validation.py      # Input validation and sanitization
 │   ├── authentication/
 │   │   ├── mfa_orchestrator.py      # MFA decision engine
 │   │   ├── voice_factor.py          # Voice authentication
@@ -49,11 +55,12 @@ sonotheia-enhanced/
 │   │   └── unified_orchestrator.py  # Legacy orchestrator
 │   ├── sar/
 │   │   ├── generator.py             # SAR narrative builder
-│   │   ├── models.py                # Pydantic models
+│   │   ├── models.py                # Pydantic models with validation
 │   │   └── templates/
 │   │       └── sar_narrative.j2     # Jinja2 template
 │   ├── config/
-│   │   └── settings.yaml            # Configuration
+│   │   ├── settings.yaml            # Configuration
+│   │   └── constants.py             # Shared constants and patterns
 │   └── requirements.txt
 ├── frontend/                   # React dashboard
 │   ├── src/
@@ -76,7 +83,7 @@ sonotheia-enhanced/
 1. Install dependencies:
 ```bash
 cd backend
-pip install fastapi uvicorn pydantic pyyaml jinja2 numpy
+pip install -r requirements.txt
 ```
 
 2. Start the server:
@@ -84,7 +91,10 @@ pip install fastapi uvicorn pydantic pyyaml jinja2 numpy
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at:
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ### Frontend Setup
 
@@ -116,6 +126,38 @@ The dashboard will be available at `http://localhost:3000`
 ### Health & Status
 - `GET /` - Service information and status
 - `GET /api/v1/health` - Health check endpoint
+
+### Documentation
+- `GET /docs` - Interactive Swagger UI documentation
+- `GET /redoc` - ReDoc documentation
+- `GET /openapi.json` - OpenAPI specification
+
+## Security Features
+
+### Rate Limiting
+- Standard endpoints: 100 requests/minute
+- Authentication endpoints: 50 requests/minute
+- SAR generation: 20 requests/minute
+
+### Input Validation
+- SQL injection protection
+- XSS (Cross-Site Scripting) prevention
+- Path traversal protection
+- Field length constraints
+- Numeric range validation
+- Format validation (IDs, country codes, channels)
+
+### Request Tracking
+- Every request receives a unique `X-Request-ID` header
+- Response time tracking via `X-Response-Time` header
+- Comprehensive request/response logging
+
+### API Authentication (Optional)
+API key authentication can be enabled for production:
+```bash
+# Add header to requests:
+X-API-Key: your-api-key-here
+```
 
 ## Configuration
 
