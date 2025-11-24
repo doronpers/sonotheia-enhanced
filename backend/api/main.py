@@ -25,6 +25,7 @@ from api.middleware import (
     log_request_middleware,
     get_error_response
 )
+from api import session_management, escalation, audit_logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -91,6 +92,18 @@ app = FastAPI(
             "description": "Multi-factor authentication endpoints"
         },
         {
+            "name": "session",
+            "description": "Session management for onboarding workflows"
+        },
+        {
+            "name": "escalation",
+            "description": "Human-in-the-loop escalation and manual review"
+        },
+        {
+            "name": "audit",
+            "description": "Audit logging with compliance tagging"
+        },
+        {
             "name": "sar",
             "description": "Suspicious Activity Report generation"
         },
@@ -133,6 +146,11 @@ app.middleware("http")(log_request_middleware)
 orchestrator = UnifiedOrchestrator()
 mfa_orchestrator = MFAOrchestrator()
 sar_generator = SARGenerator()
+
+# Include routers for new modules
+app.include_router(session_management.router)
+app.include_router(escalation.router)
+app.include_router(audit_logging.router)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
