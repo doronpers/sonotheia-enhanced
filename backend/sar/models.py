@@ -6,11 +6,13 @@ Pydantic models for SAR generation and validation
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import List, Optional
 from datetime import date as date_type
+import sys
+from pathlib import Path
 import re
 
-
-# Basic validation patterns
-SAFE_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_\-]{1,100}$')
+# Add parent to path for imports
+sys.path.append(str(Path(__file__).parent.parent))
+from config.constants import SAFE_ID_PATTERN, VALID_CHANNELS, MAX_AUDIO_SIZE_BYTES
 
 
 class SARTransaction(BaseModel):
@@ -102,9 +104,8 @@ class AuthenticationRequest(BaseModel):
     @field_validator('channel')
     @classmethod
     def validate_channel_value(cls, v):
-        valid_channels = ['wire_transfer', 'ach', 'mobile', 'web', 'branch', 'atm', 'phone']
-        if v.lower() not in valid_channels:
-            raise ValueError(f"Channel must be one of: {', '.join(valid_channels)}")
+        if v.lower() not in VALID_CHANNELS:
+            raise ValueError(f"Channel must be one of: {', '.join(VALID_CHANNELS)}")
         return v.lower()
     
     @field_validator('destination_country')
@@ -117,8 +118,8 @@ class AuthenticationRequest(BaseModel):
     @field_validator('voice_sample')
     @classmethod
     def validate_voice_data(cls, v):
-        if v and len(v) > 15 * 1024 * 1024:  # 15MB limit for base64
-            raise ValueError("Voice sample exceeds maximum size of 10MB")
+        if v and len(v) > MAX_AUDIO_SIZE_BYTES:
+            raise ValueError(f"Voice sample exceeds maximum size of {MAX_AUDIO_SIZE_BYTES // (1024*1024)}MB")
         return v
 
 

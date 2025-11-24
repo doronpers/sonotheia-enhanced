@@ -5,16 +5,25 @@ Security-focused validation for all API inputs
 
 import re
 from typing import Optional, Any
-from pydantic import validator, field_validator
 import logging
+import sys
+from pathlib import Path
+
+# Add parent to path for imports
+sys.path.append(str(Path(__file__).parent.parent))
+from config.constants import (
+    SAFE_ID_PATTERN,
+    SAFE_STRING_PATTERN,
+    EMAIL_PATTERN,
+    COUNTRY_CODE_PATTERN,
+    VALID_CHANNELS,
+    MAX_AUDIO_SIZE_BYTES,
+    MAX_ID_LENGTH,
+    MAX_STRING_LENGTH,
+    MAX_TEXT_LENGTH
+)
 
 logger = logging.getLogger(__name__)
-
-# Security patterns
-SAFE_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_\-]{1,100}$')
-SAFE_STRING_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\s\.]{1,500}$')
-EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-COUNTRY_CODE_PATTERN = re.compile(r'^[A-Z]{2}$')
 
 # Dangerous patterns to reject
 SQL_INJECTION_PATTERNS = [
@@ -281,31 +290,3 @@ def validate_device_info(value: Optional[dict]) -> Optional[dict]:
     
     return value
 
-
-# Validation utilities for Pydantic models
-class ValidatedString:
-    """Base class for validated string fields"""
-    
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-    
-    @classmethod
-    def validate(cls, v, field):
-        if not isinstance(v, str):
-            raise TypeError('string required')
-        return validate_text_input(v, field.name)
-
-
-class ValidatedID:
-    """Validated ID field"""
-    
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-    
-    @classmethod
-    def validate(cls, v, field):
-        if not isinstance(v, str):
-            raise TypeError('string required')
-        return validate_id(v, field.name)
