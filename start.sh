@@ -122,7 +122,17 @@ else
     cleanup() {
         echo ''
         echo -e "${YELLOW}Stopping services...${NC}"
-        kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
+        
+        # Kill backend if it's still running
+        if [ -n "$BACKEND_PID" ] && kill -0 $BACKEND_PID 2>/dev/null; then
+            kill $BACKEND_PID 2>/dev/null
+        fi
+        
+        # Kill frontend if it's still running
+        if [ -n "$FRONTEND_PID" ] && kill -0 $FRONTEND_PID 2>/dev/null; then
+            kill $FRONTEND_PID 2>/dev/null
+        fi
+        
         rm -f .backend.pid .frontend.pid
         exit 0
     }

@@ -28,7 +28,7 @@ check() {
     else
         echo -e "${RED}✗${NC} $name"
         ((ERRORS++))
-        return 0  # Don't exit on error
+        return 0  # Don't exit on check failure
     fi
 }
 
