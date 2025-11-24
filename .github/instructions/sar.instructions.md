@@ -143,7 +143,7 @@ Generated: {{ generation_timestamp }}
 
 **Comprehensive Pydantic Models:**
 ```python
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, List
 
@@ -211,10 +211,11 @@ class SARNarrative(BaseModel):
     context: SARContext
     generated_at: datetime = Field(default_factory=datetime.now)
     
-    class Config:
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.isoformat()
         }
+    )
 ```
 
 ### Generation Process
@@ -254,7 +255,7 @@ class SARGenerator:
         
         # Generate narrative
         narrative = self.template.render(
-            **context.dict(),
+            **context.model_dump(),
             generation_timestamp=datetime.now().isoformat()
         )
         
