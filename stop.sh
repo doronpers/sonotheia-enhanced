@@ -10,10 +10,17 @@ NC='\033[0m' # No Color
 
 echo -e "${YELLOW}Stopping Sonotheia Enhanced services...${NC}"
 
-# Check if Docker Compose is being used
-if docker-compose ps &> /dev/null; then
+# Check if Docker Compose is being used (try v2 first, then v1)
+DOCKER_COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+fi
+
+if [ -n "$DOCKER_COMPOSE_CMD" ] && $DOCKER_COMPOSE_CMD ps &> /dev/null; then
     echo "Stopping Docker containers..."
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     echo -e "${GREEN}✓ Docker services stopped${NC}"
 else
     # Stop local processes

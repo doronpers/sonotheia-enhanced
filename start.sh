@@ -16,18 +16,26 @@ echo -e "${BLUE}║   Sonotheia Enhanced - Quick Start Script     ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════╝${NC}"
 echo ""
 
+# Check if Docker is available (try v2 first, then v1)
+DOCKER_COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+fi
+
 # Check if Docker is available
-if command -v docker &> /dev/null && command -v docker-compose &> /dev/null; then
+if command -v docker &> /dev/null && [ -n "$DOCKER_COMPOSE_CMD" ]; then
     echo -e "${GREEN}✓ Docker detected - Using Docker setup${NC}"
     echo ""
     
     # Stop any running containers
     echo -e "${YELLOW}Stopping any running containers...${NC}"
-    docker-compose down 2>/dev/null || true
+    $DOCKER_COMPOSE_CMD down 2>/dev/null || true
     
     # Start services
     echo -e "${YELLOW}Starting services with Docker Compose...${NC}"
-    docker-compose up --build -d
+    $DOCKER_COMPOSE_CMD up --build -d
     
     echo ""
     echo -e "${GREEN}✓ Services started successfully!${NC}"
@@ -37,8 +45,8 @@ if command -v docker &> /dev/null && command -v docker-compose &> /dev/null; the
     echo -e "  • Backend API:        ${GREEN}http://localhost:8000${NC}"
     echo -e "  • API Documentation:  ${GREEN}http://localhost:8000/docs${NC}"
     echo ""
-    echo -e "${YELLOW}To view logs:${NC} docker-compose logs -f"
-    echo -e "${YELLOW}To stop:${NC} docker-compose down"
+    echo -e "${YELLOW}To view logs:${NC} $DOCKER_COMPOSE_CMD logs -f"
+    echo -e "${YELLOW}To stop:${NC} $DOCKER_COMPOSE_CMD down"
     
 else
     echo -e "${YELLOW}⚠ Docker not found - Using local setup${NC}"
