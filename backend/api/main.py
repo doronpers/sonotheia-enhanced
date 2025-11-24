@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import sys
 from pathlib import Path
 import numpy as np
@@ -11,7 +12,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from authentication.unified_orchestrator import UnifiedOrchestrator, UnifiedContext
 from authentication.mfa_orchestrator import MFAOrchestrator, TransactionContext, AuthenticationFactors
-from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext
+from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext, SARReport, FilingStatus
 from sar.generator import SARGenerator
 
 app = FastAPI(
@@ -117,6 +118,67 @@ async def generate_sar(context: SARContext):
             'narrative': narrative,
             'validation': validation
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/sar/reports", response_model=SARReport)
+async def create_sar_report(context: SARContext):
+    """Create a complete SAR report with intelligence analysis"""
+    try:
+        report = sar_generator.create_sar_report(context)
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/sar/reports", response_model=List[SARReport])
+async def list_sar_reports(
+    status: Optional[str] = Query(None, description="Filter by filing status"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum number of reports to return")
+):
+    """List SAR reports with optional filtering"""
+    try:
+        reports = sar_generator.list_reports(status=status, limit=limit)
+        return reports
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/sar/reports/{sar_id}", response_model=SARReport)
+async def get_sar_report(sar_id: str):
+    """Get a specific SAR report by ID"""
+    try:
+        report = sar_generator.get_report(sar_id)
+        if not report:
+            raise HTTPException(status_code=404, detail=f"SAR report {sar_id} not found")
+        return report
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/sar/reports/{sar_id}/export")
+async def export_sar_report(sar_id: str, format: str = Query("txt", pattern="^(txt|json)$")):
+    """Export SAR report in various formats"""
+    try:
+        report = sar_generator.get_report(sar_id)
+        if not report:
+            raise HTTPException(status_code=404, detail=f"SAR report {sar_id} not found")
+        
+        if format == "json":
+            return report
+        else:  # txt format
+            return Response(
+                content=report.narrative,
+                media_type="text/plain",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{sar_id}.txt"'
+                }
+            )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
