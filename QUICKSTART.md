@@ -27,6 +27,8 @@ The script automatically:
 If you have Docker installed:
 
 ```bash
+docker compose up --build
+# OR (for Docker Compose v1)
 docker-compose up --build
 ```
 
@@ -48,6 +50,8 @@ stop.bat       # Windows
 
 **Using Docker:**
 ```bash
+docker compose down
+# OR (for Docker Compose v1)
 docker-compose down
 ```
 
@@ -102,7 +106,7 @@ lsof -ti:8000 | xargs kill -9    # Linux/Mac
 ```bash
 # Clear Docker cache
 docker system prune -a
-docker-compose up --build
+docker compose up --build
 ```
 
 ### "Module not found" (Python)
@@ -131,7 +135,7 @@ npm install --legacy-peer-deps
 - **Demo Mode:** Enabled by default, safe for testing
 - **Hot Reload:** Backend and frontend auto-reload on code changes
 - **Logs:** 
-  - Docker: `docker-compose logs -f`
+  - Docker: `docker compose logs -f`
   - Local: Check `backend.log` and `frontend.log`
 - **Health Check:** Visit http://localhost:8000/ to verify backend
 

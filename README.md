@@ -105,6 +105,8 @@ The script will automatically:
 If you have Docker installed:
 
 ```bash
+docker compose up --build
+# OR (for Docker Compose v1)
 docker-compose up --build
 ```
 
@@ -115,7 +117,7 @@ This will start both services in containers. Access:
 
 To stop:
 ```bash
-docker-compose down
+docker compose down
 # OR
 ./stop.sh  # Linux/Mac
 stop.bat   # Windows
@@ -326,20 +328,23 @@ npm run lint
 The project includes Docker configuration for easy deployment:
 
 ```bash
-# Build and start all services
+# Build and start all services (Docker Compose v2)
+docker compose up --build
+
+# OR with Docker Compose v1
 docker-compose up --build
 
 # Run in detached mode (background)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Docker Configuration
@@ -371,16 +376,16 @@ lsof -ti:8000 | xargs kill -9
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
 
-# Or use different ports
-docker-compose up --build  # Uses configured ports
+# Or use different ports with Docker Compose
+docker compose up --build  # Uses configured ports
 ```
 
 #### Docker Build Fails
 ```bash
 # Clear Docker cache and rebuild
-docker-compose down -v
+docker compose down -v
 docker system prune -a
-docker-compose up --build
+docker compose up --build
 ```
 
 #### Frontend Can't Connect to Backend
@@ -410,8 +415,8 @@ npm install --legacy-peer-deps
 
 ### Getting Help
 
-- Check logs: `docker-compose logs -f`
-- Verify services: `docker-compose ps`
+- Check logs: `docker compose logs -f`
+- Verify services: `docker compose ps`
 - Test backend: http://localhost:8000/docs
 - Test frontend: http://localhost:3000
 
