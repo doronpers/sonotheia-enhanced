@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Button } from "@mui/material";
+import { Container, Typography, Box, CircularProgress, Tabs, Tab, Paper } from "@mui/material";
 import WaveformDashboard from "./components/WaveformDashboard";
 import EvidenceModal from "./components/EvidenceModal";
 import RiskScoreBox from "./components/RiskScoreBox";
+import SARReportsTab from "./components/SARReportsTab";
+
+function TabPanel({ children, value, index }) {
+  return (
+    <div hidden={value !== index}>
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [waveformData, setWaveformData] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [currentTab, setCurrentTab] = useState(0);
 
   useEffect(() => {
     // Fetch demo data from backend
@@ -64,36 +74,53 @@ function App() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h3" gutterBottom>
-          Sonotheia Enhanced Authentication
+          Sonotheia Enhanced Platform
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Multi-Factor Voice Authentication & SAR Reporting System
         </Typography>
       </Box>
 
-      {waveformData && (
-        <Box sx={{ mb: 4 }}>
-          <RiskScoreBox 
-            score={0.25} 
-            level="LOW" 
-            factors={[
-              "Medium value transaction: $15,000",
-              "Known device with good reputation"
-            ]}
-          />
-        </Box>
-      )}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs 
+          value={currentTab} 
+          onChange={(e, newValue) => setCurrentTab(newValue)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="Authentication Dashboard" />
+          <Tab label="SAR Reports" />
+        </Tabs>
+      </Paper>
 
-      {waveformData && (
-        <WaveformDashboard
-          waveformData={waveformData}
-          segments={waveformData.segments}
-          factorResults={factorResults}
-        />
-      )}
+      <TabPanel value={currentTab} index={0}>
+        {waveformData && (
+          <Box sx={{ mb: 4 }}>
+            <RiskScoreBox 
+              score={0.25} 
+              level="LOW" 
+              factors={[
+                "Medium value transaction: $15,000",
+                "Known device with good reputation"
+              ]}
+            />
+          </Box>
+        )}
+
+        {waveformData && (
+          <WaveformDashboard
+            waveformData={waveformData}
+            segments={waveformData.segments}
+            factorResults={factorResults}
+          />
+        )}
+      </TabPanel>
+
+      <TabPanel value={currentTab} index={1}>
+        <SARReportsTab />
+      </TabPanel>
 
       <EvidenceModal
         open={modalOpen}
