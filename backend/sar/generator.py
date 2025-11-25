@@ -23,7 +23,7 @@ class SARGenerator:
     def generate_sar(self, context: SARContext) -> str:
         """Generate SAR narrative from context."""
         template = self.env.get_template("sar_narrative.j2")
-        narrative = template.render(**context.dict())
+        narrative = template.render(**context.model_dump())
         return narrative
     
     def validate_sar_quality(self, sar_narrative: str) -> Dict:

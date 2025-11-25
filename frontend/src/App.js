@@ -23,7 +23,8 @@ function HomePage() {
   const loadDemoData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/demo/waveform/sample1");
+      const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+      const response = await fetch(`${apiBase}/api/demo/waveform/sample1`);
       const data = await response.json();
       setWaveformData(data);
     } catch (err) {
