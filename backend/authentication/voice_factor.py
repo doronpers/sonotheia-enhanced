@@ -83,6 +83,27 @@ class VoiceAuthenticator:
         Comprehensive voice validation
         Returns dict with all check results
         """
+        # Validate audio input
+        if not audio_bytes:
+            return {
+                'deepfake_score': 1.0,
+                'liveness_passed': False,
+                'liveness_confidence': 0.0,
+                'speaker_verification_score': 0.0,
+                'decision': 'FAIL',
+                'explanation': 'No audio data provided'
+            }
+
+        if len(audio_bytes) < 100:
+            return {
+                'deepfake_score': 1.0,
+                'liveness_passed': False,
+                'liveness_confidence': 0.0,
+                'speaker_verification_score': 0.0,
+                'decision': 'FAIL',
+                'explanation': 'Audio data too small to be valid'
+            }
+
         deepfake_score = self.detect_deepfake(audio_bytes)
         liveness_result = self.check_liveness(audio_bytes)
         speaker_score = self.verify_speaker(audio_bytes, customer_id)

@@ -119,8 +119,10 @@ class AuthenticationRequest(BaseModel):
     @field_validator('destination_country')
     @classmethod
     def validate_country_format(cls, v):
-        if not v.isupper() or not v.isalpha() or len(v) != 2:
-            raise ValueError("Country code must be 2 uppercase letters (e.g., US, GB)")
+        # Normalize to uppercase for consistency
+        v = v.upper()
+        if not v.isalpha() or len(v) != 2:
+            raise ValueError("Country code must be 2 letters (e.g., US, GB)")
         return v
     
     @field_validator('voice_sample')
