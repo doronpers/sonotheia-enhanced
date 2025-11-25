@@ -225,28 +225,56 @@ def validate_channel(value: str) -> str:
 
 def validate_base64_audio(value: Optional[str]) -> Optional[str]:
     """
-    Validate base64-encoded audio data
+    Validate base64-encoded audio data with magic byte checking
+    Security: Validates actual file type to prevent arbitrary file uploads
     """
     if not value:
         return value
-    
+
     # Check if it looks like base64
     import base64
-    
+
     try:
         # Try to decode
         decoded = base64.b64decode(value, validate=True)
-        
+
         # Check size (use constant)
         if len(decoded) > MAX_AUDIO_SIZE_BYTES:
             raise ValidationError(f"Audio data exceeds maximum size of {MAX_AUDIO_SIZE_BYTES // (1024*1024)}MB")
-        
+
         # Basic sanity check - should have some length
         if len(decoded) < 100:
             raise ValidationError("Audio data too small to be valid")
-        
+
+        # Security: Validate file type by magic bytes (file signature)
+        # Common audio formats magic bytes
+        audio_magic_bytes = [
+            b'RIFF',           # WAV
+            b'ID3',            # MP3 with ID3
+            b'\xFF\xFB',       # MP3 (MPEG-1 Layer 3)
+            b'\xFF\xF3',       # MP3 (MPEG-1 Layer 3)
+            b'\xFF\xF2',       # MP3 (MPEG-2 Layer 3)
+            b'OggS',           # OGG/Vorbis/Opus
+            b'fLaC',           # FLAC
+            b'\x1A\x45\xDF\xA3',  # WebM/MKA (Matroska)
+        ]
+
+        # Check if file starts with any valid audio magic bytes
+        is_valid_audio = any(decoded.startswith(magic) for magic in audio_magic_bytes)
+
+        if not is_valid_audio:
+            # Additional check for WAV files (RIFF...WAVE)
+            if decoded.startswith(b'RIFF') and len(decoded) > 12:
+                if decoded[8:12] == b'WAVE':
+                    is_valid_audio = True
+
+        if not is_valid_audio:
+            raise ValidationError("Invalid audio file format. Only audio files are accepted.")
+
         return value
-        
+
+    except ValidationError:
+        raise
     except Exception as e:
         raise ValidationError(f"Invalid base64 audio data: {str(e)}")
 

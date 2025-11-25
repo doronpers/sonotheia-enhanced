@@ -21,11 +21,25 @@ limiter = Limiter(key_func=get_remote_address)
 # API Key security scheme
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-# Configurable API keys (in production, use environment variables or secrets manager)
-VALID_API_KEYS = {
-    "demo-key-123": {"client": "demo", "tier": "free"},
-    # Add more keys as needed
-}
+# Load API keys from environment (secure)
+import os
+_demo_key = os.getenv("DEMO_API_KEY", "demo-key-123")  # Only for development
+_api_keys_env = os.getenv("API_KEYS", "")  # Format: "key1:client1:tier1,key2:client2:tier2"
+
+VALID_API_KEYS = {}
+
+# Add demo key only if in demo mode
+if os.getenv("DEMO_MODE", "true").lower() == "true":
+    VALID_API_KEYS[_demo_key] = {"client": "demo", "tier": "free"}
+    logger.warning("DEMO_MODE enabled - using demo API key. Disable in production!")
+
+# Parse production API keys from environment
+if _api_keys_env:
+    for key_config in _api_keys_env.split(','):
+        parts = key_config.strip().split(':')
+        if len(parts) == 3:
+            key, client, tier = parts
+            VALID_API_KEYS[key] = {"client": client, "tier": tier}
 
 
 async def verify_api_key(api_key: Optional[str] = None) -> dict:
@@ -39,7 +53,8 @@ async def verify_api_key(api_key: Optional[str] = None) -> dict:
         return {"client": "anonymous", "tier": "free"}
     
     if api_key not in VALID_API_KEYS:
-        logger.warning(f"Invalid API key attempted: {api_key[:8]}...")
+        # Security: Do NOT log any part of the invalid API key (prevents brute force)
+        logger.warning(f"Invalid API key attempted from request")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
@@ -96,17 +111,61 @@ async def log_request_middleware(request: Request, call_next):
     return response
 
 
+async def add_security_headers_middleware(request: Request, call_next):
+    """
+    Add security headers to all responses
+    Protects against common web vulnerabilities
+    """
+    response = await call_next(request)
+
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+
+    # Enable XSS protection (for older browsers)
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+
+    # Content Security Policy - restrictive default
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'"
+    )
+
+    # Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # Permissions policy (formerly Feature-Policy)
+    response.headers["Permissions-Policy"] = (
+        "geolocation=(), microphone=(), camera=(), payment=()"
+    )
+
+    # HTTPS enforcement (if not in development)
+    if not os.getenv("DEMO_MODE", "true").lower() == "true":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    return response
+
+
 def get_error_response(error_code: str, message: str, details: Optional[dict] = None) -> dict:
     """
     Standardized error response format
+    Security: Does not include sensitive details in production
     """
     response = {
         "error_code": error_code,
         "message": message,
         "timestamp": time.time()
     }
-    
-    if details:
+
+    # Only include details in demo mode to prevent information disclosure
+    if details and os.getenv("DEMO_MODE", "true").lower() == "true":
         response["details"] = details
-    
+
     return response
