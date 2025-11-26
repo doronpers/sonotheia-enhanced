@@ -30,7 +30,7 @@ def check_component_docs(root_dir: str) -> list:
     frontend_components = Path(root_dir) / 'frontend' / 'src' / 'components'
     if frontend_components.exists() and frontend_components.is_dir():
         readme = frontend_components / 'README.md'
-        if not readme.exists():
+        if not readme.is_file():
             issues.append(f"Missing README.md in frontend/src/components")
     
     return issues
