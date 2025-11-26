@@ -26,7 +26,7 @@ def extract_links(file_path: Path) -> List[Tuple[str, str]]:
     
     links = []
     # Markdown links: [text](url)
-    md_links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+    md_links = re.findall(r'\[([^\]]+)\]\((https?://[^\s)]+)(?:\s+[^)]*)?\)', content)
     for text, url in md_links:
         if url.startswith('http://') or url.startswith('https://'):
             links.append((text, url))
