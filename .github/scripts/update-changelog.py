@@ -3,7 +3,6 @@
 Auto-update CHANGELOG.md based on recent commits.
 """
 
-import os
 import sys
 import subprocess
 from datetime import datetime

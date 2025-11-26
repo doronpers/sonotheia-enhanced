@@ -53,7 +53,8 @@ def check_dates(file_path: Path) -> List[Tuple[int, str, str]]:
                         
                         if age_days > 90:  # More than 3 months old
                             issues.append((i, desc, f"Date {date_str} is {age_days} days old"))
-                except:
+                except ValueError:
+                    # Ignore lines that do not match the expected date format
                     pass
     
     return issues

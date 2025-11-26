@@ -6,7 +6,7 @@ Check for outdated dates and version numbers in documentation.
 import re
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Tuple
 
 def find_markdown_files(root_dir: str) -> List[Path]:
@@ -53,7 +53,8 @@ def check_dates(file_path: Path) -> List[Tuple[int, str, str]]:
                         
                         if age_days > 90:  # More than 3 months old
                             issues.append((i, desc, f"Date {date_str} is {age_days} days old"))
-                except:
+                except ValueError:
+                    # Ignore lines that do not match the expected date format
                     pass
     
     return issues
