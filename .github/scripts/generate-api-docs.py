@@ -77,7 +77,7 @@ def generate_api_markdown(routes: List[Dict[str, Any]]) -> str:
     # Group by path prefix
     grouped = {}
     for route in routes:
-        prefix = route['path'].split('/')[1] if route['path'].startswith('/') else 'root'
+        prefix = str(route['path']).split('/')[1] if str(route['path']).startswith('/') else 'root'
         if prefix not in grouped:
             grouped[prefix] = []
         grouped[prefix].append(route)
