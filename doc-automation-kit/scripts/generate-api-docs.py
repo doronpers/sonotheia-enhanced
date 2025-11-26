@@ -25,7 +25,7 @@ def extract_route_info(file_path: Path) -> List[Dict[str, Any]]:
     
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            # Check for FastAPI decorators
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             for decorator in node.decorator_list:
                 if isinstance(decorator, ast.Call):
                     if hasattr(decorator.func, 'attr'):
