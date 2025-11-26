@@ -45,6 +45,19 @@ def check_api_documentation(root_dir: str) -> list:
         return issues
     
     with open(api_md, 'r') as f:
+-        content = f.read()
+-
++    if not api_md.is_file():
++        issues.append("API.md is not a regular file")
++        return issues
++
++    try:
++        with open(api_md, 'r', encoding='utf-8', errors='replace') as f:
++            content = f.read()
++    except OSError as e:
++        issues.append(f"Unable to read API.md: {e.__class__.__name__}")
++        return issues
++
         content = f.read()
     
     # Check for common endpoints
