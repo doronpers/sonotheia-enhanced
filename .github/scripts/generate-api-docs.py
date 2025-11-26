@@ -6,7 +6,6 @@ Auto-generate API documentation from FastAPI routes and docstrings.
 import os
 import sys
 import ast
-import re
 from pathlib import Path
 from typing import List, Dict, Any
 from datetime import datetime
