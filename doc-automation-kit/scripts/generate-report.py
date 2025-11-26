@@ -11,7 +11,7 @@ def main():
     
     report = f"""# 📚 Documentation Review Report
 
-**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
 
 ## Summary
 
