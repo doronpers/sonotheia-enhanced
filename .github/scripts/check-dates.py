@@ -31,7 +31,7 @@ def check_dates(file_path: Path) -> List[Tuple[int, str, str]]:
             (r'Last Updated:\s*(\d{4}-\d{2}-\d{2})', 'Last Updated'),
             (r'Date:\s*(\d{4}-\d{2}-\d{2})', 'Date'),
             (r'Created:\s*(\d{4}-\d{2}-\d{2})', 'Created'),
-            (r'Version.*(\d{4}-\d{2}-\d{2})', 'Version date'),
+            (r'Version.*?(\d{4}-\d{2}-\d{2})', 'Version date'),
             (r'\*\*(\d{4}-\d{2}-\d{2})\*\*', 'Bold date'),
             (r'Q[1-4]\s+(\d{4})', 'Quarter year'),
         ]
