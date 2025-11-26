@@ -1,16 +1,168 @@
-SAR filed for {{ customer_name }} (ID: {{ customer_id }}), account {{ account_number }} opened {{ account_opened }}, occupation: {{ occupation }}.
+SUSPICIOUS ACTIVITY REPORT (SAR)
+================================================================================
 
-Between {{ start_date }} and {{ end_date }}, the customer conducted {{ count }} transactions totaling ${{ "{:,.2f}".format(amount) }}, matching {{ pattern }}.
+REPORT IDENTIFICATION
+Document ID: {{ doc_id }}
+Filing Status: {{ filing_status.value|upper }}
+Priority Level: {{ priority_level }}
+Generated: {{ created_at.strftime('%Y-%m-%d %H:%M:%S') if created_at else 'N/A' }}
 
-Transactions:
+SUBJECT INFORMATION
+================================================================================
+Name: {{ customer_name }}
+Customer ID: {{ customer_id }}
+Account Number: {{ account_number }}
+Account Opened: {{ account_opened }}
+Occupation: {{ occupation }}
+
+SUSPICIOUS ACTIVITY SUMMARY
+================================================================================
+Activity Type: {{ suspicious_activity }}
+Period: {{ start_date }} to {{ end_date }} ({{ (end_date - start_date).days }} days)
+Transaction Count: {{ count }}
+Total Amount: ${{ "{:,.2f}".format(amount) }}
+Pattern Identified: {{ pattern }}
+
+TRANSACTION DETAILS
+================================================================================
 {% for tx in transactions -%}
-- {{ tx.date }}: {{ tx.type|capitalize }} ${{ "{:,.2f}".format(tx.amount) }}{% if tx.destination %} to {{ tx.destination }}{% endif %}.
+{{ loop.index }}. Transaction ID: {{ tx.transaction_id }}
+   Date: {{ tx.date }}
+   Type: {{ tx.type|capitalize }}
+   Amount: ${{ "{:,.2f}".format(tx.amount) }} {{ tx.currency }}
+   {%- if tx.source %}
+   Source: {{ tx.source }}
+   {%- endif %}
+   {%- if tx.destination %}
+   Destination: {{ tx.destination }}
+   {%- endif %}
+   {%- if tx.reference_number %}
+   Reference: {{ tx.reference_number }}
+   {%- endif %}
+   {%- if tx.risk_indicators %}
+   Risk Indicators: {{ tx.risk_indicators|join(', ') }}
+   {%- endif %}
+
 {% endfor %}
 
-Red flags detected:
+RED FLAGS AND INDICATORS
+================================================================================
 {% for flag in red_flags -%}
-- {{ flag }}
+{{ loop.index }}. {{ flag }}
 {% endfor %}
 
-Investigation summary: Customer contacted, explanations vague, documentation collected (ref {{ doc_id }}).
-Supporting docs: full transaction logs, customer communications, authentication records.
+{% if risk_intelligence -%}
+RISK INTELLIGENCE ANALYSIS
+================================================================================
+Overall Risk Score: {{ "{:.2f}".format(risk_intelligence.overall_risk_score) }} ({{ risk_intelligence.risk_level }})
+
+{%- if risk_intelligence.behavioral_anomalies %}
+
+Behavioral Anomalies:
+{% for anomaly in risk_intelligence.behavioral_anomalies -%}
+- {{ anomaly }}
+{% endfor %}
+{%- endif %}
+
+{%- if risk_intelligence.temporal_patterns %}
+
+Temporal Patterns:
+{% for pattern in risk_intelligence.temporal_patterns -%}
+- {{ pattern }}
+{% endfor %}
+{%- endif %}
+
+{%- if risk_intelligence.geographic_risks %}
+
+Geographic Risk Factors:
+{% for risk in risk_intelligence.geographic_risks -%}
+- {{ risk }}
+{% endfor %}
+{%- endif %}
+
+{%- if risk_intelligence.related_entities %}
+
+Related Entities:
+{% for entity in risk_intelligence.related_entities -%}
+- {{ entity }}
+{% endfor %}
+{%- endif %}
+
+{%- if risk_intelligence.similarity_to_known_schemes %}
+
+Similar Known Schemes:
+{% for scheme in risk_intelligence.similarity_to_known_schemes -%}
+- {{ scheme.name }} ({{ "{:.0%}".format(scheme.similarity_score) }} match)
+{% endfor %}
+{%- endif %}
+{% endif %}
+
+{% if investigation_details -%}
+INVESTIGATION DETAILS
+================================================================================
+Investigation ID: {{ investigation_details.investigation_id }}
+Lead Investigator: {{ investigation_details.investigator_name }}, {{ investigation_details.investigator_title }}
+Investigation Start Date: {{ investigation_details.investigation_start_date }}
+
+Customer Contact:
+{%- if investigation_details.customer_contacted %}
+Customer was contacted on {{ investigation_details.investigation_start_date }}.
+{%- if investigation_details.customer_response %}
+Response: {{ investigation_details.customer_response }}
+{%- else %}
+Response: Customer provided vague or evasive explanations that did not adequately explain the suspicious activity.
+{%- endif %}
+{%- else %}
+Customer was not contacted to avoid compromising the investigation.
+{%- endif %}
+
+{%- if investigation_details.external_sources_checked %}
+
+External Sources Consulted:
+{% for source in investigation_details.external_sources_checked -%}
+- {{ source }}
+{% endfor %}
+{%- endif %}
+
+{%- if investigation_details.law_enforcement_notified %}
+
+Law Enforcement: Appropriate law enforcement authorities have been notified.
+{%- endif %}
+{% endif %}
+
+SUPPORTING DOCUMENTATION
+================================================================================
+Primary Reference: {{ doc_id }}
+{%- if supporting_documents %}
+
+Additional Documentation:
+{% for doc in supporting_documents -%}
+- {{ doc }}
+{% endfor %}
+{%- endif %}
+{%- if investigation_details and investigation_details.additional_documentation %}
+{% for doc in investigation_details.additional_documentation -%}
+- {{ doc }}
+{% endfor %}
+{%- endif %}
+
+Standard supporting materials include:
+- Full transaction logs and account statements
+- Customer communications and correspondence
+- Authentication records and access logs
+- Device and geolocation data
+- Related entity analysis
+
+{% if reviewed_by or approved_by -%}
+COMPLIANCE REVIEW
+================================================================================
+{%- if reviewed_by %}
+Reviewed By: {{ reviewed_by }}
+{%- endif %}
+{%- if approved_by %}
+Approved By: {{ approved_by }}
+{%- endif %}
+{% endif %}
+
+================================================================================
+End of Report

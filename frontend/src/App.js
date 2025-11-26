@@ -93,10 +93,10 @@ function HomePage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h3" gutterBottom>
-          Sonotheia Enhanced Authentication
+          Sonotheia Enhanced Platform
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Multi-Factor Voice Authentication & SAR Reporting System
@@ -115,8 +115,8 @@ function HomePage() {
               `Decision: ${authResult.decision || "PENDING"}`
             ]}
           />
-        </Box>
-      )}
+        )}
+      </TabPanel>
 
       {waveformData && (
         <WaveformDashboard

@@ -16,7 +16,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from authentication.unified_orchestrator import UnifiedOrchestrator, UnifiedContext
 from authentication.mfa_orchestrator import MFAOrchestrator, TransactionContext, AuthenticationFactors
-from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext
+from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext, SARReport, FilingStatus
 from sar.generator import SARGenerator
 from api.middleware import (
     limiter,
