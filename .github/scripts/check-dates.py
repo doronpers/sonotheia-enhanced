@@ -6,7 +6,7 @@ Check for outdated dates and version numbers in documentation.
 import re
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Tuple
 
 def find_markdown_files(root_dir: str) -> List[Path]:
