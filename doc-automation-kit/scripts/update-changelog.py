@@ -31,7 +31,7 @@ def get_recent_commits(since_days: int = 7) -> list:
         
         return commits
     except subprocess.CalledProcessError:
-        return []
+    except (subprocess.CalledProcessError, FileNotFoundError):
 
 def categorize_commit(subject: str) -> str:
     """Categorize commit by type."""
