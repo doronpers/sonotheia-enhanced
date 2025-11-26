@@ -1,0 +1,182 @@
+{
+  "timestamp": "2025-11-24T17:51:33.776657",
+  "summary": {
+    "total_profiles": 14,
+    "accuracy": 0.7857142857142857,
+    "legitimate_accuracy": 1.0,
+    "deepfake_detection_rate": 0.0,
+    "approval_rate": 1.0,
+    "escalation_rate": 0.0,
+    "avg_risk_score": 0.17575203401801215
+  },
+  "profiles": [
+    {
+      "user_id": "CAL-GOOD-000",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.08720820392596303,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.17441640785192605
+    },
+    {
+      "user_id": "CAL-GOOD-001",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.05827577730837879,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.11655155461675758
+    },
+    {
+      "user_id": "CAL-GOOD-002",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.09971363085063192,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.19942726170126385
+    },
+    {
+      "user_id": "CAL-GOOD-003",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.07009602742179018,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.14019205484358035
+    },
+    {
+      "user_id": "CAL-GOOD-004",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.08064478339628213,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.16128956679256426
+    },
+    {
+      "user_id": "CAL-GOOD-005",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.08820861089213658,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.17641722178427316
+    },
+    {
+      "user_id": "CAL-GOOD-006",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.09855558366960582,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.19711116733921163
+    },
+    {
+      "user_id": "CAL-GOOD-007",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.1012680369155364,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.2025360738310728
+    },
+    {
+      "user_id": "CAL-GOOD-008",
+      "scenario": "legitimate_user",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.10102166611185909,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.20204333222371818
+    },
+    {
+      "user_id": "CAL-SUSPICIOUS-000",
+      "scenario": "potential_deepfake",
+      "ground_truth": "deepfake",
+      "expected_decision": "ESCALATE",
+      "actual_decision": "APPROVE",
+      "correct": false,
+      "composite_risk_score": 0.4970606773902121,
+      "risk_level": "MEDIUM",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.9941213547804242
+    },
+    {
+      "user_id": "CAL-SUSPICIOUS-001",
+      "scenario": "potential_deepfake",
+      "ground_truth": "deepfake",
+      "expected_decision": "ESCALATE",
+      "actual_decision": "APPROVE",
+      "correct": false,
+      "composite_risk_score": 0.3796891282149447,
+      "risk_level": "MEDIUM",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.7593782564298894
+    },
+    {
+      "user_id": "CAL-SUSPICIOUS-002",
+      "scenario": "potential_deepfake",
+      "ground_truth": "deepfake",
+      "expected_decision": "ESCALATE",
+      "actual_decision": "APPROVE",
+      "correct": false,
+      "composite_risk_score": 0.47976326712934,
+      "risk_level": "MEDIUM",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.95952653425868
+    },
+    {
+      "user_id": "CAL-EDGE-000",
+      "scenario": "edge_case",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.17523928528122515,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.3504785705624503
+    },
+    {
+      "user_id": "CAL-EDGE-001",
+      "scenario": "edge_case",
+      "ground_truth": "legitimate",
+      "expected_decision": "APPROVE",
+      "actual_decision": "APPROVE",
+      "correct": true,
+      "composite_risk_score": 0.1437837977442641,
+      "risk_level": "LOW",
+      "biometric_risk": 0.0,
+      "voice_risk": 0.2875675954885282
+    }
+  ]
+}
