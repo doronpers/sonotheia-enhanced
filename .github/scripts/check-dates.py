@@ -19,7 +19,7 @@ def find_markdown_files(root_dir: str) -> List[Path]:
 
 def check_dates(file_path: Path) -> List[Tuple[int, str, str]]:
     """Check for potentially outdated dates."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
         lines = f.readlines()
     
     issues = []
