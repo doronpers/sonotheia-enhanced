@@ -1,0 +1,40 @@
+services:
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sonotheia-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEMO_MODE=true
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; import httpx; sys.exit(0 if httpx.get('http://localhost:8000/', timeout=5).status_code == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sonotheia-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: sonotheia-network

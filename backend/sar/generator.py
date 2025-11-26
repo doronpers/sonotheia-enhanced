@@ -31,7 +31,7 @@ class SARGenerator:
             context.risk_intelligence = self._generate_risk_intelligence(context)
         
         template = self.env.get_template("sar_narrative.j2")
-        narrative = template.render(**context.dict())
+        narrative = template.render(**context.model_dump())
         return narrative
     
     def create_sar_report(self, context: SARContext) -> SARReport:

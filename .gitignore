@@ -36,3 +36,16 @@ models/weights/
 config/secrets.yaml
 .env.local
 .env.production
+
+# Quick start scripts
+.backend.pid
+.frontend.pid
+backend.log
+frontend.log
+
+# Build artifacts
+frontend/build/
+backend/dist/
+
+# Docker
+.dockerignore
