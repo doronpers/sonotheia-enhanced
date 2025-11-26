@@ -108,7 +108,8 @@ def validate_markdown_structure(file_path: Path) -> List[str]:
     """Validate markdown structure and formatting."""
     issues = []
     
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+
         lines = f.readlines()
     
     # Check for title (first non-empty line should be # heading)
