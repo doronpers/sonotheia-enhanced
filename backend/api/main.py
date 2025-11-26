@@ -19,10 +19,11 @@ from authentication.mfa_orchestrator import MFAOrchestrator, TransactionContext,
 from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext
 from sar.generator import SARGenerator
 from api.middleware import (
-    limiter, 
-    verify_api_key, 
-    add_request_id_middleware, 
+    limiter,
+    verify_api_key,
+    add_request_id_middleware,
     log_request_middleware,
+    add_security_headers_middleware,
     get_error_response
 )
 from api import session_management, escalation, audit_logging
@@ -130,15 +131,47 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    # Security: Restrict to necessary headers only
+    allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
     expose_headers=["X-Request-ID", "X-Response-Time"]
 )
+
+# Global exception handler for security
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler to prevent information disclosure
+    """
+    # Log the full error for debugging
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+
+    # Return generic error to client (security: don't leak stack traces)
+    import os
+    if os.getenv("DEMO_MODE", "true").lower() == "true":
+        # In demo mode, provide more details
+        detail = {
+            "error_code": "INTERNAL_ERROR",
+            "message": f"An error occurred: {str(exc)}",
+            "type": type(exc).__name__
+        }
+    else:
+        # In production, minimal information
+        detail = {
+            "error_code": "INTERNAL_ERROR",
+            "message": "An internal error occurred. Please contact support."
+        }
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=detail
+    )
 
 # Add rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Add custom middleware
+# Add custom middleware (order matters - security headers first)
+app.middleware("http")(add_security_headers_middleware)
 app.middleware("http")(add_request_id_middleware)
 app.middleware("http")(log_request_middleware)
 

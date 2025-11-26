@@ -305,9 +305,11 @@ export default function AuthenticationForm({ onAuthenticate }) {
               >
                 <MenuItem value="wire_transfer">Wire Transfer</MenuItem>
                 <MenuItem value="ach">ACH</MenuItem>
-                <MenuItem value="card">Card</MenuItem>
                 <MenuItem value="mobile">Mobile</MenuItem>
-                <MenuItem value="online">Online</MenuItem>
+                <MenuItem value="web">Web</MenuItem>
+                <MenuItem value="branch">Branch</MenuItem>
+                <MenuItem value="atm">ATM</MenuItem>
+                <MenuItem value="phone">Phone</MenuItem>
               </Select>
             </FormControl>
           </Grid>
