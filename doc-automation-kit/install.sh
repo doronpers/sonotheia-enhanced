@@ -163,7 +163,11 @@ if command -v python3 &> /dev/null; then
     echo -e "${GREEN}  ✓${NC} Found: $PYTHON_VERSION"
     
     # Check if scripts work
-    if python3 .github/scripts/validate-docs.py --help &> /dev/null 2>&1 || true; then
+    if python3 .github/scripts/validate-docs.py --help &> /dev/null 2>&1; then
+        echo -e "${GREEN}  ✓${NC} Scripts are executable"
+    else
+        echo -e "${YELLOW}  ⚠️  Script check failed.${NC}"
+    fi
         echo -e "${GREEN}  ✓${NC} Scripts are executable"
     fi
 else
