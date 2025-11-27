@@ -55,3 +55,4 @@ Cargo.lock
 
 # Docker
 .dockerignore
+integrate-workspace/
