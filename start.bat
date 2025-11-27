@@ -7,6 +7,9 @@ echo   Sonotheia Enhanced - Quick Start Script
 echo ================================================
 echo.
 
+REM Project name (matches .env COMPOSE_PROJECT_NAME)
+set PROJECT_NAME=sonotheia-treehorn
+
 REM Check if Docker is available
 where docker >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
@@ -16,10 +19,10 @@ if %ERRORLEVEL% EQU 0 (
         echo.
         
         echo Stopping any running containers...
-        docker-compose down 2>nul
+        docker-compose -p %PROJECT_NAME% down 2>nul
         
         echo Starting services with Docker Compose...
-        docker-compose up --build -d
+        docker-compose -p %PROJECT_NAME% up --build -d
         
         echo.
         echo [32m[OK] Services started successfully![0m
@@ -29,8 +32,8 @@ if %ERRORLEVEL% EQU 0 (
         echo   - Backend API:        http://localhost:8000
         echo   - API Documentation:  http://localhost:8000/docs
         echo.
-        echo To view logs: docker-compose logs -f
-        echo To stop: docker-compose down
+        echo To view logs: docker-compose -p %PROJECT_NAME% logs -f
+        echo To stop: docker-compose -p %PROJECT_NAME% down
         goto :end
     )
 )

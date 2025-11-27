@@ -3,19 +3,22 @@ REM Stop script for Sonotheia Enhanced (Windows)
 
 echo Stopping Sonotheia Enhanced services...
 
+REM Project name (matches .env COMPOSE_PROJECT_NAME)
+set PROJECT_NAME=sonotheia-treehorn
+
 REM Check if Docker Compose is being used (try v2 first, then v1)
-docker compose ps >nul 2>nul
+docker compose -p %PROJECT_NAME% ps >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     echo Stopping Docker containers...
-    docker compose down
+    docker compose -p %PROJECT_NAME% down
     echo [32m[OK] Docker services stopped[0m
     goto :end
 )
 
-docker-compose ps >nul 2>nul
+docker-compose -p %PROJECT_NAME% ps >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     echo Stopping Docker containers...
-    docker-compose down
+    docker-compose -p %PROJECT_NAME% down
     echo [32m[OK] Docker services stopped[0m
     goto :end
 )

@@ -16,12 +16,15 @@ echo -e "${BLUE}║   Sonotheia Enhanced - Quick Start Script     ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════╝${NC}"
 echo ""
 
+# Project name (matches .env COMPOSE_PROJECT_NAME)
+PROJECT_NAME="sonotheia-treehorn"
+
 # Check if Docker is available (try v2 first, then v1)
 DOCKER_COMPOSE_CMD=""
 if docker compose version &> /dev/null; then
-    DOCKER_COMPOSE_CMD="docker compose"
+    DOCKER_COMPOSE_CMD="docker compose -p $PROJECT_NAME"
 elif command -v docker-compose &> /dev/null; then
-    DOCKER_COMPOSE_CMD="docker-compose"
+    DOCKER_COMPOSE_CMD="docker-compose -p $PROJECT_NAME"
 fi
 
 # Check if Docker is available

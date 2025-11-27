@@ -10,12 +10,15 @@ NC='\033[0m' # No Color
 
 echo -e "${YELLOW}Stopping Sonotheia Enhanced services...${NC}"
 
+# Project name (matches .env COMPOSE_PROJECT_NAME)
+PROJECT_NAME="sonotheia-treehorn"
+
 # Check if Docker Compose is being used (try v2 first, then v1)
 DOCKER_COMPOSE_CMD=""
 if docker compose version &> /dev/null; then
-    DOCKER_COMPOSE_CMD="docker compose"
+    DOCKER_COMPOSE_CMD="docker compose -p $PROJECT_NAME"
 elif command -v docker-compose &> /dev/null; then
-    DOCKER_COMPOSE_CMD="docker-compose"
+    DOCKER_COMPOSE_CMD="docker-compose -p $PROJECT_NAME"
 fi
 
 if [ -n "$DOCKER_COMPOSE_CMD" ] && $DOCKER_COMPOSE_CMD ps &> /dev/null; then
