@@ -153,8 +153,8 @@ impl ArticulationSensor {
             return 0.5; // Insufficient data
         }
 
-        // Extract features for each frame
-        let mut frame_features: Vec<FrameFeatures> = Vec::new();
+        // Pre-allocate frame features vector
+        let mut frame_features: Vec<FrameFeatures> = Vec::with_capacity(frames.len());
 
         for frame in &frames {
             let windowed = apply_hamming_window(frame);
@@ -181,16 +181,13 @@ impl ArticulationSensor {
                     freqs.last().copied().unwrap_or(0.0)
                 };
 
-                // Spectral flux (change from previous frame)
-                let spectral_flux = self.compute_spectral_flux(&magnitudes);
-
                 frame_features.push(FrameFeatures {
                     rms,
                     zcr,
                     centroid,
                     rolloff_freq,
-                    spectral_flux,
-                    magnitudes: magnitudes.clone(),
+                    spectral_flux: 0.0, // Will be computed in batch via update_spectral_flux
+                    magnitudes,
                 });
             }
         }
@@ -199,7 +196,7 @@ impl ArticulationSensor {
             return 0.5;
         }
 
-        // Update spectral flux for all frames (requires comparison)
+        // Update spectral flux for all frames (requires comparison between adjacent frames)
         self.update_spectral_flux(&mut frame_features);
 
         // Compute articulation metrics
@@ -215,11 +212,6 @@ impl ArticulationSensor {
             + 0.25 * spectral_flux_score;
 
         combined.clamp(0.0, 1.0)
-    }
-
-    /// Compute spectral flux for a single frame (placeholder)
-    fn compute_spectral_flux(&self, _magnitudes: &[f64]) -> f64 {
-        0.0 // Will be updated in batch
     }
 
     /// Update spectral flux values for all frames

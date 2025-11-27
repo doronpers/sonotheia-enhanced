@@ -149,8 +149,8 @@ impl PhaseSensor {
             return 0.5; // Neutral score for insufficient data
         }
 
-        // Extract phase spectra for each frame
-        let mut phase_spectra: Vec<Vec<f64>> = Vec::new();
+        // Pre-allocate phase spectra vector
+        let mut phase_spectra: Vec<Vec<f64>> = Vec::with_capacity(frames.len());
 
         for frame in &frames {
             let windowed = apply_hamming_window(frame);
@@ -343,15 +343,15 @@ impl PhaseSensor {
         }
     }
 
-    /// Wrap phase to [-pi, pi] range
+    /// Wrap phase to [-pi, pi] range using efficient modular arithmetic
     #[inline]
     fn wrap_phase(&self, phase: f64) -> f64 {
-        let mut wrapped = phase;
-        while wrapped > std::f64::consts::PI {
-            wrapped -= 2.0 * std::f64::consts::PI;
-        }
-        while wrapped < -std::f64::consts::PI {
-            wrapped += 2.0 * std::f64::consts::PI;
+        let two_pi = 2.0 * std::f64::consts::PI;
+        let mut wrapped = phase % two_pi;
+        if wrapped > std::f64::consts::PI {
+            wrapped -= two_pi;
+        } else if wrapped < -std::f64::consts::PI {
+            wrapped += two_pi;
         }
         wrapped
     }

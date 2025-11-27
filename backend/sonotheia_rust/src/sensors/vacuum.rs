@@ -157,8 +157,11 @@ impl VacuumSensor {
             return 0.5; // Neutral score for insufficient data
         }
 
-        // Compute features for each frame
-        let mut spectral_features: Vec<SpectralFeatures> = Vec::new();
+        // Pre-allocate with estimated capacity
+        let mut spectral_features: Vec<SpectralFeatures> = Vec::with_capacity(frames.len());
+
+        // Pre-compute frequency bins once (same for all frames of same size)
+        let freq_resolution = sample_rate as f64 / frame_size as f64;
 
         for frame in &frames {
             // Apply window
@@ -174,9 +177,9 @@ impl VacuumSensor {
             if let Ok(fft_result) = compute_fft(&windowed) {
                 let magnitudes = magnitude_spectrum(&fft_result);
 
-                // Create frequency bins
+                // Create frequency bins (computed once per magnitude length)
                 let freqs: Vec<f64> = (0..magnitudes.len())
-                    .map(|i| i as f64 * sample_rate as f64 / frame_size as f64)
+                    .map(|i| i as f64 * freq_resolution)
                     .collect();
 
                 // Compute spectral features
