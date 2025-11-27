@@ -115,8 +115,8 @@ function HomePage() {
               `Decision: ${authResult.decision || "PENDING"}`
             ]}
           />
-        )}
-      </TabPanel>
+        </Box>
+      )}
 
       {waveformData && (
         <WaveformDashboard
