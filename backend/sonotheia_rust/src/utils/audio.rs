@@ -30,7 +30,7 @@ pub const MIN_SAMPLES: usize = 8;
 /// - Checks for NaN or infinite values
 pub fn validate_audio_input(audio: &[f64], sample_rate: u32) -> SensorResultType<()> {
     // Check sample rate bounds
-    if sample_rate < MIN_SAMPLE_RATE || sample_rate > MAX_SAMPLE_RATE {
+    if !(MIN_SAMPLE_RATE..=MAX_SAMPLE_RATE).contains(&sample_rate) {
         return Err(SensorError::invalid_sample_rate(sample_rate));
     }
 

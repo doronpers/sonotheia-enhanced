@@ -123,15 +123,35 @@ impl SensorResult {
     }
 
     /// Convert to dictionary for Python
+    /// 
+    /// # Panics
+    /// This function will panic if PyObject conversion fails, which should only
+    /// happen if the Python interpreter is in an invalid state.
+    #[allow(clippy::expect_used)]  // Panic is acceptable here - GIL is held
     pub fn to_dict(&self) -> HashMap<String, PyObject> {
         Python::with_gil(|py| {
             let mut dict = HashMap::new();
-            dict.insert("sensor_name".to_string(), self.sensor_name.clone().into_pyobject(py).expect("Failed to convert sensor_name to PyObject").into_any().unbind());
-            dict.insert("passed".to_string(), self.passed.into_pyobject(py).expect("Failed to convert passed to PyObject").into_any().unbind());
-            dict.insert("value".to_string(), self.value.into_pyobject(py).expect("Failed to convert value to PyObject").into_any().unbind());
-            dict.insert("threshold".to_string(), self.threshold.into_pyobject(py).expect("Failed to convert threshold to PyObject").into_any().unbind());
-            dict.insert("reason".to_string(), self.reason.clone().into_pyobject(py).expect("Failed to convert reason to PyObject").into_any().unbind());
-            dict.insert("detail".to_string(), self.detail.clone().into_pyobject(py).expect("Failed to convert detail to PyObject").into_any().unbind());
+            
+            // Helper macro to reduce code duplication
+            macro_rules! insert_py {
+                ($key:expr, $val:expr) => {
+                    dict.insert(
+                        $key.to_string(), 
+                        $val.into_pyobject(py)
+                            .expect("GIL conversion failed")
+                            .into_any()
+                            .unbind()
+                    );
+                };
+            }
+            
+            insert_py!("sensor_name", self.sensor_name.clone());
+            insert_py!("passed", self.passed);
+            insert_py!("value", self.value);
+            insert_py!("threshold", self.threshold);
+            insert_py!("reason", self.reason.clone());
+            insert_py!("detail", self.detail.clone());
+            
             dict
         })
     }
