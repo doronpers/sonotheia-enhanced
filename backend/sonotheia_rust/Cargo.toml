@@ -1,0 +1,40 @@
+[package]
+name = "sonotheia_rust"
+version = "0.1.0"
+edition = "2021"
+authors = ["Sonotheia Team"]
+description = "High-performance audio sensors for Sonotheia Enhanced Platform"
+license = "Proprietary"
+readme = "README.md"
+
+[lib]
+name = "sonotheia_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Python bindings with explicit feature flags for security
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"] }
+numpy = "0.23"
+ndarray = "0.16"
+# FFT operations for spectral analysis
+rustfft = "6.2"
+# Error handling
+thiserror = "2.0"
+# Parallel processing with bounds checking
+rayon = "1.10"
+
+[profile.release]
+# Optimize for performance while keeping some safety
+opt-level = 3
+lto = true
+codegen-units = 1
+# Enable debug symbols for profiling
+debug = false
+# Disable panic unwinding for smaller binary and safety
+panic = "abort"
+# Enable overflow checks even in release mode for security
+overflow-checks = true
+
+[profile.dev]
+# Keep overflow checks in development
+overflow-checks = true

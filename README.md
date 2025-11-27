@@ -10,6 +10,7 @@
 - **Risk Scoring**: Transaction risk assessment with configurable thresholds
 - **Interactive Dashboard**: React-based dashboard with waveform visualization and factor-level explainability
 - **Demo Mode**: Safe demonstration mode with watermarked outputs
+- **🆕 Rust Performance Sensors**: High-performance audio sensors (VacuumSensor, PhaseSensor, ArticulationSensor) with Python bindings
 - **🆕 Rate Limiting**: Protection against abuse with configurable rate limits
 - **🆕 API Documentation**: Complete OpenAPI/Swagger documentation at `/docs`
 - **🆕 Input Validation**: Comprehensive security-focused validation with SQL injection and XSS protection
@@ -61,6 +62,12 @@ sonotheia-enhanced/
 │   ├── config/
 │   │   ├── settings.yaml            # Configuration
 │   │   └── constants.py             # Shared constants and patterns
+│   ├── sonotheia_rust/              # 🆕 Rust performance sensors
+│   │   ├── src/
+│   │   │   ├── sensors/             # VacuumSensor, PhaseSensor, ArticulationSensor
+│   │   │   └── utils/               # Audio processing, FFT, error handling
+│   │   ├── Cargo.toml
+│   │   └── SECURITY.md
 │   └── requirements.txt
 ├── frontend/                   # React dashboard
 │   ├── src/

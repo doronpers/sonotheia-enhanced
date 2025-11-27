@@ -47,5 +47,11 @@ frontend.log
 frontend/build/
 backend/dist/
 
+# Rust build artifacts
+target/
+**/target/
+Cargo.lock
+*.rlib
+
 # Docker
 .dockerignore
