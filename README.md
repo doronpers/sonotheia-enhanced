@@ -105,6 +105,8 @@ The script will automatically:
 - Detect and use Docker if available (recommended)
 - Fall back to local setup (Python + Node.js)
 - Install all dependencies
+AI agent contributors: see `AGENTS.md` in the repo root for onboarding, guardrails, and templates for automated agents and scaffolding guidance.
+
 - Start both backend and frontend services
 
 #### Using Docker Compose (Recommended)

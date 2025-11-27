@@ -4,10 +4,12 @@ Security-focused validation for all API inputs
 """
 
 import re
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 import logging
 import sys
 from pathlib import Path
+import base64
+import struct
 
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
@@ -277,6 +279,112 @@ def validate_base64_audio(value: Optional[str]) -> Optional[str]:
         raise
     except Exception as e:
         raise ValidationError(f"Invalid base64 audio data: {str(e)}")
+
+
+def decode_base64_audio(value: str) -> bytes:
+    """
+    Decode base64-encoded audio string and return raw bytes.
+    Raises ValidationError when invalid.
+    """
+    if not value:
+        raise ValidationError("No audio data provided")
+
+    try:
+        decoded = base64.b64decode(value, validate=True)
+        return decoded
+    except Exception as e:
+        logger.error("Failed to decode base64 audio", exc_info=True)
+        raise ValidationError(f"Invalid base64 audio data: {e}")
+
+
+def get_wav_info(decoded: bytes) -> Optional[Dict[str, Any]]:
+    """
+    Extract WAV file info (sample_rate, byte_rate, channels, bits_per_sample, data_size, duration) from raw bytes.
+    Returns None for non-WAV formats.
+    """
+    if not decoded or len(decoded) < 44:
+        return None
+
+    # Check RIFF/WAVE header
+    if not (decoded.startswith(b'RIFF') and decoded[8:12] == b'WAVE'):
+        return None
+
+    i = 12
+    fmt_info = None
+    data_size = None
+    byte_rate = None
+
+    # Parse chunks
+    try:
+        while i + 8 <= len(decoded):
+            chunk_id = decoded[i:i+4]
+            chunk_size = struct.unpack('<I', decoded[i+4:i+8])[0]
+            chunk_data_start = i + 8
+
+            if chunk_id == b'fmt ':
+                # fmt chunk: audio format (2), channels (2), sample_rate (4), byte_rate (4), block_align (2), bits_per_sample (2)
+                fmt_raw = decoded[chunk_data_start:chunk_data_start+16]
+                if len(fmt_raw) >= 16:
+                    audio_format, num_channels, sample_rate, byte_rate, block_align, bits_per_sample = struct.unpack('<HHIIHH', fmt_raw[:16])
+                    fmt_info = {
+                        'audio_format': audio_format,
+                        'num_channels': num_channels,
+                        'sample_rate': sample_rate,
+                        'byte_rate': byte_rate,
+                        'block_align': block_align,
+                        'bits_per_sample': bits_per_sample
+                    }
+            elif chunk_id == b'data':
+                # chunk_size is the size of the data
+                data_size = chunk_size
+
+            # Move to next chunk (8-byte header + chunk_size, padded to even)
+            i = chunk_data_start + chunk_size
+            if chunk_size % 2 == 1:
+                i += 1
+
+        if fmt_info and data_size and fmt_info.get('byte_rate'):
+            return {
+                'sample_rate': fmt_info['sample_rate'],
+                'byte_rate': fmt_info['byte_rate'],
+                'num_channels': fmt_info['num_channels'],
+                'bits_per_sample': fmt_info['bits_per_sample'],
+                'data_size': data_size,
+                'duration': data_size / float(fmt_info['byte_rate'])
+            }
+
+    except Exception:
+        # Failed to parse WAV info - return None
+        logger.debug('Failed to parse WAV info', exc_info=True)
+        return None
+
+    return None
+
+
+def validate_audio_duration(value: Optional[str], min_seconds: float = 1.0, max_seconds: float = 30.0) -> Optional[str]:
+    """
+    Validate that the base64-encoded audio is a WAV and has duration within the limits.
+    Returns the original value if valid, raises ValidationError otherwise.
+    """
+    if not value:
+        return value
+
+    decoded = decode_base64_audio(value)
+    info = get_wav_info(decoded)
+    if not info:
+        raise ValidationError("Unable to determine WAV audio duration - unsupported format or missing metadata")
+
+    duration = info.get('duration')
+    if duration is None:
+        raise ValidationError("Unable to compute audio duration")
+
+    if duration < min_seconds:
+        raise ValidationError(f"Audio duration {duration:.2f}s is shorter than minimum allowed {min_seconds}s")
+
+    if duration > max_seconds:
+        raise ValidationError(f"Audio duration {duration:.2f}s exceeds maximum allowed {max_seconds}s")
+
+    return value
 
 
 def validate_device_info(value: Optional[dict]) -> Optional[dict]:

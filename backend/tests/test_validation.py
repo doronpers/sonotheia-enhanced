@@ -17,11 +17,54 @@ from api.validation import (
     validate_country_code,
     validate_text_input,
     validate_email,
+    validate_base64_audio,
+    validate_audio_duration,
     check_sql_injection,
     check_xss,
     check_path_traversal,
     ValidationError
 )
+
+import base64
+import struct
+
+
+def _create_wav_bytes(duration_seconds: float = 1.0, sample_rate: int = 16000, num_channels: int = 1, bits_per_sample: int = 16) -> bytes:
+    """Create a minimal WAV (PCM) byte stream with given duration and sample rate."""
+    byte_depth = bits_per_sample // 8
+    data_size = int(duration_seconds * sample_rate * num_channels * byte_depth)
+    byte_rate = sample_rate * num_channels * byte_depth
+    block_align = num_channels * byte_depth
+
+    # RIFF header
+    riff_chunk_size = 36 + data_size
+    header = b'RIFF' + struct.pack('<I', riff_chunk_size) + b'WAVE'
+
+    # fmt chunk
+    fmt_chunk = b'fmt ' + struct.pack('<I', 16) + struct.pack('<HHIIHH', 1, num_channels, sample_rate, byte_rate, block_align, bits_per_sample)
+
+    # data chunk
+    data_chunk = b'data' + struct.pack('<I', data_size) + (b'\x00' * data_size)
+
+    return header + fmt_chunk + data_chunk
+
+
+def test_validate_audio_duration_valid_wav():
+    """Test valid WAV duration check passes"""
+    wav_bytes = _create_wav_bytes(duration_seconds=1.0)
+    encoded = base64.b64encode(wav_bytes).decode()
+    # Should not raise
+    assert validate_base64_audio(encoded) == encoded
+    assert validate_audio_duration(encoded, min_seconds=0.5, max_seconds=2.0) == encoded
+
+
+def test_validate_audio_duration_too_short():
+    """Test WAV duration shorter than minimum triggers ValidationError"""
+    wav_bytes = _create_wav_bytes(duration_seconds=0.4)
+    encoded = base64.b64encode(wav_bytes).decode()
+    assert validate_base64_audio(encoded) == encoded
+    with pytest.raises(ValidationError):
+        validate_audio_duration(encoded, min_seconds=0.5, max_seconds=2.0)
 
 
 class TestSanitization:
