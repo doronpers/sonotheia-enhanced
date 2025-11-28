@@ -24,6 +24,29 @@ from config.constants import (
 )
 
 
+# Define enums and helper models first (before they're used)
+class FilingStatus(str, Enum):
+    """SAR filing status"""
+    DRAFT = "draft"
+    PENDING = "pending"
+    FILED = "filed"
+    REJECTED = "rejected"
+
+
+class RiskIntelligence(BaseModel):
+    """Risk intelligence for SAR"""
+    risk_score: float = Field(default=0.5, ge=0.0, le=1.0)
+    risk_level: str = Field(default="MEDIUM")
+    indicators: List[str] = Field(default_factory=list)
+
+
+class KnownScheme(BaseModel):
+    """Known fraud scheme"""
+    name: str
+    description: str
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
 class SARTransaction(BaseModel):
     """Individual transaction in a SAR report"""
     model_config = ConfigDict(populate_by_name=True)
@@ -145,28 +168,6 @@ class AuthenticationResponse(BaseModel):
     factor_results: dict
     transaction_risk: dict
     sar_flags: List[str]
-
-
-class FilingStatus(str, Enum):
-    """SAR filing status"""
-    DRAFT = "draft"
-    PENDING = "pending"
-    FILED = "filed"
-    REJECTED = "rejected"
-
-
-class RiskIntelligence(BaseModel):
-    """Risk intelligence for SAR"""
-    risk_score: float = Field(default=0.5, ge=0.0, le=1.0)
-    risk_level: str = Field(default="MEDIUM")
-    indicators: List[str] = Field(default_factory=list)
-
-
-class KnownScheme(BaseModel):
-    """Known fraud scheme"""
-    name: str
-    description: str
-    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class SARReport(BaseModel):
