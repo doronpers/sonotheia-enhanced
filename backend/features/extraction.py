@@ -97,19 +97,20 @@ class FeatureExtractor:
 
         return logspec
 
-    def extract_cqcc(self, audio: np.ndarray, n_cqcc: int = 20, n_bins: int = 96) -> np.ndarray:
+    def extract_cqcc(self, audio: np.ndarray, n_cqcc: int = 20, n_bins: int = 84) -> np.ndarray:
         """
         Extract Constant-Q Cepstral Coefficients (CQCC)
 
         Args:
             audio: Input audio array
             n_cqcc: Number of CQCCs to extract
-            n_bins: Number of frequency bins in CQT
+            n_bins: Number of frequency bins in CQT (default 84 for 16kHz sr)
 
         Returns:
             CQCC matrix (frames x n_cqcc)
         """
         # Compute Constant-Q Transform
+        # Use 84 bins to avoid exceeding Nyquist frequency at 16kHz
         cqt = librosa.cqt(
             audio,
             sr=self.sr,
