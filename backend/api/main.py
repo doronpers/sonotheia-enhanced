@@ -27,6 +27,7 @@ from api.middleware import (
     get_error_response
 )
 from api import session_management, escalation, audit_logging
+from api.analyze_call import router as analyze_call_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -184,6 +185,7 @@ sar_generator = SARGenerator()
 app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
+app.include_router(analyze_call_router)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):

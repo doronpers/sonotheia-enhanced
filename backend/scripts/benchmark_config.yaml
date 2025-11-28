@@ -1,0 +1,29 @@
+# Benchmark Configuration for Sonotheia MVP
+
+# Dataset configuration
+dataset_dir: "./data"  # Directory containing audio files
+metadata_file: "metadata.csv"  # CSV with columns: file_path, label (0=genuine, 1=spoof)
+
+# Output configuration
+output_dir: "./benchmark_results"  # Where to save results
+
+# Model configuration
+model_path: "./models/gmm_spoof_detector.pkl"  # Path to trained model (optional)
+
+# Feature extraction
+feature_types:
+  - "lfcc"
+  - "logspec"
+
+sample_rate: 16000
+
+# Codec simulation
+codecs:
+  - "landline"
+  - "mobile"
+  - "voip"
+  - "clean"
+
+# Evaluation options
+eval_metrics: true
+generate_plots: true
