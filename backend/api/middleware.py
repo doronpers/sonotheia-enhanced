@@ -24,6 +24,9 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 # Load API keys from environment (secure)
 # Note: API keys should ONLY be set via environment variables, never hardcoded
 _demo_key = os.getenv("DEMO_API_KEY")  # Must be set via environment if demo mode is used
+import os
+
+_demo_key = os.getenv("DEMO_API_KEY")  # No default - must be set explicitly
 _api_keys_env = os.getenv("API_KEYS", "")  # Format: "key1:client1:tier1,key2:client2:tier2"
 
 VALID_API_KEYS = {}

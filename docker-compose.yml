@@ -1,4 +1,19 @@
 services:
+  # Redis Message Broker for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: sonotheia-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # Backend API Service
   backend:
     build:
@@ -10,9 +25,14 @@ services:
     environment:
       - DEMO_MODE=true
       - PYTHONUNBUFFERED=1
+      # Celery config shared between API and workers for job submission via celery_app
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - ./backend:/app
       - /app/__pycache__
+    depends_on:
+      - redis
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; import httpx; sys.exit(0 if httpx.get('http://localhost:8000/', timeout=5).status_code == 200 else 1)"]
@@ -20,6 +40,43 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Celery Worker Service
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sonotheia-celery-worker
+    command: celery -A celery_app worker --loglevel=info --concurrency=4
+    environment:
+      - DEMO_MODE=true
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      - redis
+      - backend
+    restart: unless-stopped
+
+  # Celery Flower Monitoring Dashboard (Optional)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sonotheia-flower
+    command: celery -A celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery_worker
+    restart: unless-stopped
 
   # Frontend Service
   frontend:
@@ -34,6 +91,9 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  redis_data:
 
 networks:
   default:

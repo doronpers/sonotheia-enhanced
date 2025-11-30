@@ -30,6 +30,7 @@ from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.routes.admin_modules import router as admin_modules_router
 from core.module_registry import get_registry, is_module_enabled
+from api.jobs import router as jobs_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -118,6 +119,8 @@ app = FastAPI(
         {
             "name": "admin",
             "description": "Administrative endpoints for module management (requires admin API key)"
+            "name": "jobs",
+            "description": "Async job management for heavy processing tasks"
         }
     ]
 )
@@ -192,6 +195,7 @@ app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
+app.include_router(jobs_router)
 
 # Include admin module routes
 app.include_router(admin_modules_router)
