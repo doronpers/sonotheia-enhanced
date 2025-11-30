@@ -370,6 +370,11 @@ class RawNet3Detector:
             raise RuntimeError("Model not loaded")
 
         with torch.no_grad():
+            if audio.ndim == 2:
+                if audio.shape[0] <= audio.shape[1]:
+                    audio = audio.mean(axis=0)
+                else:
+                    audio = audio.mean(axis=1)
             x = torch.from_numpy(audio).float().unsqueeze(0).to(self.device)
             score = self.model.get_score(x)
             score = float(score.cpu().numpy()[0])
