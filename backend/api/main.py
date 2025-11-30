@@ -134,6 +134,8 @@ app = FastAPI(
         {
             "name": "transcription",
             "description": "Voice-to-text transcription with speaker diarization"
+        },
+        {
             "name": "metrics",
             "description": "Prometheus metrics endpoint"
         }
@@ -167,17 +169,16 @@ async def global_exception_handler(request: Request, exc: Exception):
     """
     Global exception handler to prevent information disclosure
     """
-    # Log the full error for debugging
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    # Log the full error for debugging (including type and stack trace)
+    logger.error(f"Unhandled exception: {type(exc).__name__}: {str(exc)}", exc_info=True)
 
-    # Return generic error to client (security: don't leak stack traces)
+    # Return generic error to client (security: don't leak stack traces or exception types)
     import os
     if os.getenv("DEMO_MODE", "true").lower() == "true":
-        # In demo mode, provide more details
+        # In demo mode, provide error message but not exception type (security)
         detail = {
             "error_code": "INTERNAL_ERROR",
-            "message": f"An error occurred: {str(exc)}",
-            "type": type(exc).__name__
+            "message": f"An error occurred: {str(exc)}"
         }
     else:
         # In production, minimal information

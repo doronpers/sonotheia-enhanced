@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Grid,
@@ -59,11 +59,7 @@ export default function Dashboard() {
 
   const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -82,7 +78,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBase]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const handleRunTests = async () => {
     setLoading(true);

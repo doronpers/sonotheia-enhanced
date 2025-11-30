@@ -274,11 +274,6 @@ async def detect_async(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=get_error_response("PROCESSING_ERROR", str(e)),
         )
-        logger.error(f"Async detection start error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=get_error_response("PROCESSING_ERROR", str(e)),
-        )
 
 
 @router.get(

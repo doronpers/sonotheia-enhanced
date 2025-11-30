@@ -10,6 +10,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 import base64
+import threading
 
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -36,6 +37,7 @@ router = APIRouter(prefix="/api", tags=["transcription"])
 
 # In-memory job storage for demo (use database/Redis in production)
 _jobs = {}
+_jobs_lock = threading.RLock()  # Thread-safe access to _jobs dictionary
 
 
 def check_module_enabled():

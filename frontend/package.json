@@ -8,7 +8,7 @@
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.14.0",
     "ajv": "^8.17.1",
-    "axios": "^1.6.0",
+    "axios": "^1.6.1",
     "plotly.js": "^2.26.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -19,7 +19,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test"
+    "test": "react-scripts test",
+    "audit": "npm audit",
+    "audit:fix": "npm audit fix"
+  },
+  "engines": {
+    "node": ">=18.0.0 <21.0.0",
+    "npm": ">=9.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
