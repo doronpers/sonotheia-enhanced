@@ -142,7 +142,7 @@ def main():
     parser.add_argument(
         "--demo-mode",
         action="store_true",
-        default=True,
+        default=False,
         help="Use demo mode (placeholder scores)",
     )
     parser.add_argument(
