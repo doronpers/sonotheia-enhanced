@@ -25,14 +25,14 @@ class ModuleRegistry:
     """
 
     _instance: Optional["ModuleRegistry"] = None
-    _modules: Dict[str, Dict] = {}
-    _config_path: Optional[Path] = None
 
     def __new__(cls, config_path: Optional[str] = None) -> "ModuleRegistry":
         """Singleton pattern - only one registry instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
+            cls._instance._modules = {}
+            cls._instance._config_path = None
         return cls._instance
 
     def __init__(self, config_path: Optional[str] = None):
@@ -44,7 +44,7 @@ class ModuleRegistry:
                         Defaults to <repo_root>/modules.yaml
         """
         # Only initialize once (singleton pattern)
-        if self._initialized:
+        if getattr(self, "_initialized", False):
             return
 
         self._initialized = True

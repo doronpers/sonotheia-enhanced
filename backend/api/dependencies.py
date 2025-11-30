@@ -9,7 +9,8 @@ import logging
 from typing import Callable
 from fastapi import Request, HTTPException, status
 
-# Import from sibling packages
+# Note: sys.path modification is used to match existing codebase patterns
+# (see analyze_call.py, session_management.py, etc.)
 import sys
 from pathlib import Path
 

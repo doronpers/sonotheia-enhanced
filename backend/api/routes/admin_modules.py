@@ -10,6 +10,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Request, HTTPException, Depends, status
 from pydantic import BaseModel, Field, ConfigDict
 
+# Note: sys.path modification is used to match existing codebase patterns
+# (see analyze_call.py, session_management.py, etc.)
 import sys
 from pathlib import Path
 
