@@ -102,7 +102,7 @@ class Transcriber:
                     audio_data=audio_data,
                     sample_rate=sample_rate,
                     audio_id=audio_id,
-                    num_speakers=num_speakers
+                     num_speakers=(num_speakers if (num_speakers or 0) >= 1 else None)
                 )
                 
                 # Merge diarization with transcript
