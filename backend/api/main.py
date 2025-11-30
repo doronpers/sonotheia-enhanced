@@ -29,6 +29,9 @@ from api.middleware import (
 from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.detection_router import router as detection_router
+from api.routes.admin_modules import router as admin_modules_router
+from core.module_registry import get_registry, is_module_enabled
+from api.jobs import router as jobs_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -117,6 +120,12 @@ app = FastAPI(
         {
             "name": "demo",
             "description": "Demo and testing endpoints"
+        },
+        {
+            "name": "admin",
+            "description": "Administrative endpoints for module management (requires admin API key)"
+            "name": "jobs",
+            "description": "Async job management for heavy processing tasks"
         }
     ]
 )
@@ -191,7 +200,16 @@ app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
-app.include_router(detection_router)
+        {
+            "name": "admin",
+            "description": "Administrative endpoints for module management (requires admin API key)"
+        },
+        {
+            "name": "jobs",
+            "description": "Async job management for heavy processing tasks"
+        }
+    ]
+)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):

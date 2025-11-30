@@ -1,0 +1,102 @@
+# Celery Task Module Checks
+
+When implementing Celery tasks that depend on specific modules,
+always check if the module is enabled before processing.
+
+## Example Pattern
+
+```python
+from celery import shared_task
+from core.module_registry import is_module_enabled
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task(bind=True)
+def process_audio_task(self, audio_id: str):
+    """
+    Process audio file asynchronously.
+    
+    Respects module registry - will skip processing if audio module is disabled.
+    """
+    # Check if required module is enabled
+    if not is_module_enabled('audio'):
+        logger.warning(
+            f"Skipping audio task {self.request.id}: audio module is disabled"
+        )
+        return {
+            'status': 'skipped',
+            'reason': 'audio module disabled',
+            'task_id': self.request.id
+        }
+    
+    # Proceed with processing
+    try:
+        # ... your processing logic here ...
+        return {
+            'status': 'completed',
+            'audio_id': audio_id,
+            'task_id': self.request.id
+        }
+    except Exception as e:
+        logger.error(f"Audio processing failed: {e}")
+        raise
+
+
+@shared_task(bind=True)
+def generate_sar_task(self, context_data: dict):
+    """
+    Generate SAR report asynchronously.
+    
+    Requires both 'sar' and 'risk_engine' modules to be enabled.
+    """
+    # Check multiple required modules
+    required_modules = ['sar', 'risk_engine']
+    disabled = [m for m in required_modules if not is_module_enabled(m)]
+    
+    if disabled:
+        logger.warning(
+            f"Skipping SAR task {self.request.id}: "
+            f"required modules disabled: {disabled}"
+        )
+        return {
+            'status': 'skipped',
+            'reason': f'required modules disabled: {disabled}',
+            'task_id': self.request.id
+        }
+    
+    # Proceed with SAR generation
+    # ...
+```
+
+## Best Practices
+
+1. **Check at task start**: Always check module state at the beginning of task execution,
+   not when queuing the task. Module state may change between queue and execution.
+
+2. **Return informative status**: When skipping due to disabled module, return a clear
+   status indicating why the task was skipped.
+
+3. **Use consistent logging**: Log module-related skips at WARNING level so they can
+   be monitored.
+
+4. **Don't raise exceptions for disabled modules**: Return a skip status rather than
+   raising an exception. This prevents unnecessary task retries.
+
+5. **Document module dependencies**: Clearly document which modules each task requires
+   in the task's docstring.
+
+## Environment Variable Overrides
+
+Tasks will respect environment variable overrides just like API endpoints:
+
+- `MODULE_AUDIO=0` - Disable audio processing tasks
+- `MODULE_SAR=0` - Disable SAR generation tasks
+- `MODULE_CELERY=0` - Disable all Celery task processing
+
+## Monitoring
+
+Monitor these log messages to track module-related task behavior:
+- "Skipping * task *: * module is disabled"
+- "required modules disabled:"
