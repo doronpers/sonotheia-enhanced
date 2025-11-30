@@ -124,6 +124,8 @@ app = FastAPI(
         {
             "name": "admin",
             "description": "Administrative endpoints for module management (requires admin API key)"
+        },
+        {
             "name": "jobs",
             "description": "Async job management for heavy processing tasks"
         }
@@ -200,16 +202,9 @@ app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
-        {
-            "name": "admin",
-            "description": "Administrative endpoints for module management (requires admin API key)"
-        },
-        {
-            "name": "jobs",
-            "description": "Async job management for heavy processing tasks"
-        }
-    ]
-)
+app.include_router(detection_router)
+app.include_router(admin_modules_router)
+app.include_router(jobs_router)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
