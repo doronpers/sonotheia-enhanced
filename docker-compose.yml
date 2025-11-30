@@ -3,16 +3,29 @@ services:
   redis:
     image: redis:7-alpine
     container_name: sonotheia-redis
-    ports:
-      - "6379:6379"
+    # SECURITY: Port commented out for production - use internal network only
+    # Uncomment only for development/debugging
+    # ports:
+    #   - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme_redis_password}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
     volumes:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_redis_password}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 
   # Backend API Service
   backend:
@@ -23,12 +36,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEMO_MODE=true
+      # SECURITY: Set DEMO_MODE=false in production!
+      - DEMO_MODE=${DEMO_MODE:-false}
       - PYTHONUNBUFFERED=1
       # Celery config shared between API and workers for job submission via celery_app
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
     volumes:
+      # SECURITY: Remove bind mounts in production - use COPY in Dockerfile instead
       - ./backend:/app
       - /app/__pycache__
     depends_on:
@@ -40,6 +56,14 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
 
   # Celery Worker Service
   celery_worker:
@@ -49,10 +73,11 @@ services:
     container_name: sonotheia-celery-worker
     command: celery -A celery_app worker --loglevel=info --concurrency=4
     environment:
-      - DEMO_MODE=true
+      - DEMO_MODE=${DEMO_MODE:-false}
       - PYTHONUNBUFFERED=1
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -60,23 +85,43 @@ services:
       - redis
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
 
   # Celery Flower Monitoring Dashboard (Optional)
+  # SECURITY WARNING: Flower exposes sensitive task information
+  # Only enable in development or secure with authentication in production
   flower:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: sonotheia-flower
-    command: celery -A celery_app flower --port=5555
+    # SECURITY: Add basic auth for production
+    command: celery -A celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
     ports:
       - "5555:5555"
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
     depends_on:
       - redis
       - celery_worker
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 
   # Frontend Service
   frontend:
@@ -87,10 +132,18 @@ services:
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 
 volumes:
   redis_data:
