@@ -413,9 +413,8 @@ class TestMetricsEndpoint:
     async def test_metrics_endpoint_returns_prometheus_format(self):
         """Test that metrics endpoint returns Prometheus format."""
         from observability.metrics import metrics_endpoint
-        from starlette.testclient import TestClient
-        from starlette.applications import Starlette
-        from starlette.routing import Route
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
 
         yaml_content = """
 modules:
@@ -433,7 +432,8 @@ modules:
             get_registry(config_path=temp_path)
             update_module_metrics()
 
-            app = Starlette(routes=[Route("/metrics", metrics_endpoint)])
+            app = FastAPI()
+            app.add_api_route("/metrics", metrics_endpoint, methods=["GET"])
             client = TestClient(app)
 
             response = client.get("/metrics")

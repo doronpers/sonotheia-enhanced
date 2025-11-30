@@ -107,6 +107,12 @@ class ModuleRegistry:
                 for name, info in config["modules"].items():
                     if info is None:
                         continue
+                    # Validate info is a dictionary before merging
+                    if not isinstance(info, dict):
+                        logger.warning(
+                            f"Invalid config for module '{name}': expected dict, got {type(info).__name__}"
+                        )
+                        continue
                     name_lower = name.lower()
                     if name_lower in self._modules:
                         self._modules[name_lower].update(info)
