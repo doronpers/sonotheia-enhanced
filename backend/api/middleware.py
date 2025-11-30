@@ -22,16 +22,16 @@ limiter = Limiter(key_func=get_remote_address)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 # Load API keys from environment (secure)
-import os
-_demo_key = os.getenv("DEMO_API_KEY", "demo-key-123")  # Only for development
+# Note: API keys should ONLY be set via environment variables, never hardcoded
+_demo_key = os.getenv("DEMO_API_KEY")  # Must be set via environment if demo mode is used
 _api_keys_env = os.getenv("API_KEYS", "")  # Format: "key1:client1:tier1,key2:client2:tier2"
 
 VALID_API_KEYS = {}
 
-# Add demo key only if in demo mode
-if os.getenv("DEMO_MODE", "true").lower() == "true":
+# Add demo key only if in demo mode AND a demo key is configured
+if os.getenv("DEMO_MODE", "true").lower() == "true" and _demo_key:
     VALID_API_KEYS[_demo_key] = {"client": "demo", "tier": "free"}
-    logger.warning("DEMO_MODE enabled - using demo API key. Disable in production!")
+    logger.warning("DEMO_MODE enabled with demo API key. Disable in production!")
 
 # Parse production API keys from environment
 if _api_keys_env:

@@ -1,0 +1,64 @@
+# Sonotheia Enhanced - Module Configuration
+# Set module enabled/disabled states. Environment variables override these settings.
+# Environment variable format: MODULE_<NAME>=0|1 (e.g., MODULE_CALIBRATION=0)
+
+modules:
+  # Audio processing module
+  audio:
+    enabled: true
+    description: "Core audio processing and loading functionality"
+
+  # Analysis module
+  analysis:
+    enabled: true
+    description: "Audio analysis and feature inspection"
+
+  # Detection module
+  detection:
+    enabled: true
+    description: "Deepfake and spoof detection capabilities"
+
+  # Calibration module
+  calibration:
+    enabled: true
+    description: "Audio calibration and preprocessing tools"
+
+  # Transcription module
+  transcription:
+    enabled: true
+    description: "Speech-to-text transcription services"
+
+  # Risk engine module
+  risk_engine:
+    enabled: true
+    description: "Risk scoring and assessment engine"
+
+  # SAR module
+  sar:
+    enabled: true
+    description: "Suspicious Activity Report generation"
+
+  # Rate limiting module
+  rate_limiting:
+    enabled: true
+    description: "API rate limiting functionality"
+
+  # Celery module
+  celery:
+    enabled: true
+    description: "Asynchronous task processing with Celery"
+
+  # Observability module
+  observability:
+    enabled: true
+    description: "Logging, metrics, and tracing capabilities"
+
+  # Multi-tenancy module
+  tenants:
+    enabled: true
+    description: "Multi-tenant support and isolation"
+
+  # MLflow module
+  mlflow:
+    enabled: true
+    description: "ML experiment tracking and model registry"
