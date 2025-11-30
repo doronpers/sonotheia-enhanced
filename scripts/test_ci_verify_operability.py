@@ -158,6 +158,7 @@ class TestCheckAdminModules:
             check_admin_modules("http://localhost:8000", api_key="test-key")
 
         assert captured_request is not None
+        # Note: Python's urllib normalizes header names, so X-API-Key becomes X-api-key
         assert captured_request.get_header("X-api-key") == "test-key"
 
 
