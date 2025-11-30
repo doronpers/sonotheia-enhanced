@@ -362,6 +362,21 @@ async def _run_transcription_background(
 
 
 @router.get(
+    "/transcribe/config",
+    summary="Get Transcription Config",
+    description="Get current transcription configuration",
+    response_description="Transcription configuration"
+)
+@limiter.limit("60/minute")
+async def get_config(request: Request):
+    """Get current transcription configuration (safe subset)."""
+    check_module_enabled()
+    
+    config = get_transcription_config()
+    return config.to_dict()
+
+
+@router.get(
     "/transcribe/{job_id}",
     response_model=TranscriptionJobStatusResponse,
     summary="Get Transcription Job Status",
@@ -541,18 +556,3 @@ async def diarize_audio(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=get_error_response("DIARIZATION_ERROR", f"Diarization failed: {str(e)}")
         )
-
-
-@router.get(
-    "/transcribe/config",
-    summary="Get Transcription Config",
-    description="Get current transcription configuration",
-    response_description="Transcription configuration"
-)
-@limiter.limit("60/minute")
-async def get_config(request: Request):
-    """Get current transcription configuration (safe subset)."""
-    check_module_enabled()
-    
-    config = get_transcription_config()
-    return config.to_dict()
