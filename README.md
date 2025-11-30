@@ -2,6 +2,8 @@
 
 > Multi-factor voice authentication & SAR reporting system combining deepfake detection, MFA orchestration, and automated suspicious activity reporting
 
+[![Modules Enabled](https://img.shields.io/endpoint?url=https%3A%2F%2F<PUBLIC_BASE_URL>%2Fapi%2Fbadge%2Fmodules_enabled&label=modules)](./README_MODULE_CONTROL.md)
+
 ## Features
 
 - **Multi-Factor Authentication (MFA)**: Comprehensive authentication orchestrator with voice, device, and behavioral factors

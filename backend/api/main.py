@@ -30,6 +30,7 @@ from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.detection_router import router as detection_router
 from api.routes.admin_modules import router as admin_modules_router
+from api.routes.badge import router as badge_router
 from core.module_registry import get_registry, is_module_enabled
 from api.jobs import router as jobs_router
 from api.transcription_router import router as transcription_router
@@ -136,6 +137,10 @@ app = FastAPI(
             "description": "Voice-to-text transcription with speaker diarization"
         },
         {
+            "name": "badge",
+            "description": "Shields.io dynamic badge endpoints"
+        },
+        {
             "name": "metrics",
             "description": "Prometheus metrics endpoint"
         }
@@ -213,6 +218,7 @@ app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
 app.include_router(detection_router)
 app.include_router(admin_modules_router)
+app.include_router(badge_router)
 app.include_router(jobs_router)
 app.include_router(transcription_router)
 
