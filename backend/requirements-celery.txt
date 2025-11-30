@@ -1,0 +1,11 @@
+# Celery Async Task Queue Dependencies
+# Separate file to avoid conflicts with other PRs
+
+# Core Celery
+celery[redis]>=5.3.0
+
+# Redis client
+redis>=4.5.0
+
+# Flower monitoring dashboard (optional)
+flower>=2.0.0
