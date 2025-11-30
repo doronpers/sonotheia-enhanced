@@ -1,0 +1,403 @@
+"""
+Stage 6: Explainability
+
+Generates explanations for detection results.
+"""
+
+import logging
+from typing import Dict, Any, List
+
+import numpy as np
+
+logger = logging.getLogger(__name__)
+
+
+class ExplainabilityStage:
+    """
+    Stage 6: Explainability
+
+    Generates human-readable explanations for detection results:
+    - Feature importance analysis
+    - Temporal segment explanations
+    - Artifact descriptions
+    - Overall decision reasoning
+    """
+
+    def __init__(
+        self,
+        generate_saliency: bool = True,
+        include_feature_importance: bool = True,
+        include_temporal_segments: bool = True,
+        max_top_features: int = 10,
+        detail_level: str = "standard",
+    ):
+        """
+        Initialize explainability stage.
+
+        Args:
+            generate_saliency: Whether to generate saliency maps
+            include_feature_importance: Include feature importance
+            include_temporal_segments: Include temporal segment analysis
+            max_top_features: Maximum number of top features to report
+            detail_level: Explanation detail ("minimal", "standard", "detailed")
+        """
+        self.generate_saliency = generate_saliency
+        self.include_feature_importance = include_feature_importance
+        self.include_temporal_segments = include_temporal_segments
+        self.max_top_features = max_top_features
+        self.detail_level = detail_level
+
+        logger.info(f"ExplainabilityStage initialized: detail_level={detail_level}")
+
+    def process(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Generate explanations for detection results.
+
+        Args:
+            stage_results: Results from all detection stages
+            fusion_result: Fused detection result
+
+        Returns:
+            Dictionary containing explanations
+        """
+        try:
+            # Generate overall summary
+            summary = self._generate_summary(fusion_result)
+
+            # Generate stage-specific explanations
+            stage_explanations = self._explain_stages(stage_results)
+
+            # Generate feature importance (if applicable)
+            feature_importance = {}
+            if self.include_feature_importance and "feature_extraction" in stage_results:
+                feature_importance = self._analyze_feature_importance(
+                    stage_results["feature_extraction"]
+                )
+
+            # Generate temporal explanations (if applicable)
+            temporal_explanations = {}
+            if self.include_temporal_segments and "temporal_analysis" in stage_results:
+                temporal_explanations = self._explain_temporal(
+                    stage_results["temporal_analysis"]
+                )
+
+            # Generate artifact explanations
+            artifact_explanations = {}
+            if "artifact_detection" in stage_results:
+                artifact_explanations = self._explain_artifacts(
+                    stage_results["artifact_detection"]
+                )
+
+            # Generate reasoning chain
+            reasoning = self._generate_reasoning_chain(
+                stage_results, fusion_result, summary
+            )
+
+            # Compute explainability score
+            explainability_score = self._compute_explainability_score(
+                stage_results, fusion_result
+            )
+
+            return {
+                "success": True,
+                "summary": summary,
+                "stage_explanations": stage_explanations,
+                "feature_importance": feature_importance,
+                "temporal_explanations": temporal_explanations,
+                "artifact_explanations": artifact_explanations,
+                "reasoning_chain": reasoning,
+                "explainability_score": float(explainability_score),
+                "confidence_factors": self._get_confidence_factors(
+                    stage_results, fusion_result
+                ),
+            }
+
+        except Exception as e:
+            logger.error(f"Explainability processing failed: {e}")
+            return self._empty_result(str(e))
+
+    def _generate_summary(self, fusion_result: Dict[str, Any]) -> str:
+        """Generate high-level summary of detection result."""
+        score = fusion_result.get("fused_score", 0.5)
+        decision = fusion_result.get("decision", "UNCERTAIN")
+        confidence = fusion_result.get("confidence", 0.0)
+
+        if decision == "SPOOF_HIGH":
+            summary = (
+                f"HIGH CONFIDENCE SPOOF DETECTED. "
+                f"The audio shows strong indicators of synthetic generation or manipulation. "
+                f"Detection score: {score:.2f}, Confidence: {confidence:.2f}."
+            )
+        elif decision == "SPOOF_LIKELY":
+            summary = (
+                f"LIKELY SPOOF. "
+                f"The audio exhibits characteristics consistent with deepfake or synthetic audio. "
+                f"Detection score: {score:.2f}, Confidence: {confidence:.2f}."
+            )
+        elif decision == "UNCERTAIN":
+            summary = (
+                f"UNCERTAIN RESULT. "
+                f"The detection result is inconclusive. Manual review recommended. "
+                f"Detection score: {score:.2f}, Confidence: {confidence:.2f}."
+            )
+        else:
+            summary = (
+                f"LIKELY GENUINE. "
+                f"The audio appears to be genuine with no significant indicators of manipulation. "
+                f"Detection score: {score:.2f}, Confidence: {confidence:.2f}."
+            )
+
+        return summary
+
+    def _explain_stages(self, stage_results: Dict[str, Dict[str, Any]]) -> Dict[str, str]:
+        """Generate explanations for each stage."""
+        explanations = {}
+
+        for stage_name, result in stage_results.items():
+            if not result.get("success", False):
+                explanations[stage_name] = "Stage failed to produce results."
+                continue
+
+            explanation = self._explain_single_stage(stage_name, result)
+            explanations[stage_name] = explanation
+
+        return explanations
+
+    def _explain_single_stage(self, stage_name: str, result: Dict[str, Any]) -> str:
+        """Generate explanation for a single stage."""
+        if stage_name == "feature_extraction":
+            score = result.get("anomaly_score", 0.5)
+            num_frames = result.get("num_frames", 0)
+            return (
+                f"Feature analysis extracted {num_frames} frames with anomaly score {score:.3f}. "
+                f"{'Elevated anomaly score suggests unusual acoustic patterns.' if score > 0.5 else 'Feature patterns appear normal.'}"
+            )
+
+        elif stage_name == "temporal_analysis":
+            score = result.get("temporal_score", 0.5)
+            num_anomalies = result.get("num_anomalies", 0)
+            return (
+                f"Temporal analysis found {num_anomalies} potential anomalies with score {score:.3f}. "
+                f"{'Discontinuities or unusual transitions detected.' if num_anomalies > 5 else 'Temporal flow appears natural.'}"
+            )
+
+        elif stage_name == "artifact_detection":
+            score = result.get("artifact_score", 0.5)
+            total = result.get("total_artifacts", 0)
+            return (
+                f"Artifact detection found {total} artifacts with score {score:.3f}. "
+                f"{'Significant audio artifacts present.' if total > 10 else 'Minimal artifacts detected.'}"
+            )
+
+        elif stage_name == "rawnet3":
+            score = result.get("score", 0.5)
+            demo = result.get("demo_mode", True)
+            return (
+                f"Neural network analysis produced score {score:.3f}. "
+                f"{'(DEMO MODE - not production score) ' if demo else ''}"
+                f"{'Model indicates synthetic characteristics.' if score > 0.5 else 'Model indicates genuine characteristics.'}"
+            )
+
+        else:
+            return f"Stage {stage_name} completed."
+
+    def _analyze_feature_importance(self, fe_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze feature importance from feature extraction results."""
+        importance = {}
+        feature_stats = fe_result.get("feature_stats", {})
+
+        for feat_type, stats in feature_stats.items():
+            # Use variance as proxy for importance
+            std = stats.get("std", 0.0)
+            importance[feat_type] = {
+                "importance_score": min(std / 5.0, 1.0),
+                "mean": stats.get("mean", 0.0),
+                "std": std,
+            }
+
+        # Sort by importance
+        sorted_features = sorted(
+            importance.items(), key=lambda x: x[1]["importance_score"], reverse=True
+        )
+
+        return {
+            "top_features": dict(sorted_features[: self.max_top_features]),
+            "total_features_analyzed": len(importance),
+        }
+
+    def _explain_temporal(self, ta_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Explain temporal analysis results."""
+        segments = ta_result.get("suspicious_segments", [])
+        discontinuities = ta_result.get("discontinuities", {})
+
+        explanations = []
+        for seg in segments[:5]:  # Limit to top 5
+            exp = (
+                f"Suspicious segment at {seg.get('start_time', 0):.2f}s - {seg.get('end_time', 0):.2f}s "
+                f"(confidence: {seg.get('confidence', 0):.2f}, type: {seg.get('type', 'unknown')})"
+            )
+            explanations.append(exp)
+
+        return {
+            "segment_explanations": explanations,
+            "num_discontinuities": len(discontinuities.get("positions", [])),
+            "temporal_summary": (
+                f"Found {len(segments)} suspicious segments and "
+                f"{len(discontinuities.get('positions', []))} discontinuities."
+            ),
+        }
+
+    def _explain_artifacts(self, ad_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Explain artifact detection results."""
+        artifacts = ad_result.get("all_artifacts", [])
+
+        # Group by type
+        by_type = {}
+        for artifact in artifacts:
+            art_type = artifact.get("type", "unknown")
+            if art_type not in by_type:
+                by_type[art_type] = []
+            by_type[art_type].append(artifact)
+
+        explanations = []
+        for art_type, items in by_type.items():
+            explanations.append(f"{len(items)} {art_type} artifact(s) detected")
+
+        return {
+            "by_type": {k: len(v) for k, v in by_type.items()},
+            "explanations": explanations,
+            "total_artifacts": len(artifacts),
+        }
+
+    def _generate_reasoning_chain(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any],
+        summary: str,
+    ) -> List[str]:
+        """Generate step-by-step reasoning chain."""
+        reasoning = []
+
+        # Step 1: Feature analysis
+        if "feature_extraction" in stage_results:
+            fe = stage_results["feature_extraction"]
+            reasoning.append(
+                f"1. Feature extraction analyzed {fe.get('num_frames', 0)} frames "
+                f"with anomaly score {fe.get('anomaly_score', 0.5):.3f}."
+            )
+
+        # Step 2: Temporal analysis
+        if "temporal_analysis" in stage_results:
+            ta = stage_results["temporal_analysis"]
+            reasoning.append(
+                f"2. Temporal analysis found {ta.get('num_anomalies', 0)} anomalies "
+                f"with score {ta.get('temporal_score', 0.5):.3f}."
+            )
+
+        # Step 3: Artifact detection
+        if "artifact_detection" in stage_results:
+            ad = stage_results["artifact_detection"]
+            reasoning.append(
+                f"3. Artifact detection found {ad.get('total_artifacts', 0)} artifacts "
+                f"with score {ad.get('artifact_score', 0.5):.3f}."
+            )
+
+        # Step 4: Neural network
+        if "rawnet3" in stage_results:
+            rn = stage_results["rawnet3"]
+            reasoning.append(
+                f"4. RawNet3 neural network produced score {rn.get('score', 0.5):.3f}"
+                f"{' (DEMO MODE)' if rn.get('demo_mode', True) else ''}."
+            )
+
+        # Step 5: Fusion
+        reasoning.append(
+            f"5. Scores fused using {fusion_result.get('fusion_method', 'unknown')} "
+            f"to produce final score {fusion_result.get('fused_score', 0.5):.3f}."
+        )
+
+        # Step 6: Decision
+        reasoning.append(f"6. Final decision: {fusion_result.get('decision', 'UNCERTAIN')}.")
+
+        return reasoning
+
+    def _compute_explainability_score(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any],
+    ) -> float:
+        """Compute how well the result can be explained."""
+        factors = []
+
+        # Check if all stages succeeded
+        success_rate = sum(
+            1 for r in stage_results.values() if r.get("success", False)
+        ) / max(len(stage_results), 1)
+        factors.append(success_rate)
+
+        # Check confidence level
+        confidence = fusion_result.get("confidence", 0.0)
+        factors.append(confidence)
+
+        # Check if score is decisive (not near 0.5)
+        score = fusion_result.get("fused_score", 0.5)
+        decisiveness = abs(score - 0.5) * 2
+        factors.append(decisiveness)
+
+        return float(np.mean(factors))
+
+    def _get_confidence_factors(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Get factors affecting confidence."""
+        factors = []
+
+        # Demo mode warning
+        for stage_name, result in stage_results.items():
+            if result.get("demo_mode", False):
+                factors.append({
+                    "factor": "demo_mode",
+                    "impact": "negative",
+                    "description": f"{stage_name} is running in DEMO MODE - scores are placeholder values.",
+                })
+
+        # Check for failed stages
+        for stage_name, result in stage_results.items():
+            if not result.get("success", False):
+                factors.append({
+                    "factor": "stage_failure",
+                    "impact": "negative",
+                    "description": f"{stage_name} failed: {result.get('error', 'unknown error')}",
+                })
+
+        # Check branch agreement
+        if "branch_agreement" in fusion_result:
+            if not fusion_result["branch_agreement"]:
+                factors.append({
+                    "factor": "branch_disagreement",
+                    "impact": "negative",
+                    "description": "Acoustic and neural branches disagree significantly.",
+                })
+
+        return factors
+
+    def _empty_result(self, error_msg: str) -> Dict[str, Any]:
+        """Return empty result for failed explainability."""
+        return {
+            "success": False,
+            "error": error_msg,
+            "summary": "Explanation generation failed.",
+            "stage_explanations": {},
+            "feature_importance": {},
+            "temporal_explanations": {},
+            "artifact_explanations": {},
+            "reasoning_chain": [],
+            "explainability_score": 0.0,
+            "confidence_factors": [],
+        }

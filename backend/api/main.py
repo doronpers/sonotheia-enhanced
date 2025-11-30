@@ -28,6 +28,7 @@ from api.middleware import (
 )
 from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
+from api.detection_router import router as detection_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -110,6 +111,10 @@ app = FastAPI(
             "description": "Suspicious Activity Report generation"
         },
         {
+            "name": "detection",
+            "description": "6-stage audio deepfake detection pipeline"
+        },
+        {
             "name": "demo",
             "description": "Demo and testing endpoints"
         }
@@ -186,6 +191,7 @@ app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
+app.include_router(detection_router)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
