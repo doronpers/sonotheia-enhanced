@@ -336,7 +336,7 @@ class RateLimitMiddleware:
     Applies rate limiting to all requests before they reach endpoints.
 
     Usage:
-        app.add_middleware(RateLimitMiddleware, limit="1000/minute")
+        app.add_middleware(RateLimitMiddleware, limit_string="1000/minute")
     """
 
     def __init__(
