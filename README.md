@@ -83,6 +83,39 @@ sonotheia-enhanced/
 └── README.md
 ```
 
+## 🆕 Sonotheia MVP - Voice Deepfake Detection
+
+A complete end-to-end MVP for telephony-aware voice deepfake detection is now available! The MVP includes:
+
+- **Physics-based spoof detection** with codec-aware analysis
+- **Factor-level risk scoring** with explainable AI
+- **SAR-style narrative generation** for high-risk cases
+- **Simple Streamlit UI** for audio upload and visualization
+- **Benchmark harness** for evaluation
+
+📖 **[See the complete MVP README](backend/MVP_README.md)** for installation, usage, and API documentation.
+
+### Quick MVP Demo
+
+```bash
+# 1. Install dependencies
+cd backend
+pip install -r requirements.txt
+
+# 2. Test the pipeline
+python scripts/test_pipeline.py
+
+# 3. Start the API
+uvicorn api.main:app --reload --port 8000
+
+# 4. Start the Streamlit UI (in another terminal)
+streamlit run ui/streamlit_app.py
+```
+
+Then upload a WAV file in the UI to see the full deepfake detection pipeline in action!
+
+---
+
 ## Quick Start
 
 ### 🚀 One-Command Setup (Recommended)

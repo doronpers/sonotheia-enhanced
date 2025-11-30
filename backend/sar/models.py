@@ -5,7 +5,8 @@ Pydantic models for SAR generation and validation
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import List, Optional
-from datetime import date as date_type
+from datetime import date as date_type, datetime
+from enum import Enum
 import sys
 from pathlib import Path
 import re
@@ -21,6 +22,29 @@ from config.constants import (
     MAX_RED_FLAGS,
     MAX_TRANSACTIONS
 )
+
+
+# Define enums and helper models first (before they're used)
+class FilingStatus(str, Enum):
+    """SAR filing status"""
+    DRAFT = "draft"
+    PENDING = "pending"
+    FILED = "filed"
+    REJECTED = "rejected"
+
+
+class RiskIntelligence(BaseModel):
+    """Risk intelligence for SAR"""
+    risk_score: float = Field(default=0.5, ge=0.0, le=1.0)
+    risk_level: str = Field(default="MEDIUM")
+    indicators: List[str] = Field(default_factory=list)
+
+
+class KnownScheme(BaseModel):
+    """Known fraud scheme"""
+    name: str
+    description: str
+    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class SARTransaction(BaseModel):
@@ -57,6 +81,8 @@ class SARContext(BaseModel):
     red_flags: List[str] = Field(..., description="List of red flags identified")
     transactions: List[SARTransaction] = Field(..., description="List of transactions")
     doc_id: str = Field(..., description="Document identifier")
+    risk_intelligence: Optional[RiskIntelligence] = Field(default=None, description="Risk intelligence data")
+    filing_status: FilingStatus = Field(default=FilingStatus.DRAFT, description="Filing status")
     
     @field_validator('red_flags')
     @classmethod
@@ -142,3 +168,14 @@ class AuthenticationResponse(BaseModel):
     factor_results: dict
     transaction_risk: dict
     sar_flags: List[str]
+
+
+class SARReport(BaseModel):
+    """Complete SAR Report"""
+    sar_id: str
+    context: SARContext
+    narrative: str
+    generated_at: datetime = Field(default_factory=datetime.now)
+    quality_score: float = Field(default=1.0, ge=0.0, le=1.0)
+    ready_for_filing: bool = Field(default=True)
+    filing_status: FilingStatus = Field(default=FilingStatus.DRAFT)
