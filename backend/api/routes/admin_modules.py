@@ -34,18 +34,33 @@ class ModuleInfo(BaseModel):
         json_schema_extra={
             "example": {
                 "name": "calibration",
-                "enabled": True,
+                "configured_enabled": True,
+                "effective_enabled": True,
                 "description": "Audio calibration and preprocessing tools",
                 "metrics_value": 1,
+                "last_effective_change": "2025-01-15T10:30:00Z",
+                "reason": "configured",
             }
         }
     )
 
     name: str = Field(..., description="Module name")
-    enabled: bool = Field(..., description="Whether the module is currently enabled")
+    enabled: bool = Field(..., description="Whether the module is currently enabled (effective)")
+    configured_enabled: Optional[bool] = Field(
+        None, description="Whether the module is enabled in configuration"
+    )
+    effective_enabled: Optional[bool] = Field(
+        None, description="Whether the module is currently enabled (runtime)"
+    )
     description: Optional[str] = Field(None, description="Module description")
     metrics_value: Optional[int] = Field(
         None, description="Prometheus metrics value (0 or 1)"
+    )
+    last_effective_change: Optional[str] = Field(
+        None, description="ISO8601 timestamp of last effective state change"
+    )
+    reason: Optional[str] = Field(
+        None, description="Reason for effective state: configured, runtime_enabled, runtime_disabled"
     )
 
 
@@ -59,6 +74,9 @@ class ModuleListResponse(BaseModel):
     profile: str = Field(..., description="Current module profile")
     available_profiles: Dict[str, Dict] = Field(
         ..., description="Available profile presets"
+    )
+    last_health_recheck: Optional[str] = Field(
+        None, description="ISO8601 timestamp of last health recheck"
     )
 
 
@@ -85,6 +103,31 @@ class RecheckResponse(BaseModel):
     message: str = Field(..., description="Status message")
     modules_updated: int = Field(..., description="Number of modules updated")
     metrics: Dict[str, int] = Field(..., description="Updated metrics values")
+    last_health_recheck: Optional[str] = Field(
+        None, description="ISO8601 timestamp of this health recheck"
+    )
+
+
+class ModuleSummaryResponse(BaseModel):
+    """Summary of module states for quick overview."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "total": 12,
+                "enabled": 10,
+                "disabled": 2,
+                "last_recheck": "2025-01-15T10:30:00Z",
+            }
+        }
+    )
+
+    total: int = Field(..., description="Total number of modules")
+    enabled: int = Field(..., description="Number of enabled modules")
+    disabled: int = Field(..., description="Number of disabled modules")
+    last_recheck: Optional[str] = Field(
+        None, description="ISO8601 timestamp of last health recheck"
+    )
 
 
 def _is_admin_tier(api_key_info: dict) -> bool:
@@ -138,24 +181,25 @@ async def list_modules(request: Request, admin_info: dict = Depends(require_admi
     **Returns**: List of all modules with their states, profile info, and metrics
     """
     registry = get_registry()
-    modules_dict = registry.list_modules()
+    modules_with_ts = registry.list_modules_with_timestamps()
 
     # Get current metrics values
     metrics_values = get_module_metrics_values()
 
     modules = []
-    for name, info in modules_dict.items():
+    for mod_info in modules_with_ts:
         modules.append(
             ModuleInfo(
-                name=name,
-                enabled=info.get("enabled", True),
-                description=info.get("description"),
-                metrics_value=metrics_values.get(name),
+                name=mod_info["name"],
+                enabled=mod_info["effective_enabled"],
+                configured_enabled=mod_info["configured_enabled"],
+                effective_enabled=mod_info["effective_enabled"],
+                description=mod_info["description"],
+                metrics_value=metrics_values.get(mod_info["name"]),
+                last_effective_change=mod_info["last_effective_change"],
+                reason=mod_info["reason"],
             )
         )
-
-    # Sort modules alphabetically by name
-    modules.sort(key=lambda m: m.name)
 
     enabled_count = len([m for m in modules if m.enabled])
     disabled_count = len(modules) - enabled_count
@@ -172,6 +216,85 @@ async def list_modules(request: Request, admin_info: dict = Depends(require_admi
         disabled_count=disabled_count,
         profile=registry.get_profile(),
         available_profiles=list_profiles(),
+        last_health_recheck=registry.get_last_health_recheck(),
+    )
+
+
+@router.get(
+    "/summary",
+    response_model=ModuleSummaryResponse,
+    summary="Module Summary",
+    description="Get a quick summary of module states",
+)
+@limiter.limit("100/minute")
+async def get_modules_summary(
+    request: Request, admin_info: dict = Depends(require_admin)
+):
+    """
+    Get a summary of module states.
+
+    **Requires**: Admin-level API key
+
+    **Rate Limit**: 100 requests per minute
+
+    **Returns**: Total, enabled, and disabled counts with last recheck timestamp
+    """
+    registry = get_registry()
+    modules = registry.list_modules()
+
+    total = len(modules)
+    enabled = len([m for m in modules.values() if m.get("enabled", True)])
+    disabled = total - enabled
+
+    logger.debug(
+        f"Module summary requested: {total} total, {enabled} enabled, {disabled} disabled"
+    )
+
+    return ModuleSummaryResponse(
+        total=total,
+        enabled=enabled,
+        disabled=disabled,
+        last_recheck=registry.get_last_health_recheck(),
+    )
+
+
+@router.post(
+    "/recheck",
+    response_model=RecheckResponse,
+    summary="Recheck Module Health",
+    description="Force a health re-assessment and refresh metrics for all modules",
+)
+@limiter.limit("10/minute")
+async def recheck_modules(
+    request: Request, admin_info: dict = Depends(require_admin)
+):
+    """
+    Force a health re-assessment and refresh Prometheus metrics.
+
+    **Requires**: Admin-level API key
+
+    **Rate Limit**: 10 requests per minute
+
+    **Returns**: Updated metrics for all modules
+    """
+    registry = get_registry()
+    modules = registry.list_modules()
+
+    # Update health recheck timestamp
+    recheck_time = registry.update_health_recheck()
+
+    # Refresh metrics based on current module states
+    updated_metrics = refresh_metrics()
+
+    logger.info(
+        f"Admin '{admin_info.get('client', 'unknown')}' triggered module health recheck"
+    )
+
+    return RecheckResponse(
+        message="Module health recheck completed and metrics refreshed",
+        modules_updated=len(modules),
+        metrics=updated_metrics,
+        last_health_recheck=recheck_time,
     )
 
 
@@ -198,18 +321,26 @@ async def get_module(
     **Returns**: Module information including enabled state
     """
     registry = get_registry()
-    info = registry.get_module_info(module_name)
+    mod_info = registry.get_module_with_timestamps(module_name)
 
-    if info is None:
+    if mod_info is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=get_error_response("NOT_FOUND", f"Module '{module_name}' not found"),
         )
 
+    # Get metrics value
+    metrics_values = get_module_metrics_values()
+
     return ModuleInfo(
-        name=module_name,
-        enabled=info.get("enabled", True),
-        description=info.get("description"),
+        name=mod_info["name"],
+        enabled=mod_info["effective_enabled"],
+        configured_enabled=mod_info["configured_enabled"],
+        effective_enabled=mod_info["effective_enabled"],
+        description=mod_info["description"],
+        metrics_value=metrics_values.get(mod_info["name"]),
+        last_effective_change=mod_info["last_effective_change"],
+        reason=mod_info["reason"],
     )
 
 
@@ -349,40 +480,4 @@ async def disable_module(
         enabled=False,
         previous_state=previous_state,
         message=f"Module '{module_name}' has been disabled",
-    )
-
-
-@router.post(
-    "/recheck",
-    response_model=RecheckResponse,
-    summary="Recheck Module Health",
-    description="Force a health re-assessment and refresh metrics for all modules",
-)
-@limiter.limit("10/minute")
-async def recheck_modules(
-    request: Request, admin_info: dict = Depends(require_admin)
-):
-    """
-    Force a health re-assessment and refresh Prometheus metrics.
-
-    **Requires**: Admin-level API key
-
-    **Rate Limit**: 10 requests per minute
-
-    **Returns**: Updated metrics for all modules
-    """
-    registry = get_registry()
-    modules = registry.list_modules()
-
-    # Refresh metrics based on current module states
-    updated_metrics = refresh_metrics()
-
-    logger.info(
-        f"Admin '{admin_info.get('client', 'unknown')}' triggered module health recheck"
-    )
-
-    return RecheckResponse(
-        message="Module health recheck completed and metrics refreshed",
-        modules_updated=len(modules),
-        metrics=updated_metrics,
     )

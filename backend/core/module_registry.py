@@ -11,6 +11,7 @@ Configuration loading order (later overrides earlier):
 
 import os
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional, Set
 import yaml
@@ -18,6 +19,11 @@ import yaml
 from core.profiles import get_current_profile, get_profile_defaults
 
 logger = logging.getLogger(__name__)
+
+
+def _utc_now() -> str:
+    """Return current UTC time in ISO8601 format."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class ModuleRegistry:
@@ -41,6 +47,7 @@ class ModuleRegistry:
             cls._instance._config_path = None
             cls._instance._profile = None
             cls._instance._configured_modules = {}  # Before health gating
+            cls._instance._last_health_recheck = None  # Global last recheck timestamp
         return cls._instance
 
     def __init__(self, config_path: Optional[str] = None):
@@ -58,6 +65,7 @@ class ModuleRegistry:
         self._initialized = True
         self._modules = {}
         self._configured_modules = {}
+        self._last_health_recheck = _utc_now()  # Initialize on startup
 
         # Determine config path
         if config_path:
@@ -246,9 +254,13 @@ class ModuleRegistry:
             True if module was found and updated, False otherwise
         """
         module_key = module_name.lower()
+        now = _utc_now()
         if module_key in self._modules:
             old_value = self._modules[module_key].get("enabled", True)
             self._modules[module_key]["enabled"] = enabled
+            # Update last_effective_change if effective state changed
+            if old_value != enabled:
+                self._modules[module_key]["last_effective_change"] = now
             logger.info(
                 f"Module '{module_name}' set enabled={enabled} (was {old_value})"
             )
@@ -258,6 +270,7 @@ class ModuleRegistry:
         self._modules[module_key] = {
             "enabled": enabled,
             "description": f"Runtime-created module '{module_name}'",
+            "last_effective_change": now,
         }
         logger.info(f"Module '{module_name}' created with enabled={enabled}")
         return True
@@ -290,6 +303,78 @@ class ModuleRegistry:
             Dictionary of effective module states
         """
         return dict(self._modules)
+
+    def get_last_health_recheck(self) -> Optional[str]:
+        """
+        Get the timestamp of the last health recheck.
+
+        Returns:
+            ISO8601 UTC timestamp string or None if never rechecked
+        """
+        return self._last_health_recheck
+
+    def update_health_recheck(self) -> str:
+        """
+        Update the global last health recheck timestamp.
+
+        Returns:
+            The new timestamp in ISO8601 UTC format
+        """
+        self._last_health_recheck = _utc_now()
+        logger.debug(f"Health recheck timestamp updated: {self._last_health_recheck}")
+        return self._last_health_recheck
+
+    def get_module_with_timestamps(self, module_name: str) -> Optional[Dict]:
+        """
+        Get detailed module info including timestamps.
+
+        Args:
+            module_name: Name of the module
+
+        Returns:
+            Module info dict with configured_enabled, effective_enabled,
+            last_effective_change, and reason, or None if not found
+        """
+        module_key = module_name.lower()
+        if module_key not in self._modules:
+            return None
+
+        effective = self._modules[module_key]
+        configured = self._configured_modules.get(module_key, {})
+
+        configured_enabled = configured.get("enabled", True)
+        effective_enabled = effective.get("enabled", True)
+
+        # Determine reason for state
+        if configured_enabled == effective_enabled:
+            reason = "configured"
+        elif effective_enabled:
+            reason = "runtime_enabled"
+        else:
+            reason = "runtime_disabled"
+
+        return {
+            "name": module_key,
+            "configured_enabled": configured_enabled,
+            "effective_enabled": effective_enabled,
+            "description": effective.get("description", ""),
+            "last_effective_change": effective.get("last_effective_change"),
+            "reason": reason,
+        }
+
+    def list_modules_with_timestamps(self) -> list:
+        """
+        Get all modules with their configured/effective states and timestamps.
+
+        Returns:
+            List of module info dicts with timestamps
+        """
+        result = []
+        for module_name in sorted(self._modules.keys()):
+            info = self.get_module_with_timestamps(module_name)
+            if info:
+                result.append(info)
+        return result
 
     @classmethod
     def reset(cls) -> None:
