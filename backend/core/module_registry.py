@@ -102,7 +102,8 @@ class ModuleRegistry:
             with open(self._config_path, "r") as f:
                 config = yaml.safe_load(f)
 
-            if config and "modules" in config and config["modules"]:
+            if isinstance(config, dict) and config.get("modules"):
+
                 # Merge YAML config over profile defaults
                 for name, info in config["modules"].items():
                     if info is None:
