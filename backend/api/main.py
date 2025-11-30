@@ -32,6 +32,7 @@ from api.detection_router import router as detection_router
 from api.routes.admin_modules import router as admin_modules_router
 from core.module_registry import get_registry, is_module_enabled
 from api.jobs import router as jobs_router
+from api.transcription_router import router as transcription_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -128,6 +129,10 @@ app = FastAPI(
         {
             "name": "jobs",
             "description": "Async job management for heavy processing tasks"
+        },
+        {
+            "name": "transcription",
+            "description": "Voice-to-text transcription with speaker diarization"
         }
     ]
 )
@@ -205,6 +210,7 @@ app.include_router(analyze_call_router)
 app.include_router(detection_router)
 app.include_router(admin_modules_router)
 app.include_router(jobs_router)
+app.include_router(transcription_router)
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
