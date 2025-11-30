@@ -88,11 +88,16 @@ class RawNet3Stage:
             return self._empty_result(str(e))
 
     def _demo_result(self, audio: np.ndarray) -> Dict[str, Any]:
-        """Generate demo mode result."""
-        # Generate deterministic demo score
+        """Generate demo mode result with realistic score distribution."""
+        # Demo score constants - configurable for realistic simulation
+        DEMO_SCORE_BASE = 0.2  # Base score for demo mode
+        DEMO_SCORE_RANGE = 0.3  # Score variation range
+
+        # Generate deterministic demo score based on audio characteristics
         if len(audio) > 0:
             audio_energy = np.sqrt(np.mean(audio ** 2))
-            demo_score = 0.15 + 0.1 * min(audio_energy * 10, 1.0)
+            # Map energy to score range [DEMO_SCORE_BASE, DEMO_SCORE_BASE + DEMO_SCORE_RANGE]
+            demo_score = DEMO_SCORE_BASE + DEMO_SCORE_RANGE * min(audio_energy * 10, 1.0)
         else:
             demo_score = 0.5
 

@@ -153,9 +153,14 @@ class FusionEngine:
         Learned fusion (placeholder).
 
         In production, this would use a trained model to combine scores.
+        Currently falls back to weighted average fusion as learned models
+        are not yet implemented.
+
+        Note: This is a placeholder - actual learned fusion would require
+        training a fusion model on labeled data.
         """
         # For now, fall back to weighted average
-        logger.warning("Learned fusion not implemented, using weighted average")
+        logger.warning("Learned fusion not implemented, falling back to weighted average")
         return self._weighted_average_fusion(scores)
 
     def _compute_confidence(

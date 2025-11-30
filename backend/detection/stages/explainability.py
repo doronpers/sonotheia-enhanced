@@ -376,6 +376,17 @@ class ExplainabilityStage:
                     "description": f"{stage_name} failed: {result.get('error', 'unknown error')}",
                 })
 
+        # Check for model fallback behavior (e.g., missing weights)
+        for stage_name, result in stage_results.items():
+            model_output = result.get("model_output", {})
+            if isinstance(model_output, dict):
+                if "message" in model_output and "placeholder" in model_output.get("message", "").lower():
+                    factors.append({
+                        "factor": "model_fallback",
+                        "impact": "negative",
+                        "description": f"{stage_name} using fallback/placeholder behavior.",
+                    })
+
         # Check branch agreement
         if "branch_agreement" in fusion_result:
             if not fusion_result["branch_agreement"]:
@@ -384,6 +395,14 @@ class ExplainabilityStage:
                     "impact": "negative",
                     "description": "Acoustic and neural branches disagree significantly.",
                 })
+
+        # Check for low confidence scores
+        if fusion_result.get("confidence", 1.0) < 0.5:
+            factors.append({
+                "factor": "low_confidence",
+                "impact": "negative",
+                "description": "Overall detection confidence is below 50%.",
+            })
 
         return factors
 

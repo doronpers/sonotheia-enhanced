@@ -16,6 +16,10 @@ from detection import get_pipeline, convert_numpy_types
 
 logger = logging.getLogger(__name__)
 
+# Constants
+MAX_AUDIO_FILE_SIZE_MB = 800
+MAX_AUDIO_FILE_SIZE_BYTES = MAX_AUDIO_FILE_SIZE_MB * 1024 * 1024
+
 router = APIRouter(prefix="/api/detect", tags=["detection"])
 
 
@@ -110,11 +114,11 @@ async def detect_full(
                 detail=get_error_response("VALIDATION_ERROR", "Empty audio file"),
             )
 
-        if len(audio_bytes) > 800 * 1024 * 1024:  # 800MB
+        if len(audio_bytes) > MAX_AUDIO_FILE_SIZE_BYTES:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=get_error_response(
-                    "FILE_TOO_LARGE", "Audio file exceeds 800MB limit"
+                    "FILE_TOO_LARGE", f"Audio file exceeds {MAX_AUDIO_FILE_SIZE_MB}MB limit"
                 ),
             )
 
