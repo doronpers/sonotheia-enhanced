@@ -266,7 +266,14 @@ async def detect_async(
             "message": "Detection job started. Use /detect/{job_id}/status to check progress.",
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Async detection start error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=get_error_response("PROCESSING_ERROR", str(e)),
+        )
         logger.error(f"Async detection start error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
