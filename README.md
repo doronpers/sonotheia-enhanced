@@ -80,8 +80,139 @@ sonotheia-enhanced/
 │   │   └── index.js
 │   └── package.json
 ├── reusable-components/        # Reusable component library
+│   ├── api-patterns/           # FastAPI patterns and middleware
+│   ├── sensor-framework/       # Plugin architecture for analysis
+│   ├── test-utils/             # Testing utilities and generators
+│   ├── ui-components/          # React UI components
+│   └── HYBRID_OOP_FP_GUIDE.md  # Architectural guidance
 └── README.md
 ```
+
+## 🆕 Reusable Components Library
+
+The `reusable-components/` directory provides a shared library of production-ready patterns and utilities that can be used across projects.
+
+### API Patterns (`api-patterns/`)
+
+Reusable FastAPI patterns for building robust APIs:
+
+```python
+from reusable_components.api_patterns import (
+    MetricsMiddleware,
+    build_error_response,
+    validate_file_size,
+    validate_content_type,
+    build_success_response,
+)
+
+# Use metrics middleware
+metrics = MetricsMiddleware()
+metrics.record_request()
+
+# Validate uploads
+is_valid, error = validate_file_size(len(file_content), max_size_mb=50)
+
+# Build consistent responses
+response = build_success_response(
+    verdict="REAL",
+    detail="All checks passed",
+    evidence=results,
+    processing_time=0.234,
+    model_version="v9.0"
+)
+```
+
+### Sensor Framework (`sensor-framework/`)
+
+Plugin architecture for building modular analysis systems:
+
+```python
+from reusable_components.sensor_framework import BaseSensor, SensorResult, SensorRegistry
+
+class MySensor(BaseSensor):
+    def __init__(self):
+        super().__init__(name="my_sensor")
+    
+    def analyze(self, data, context) -> SensorResult:
+        # Your analysis logic
+        return SensorResult(
+            sensor_name=self.name,
+            passed=True,
+            value=0.95,
+            threshold=0.8,
+            detail="Analysis passed"
+        )
+
+# Create registry and run analysis
+registry = SensorRegistry()
+registry.register(MySensor())
+results = registry.analyze_all(data, context)
+verdict, detail = registry.get_verdict(results)
+```
+
+### Test Utils (`test-utils/`)
+
+Testing utilities for comprehensive test coverage:
+
+```python
+from reusable_components.test_utils import (
+    AudioGenerator,
+    BoundaryTester,
+    EdgeCaseGenerator,
+    AssertHelpers,
+    PerformanceTester,
+)
+
+# Generate test audio
+gen = AudioGenerator(default_samplerate=16000)
+sine_wave = gen.sine_wave(frequency=440, duration_seconds=2.0, samplerate=16000)
+
+# Test boundaries
+BoundaryTester.test_all_boundaries(
+    test_func=lambda x: sensor.check(x),
+    threshold=14.0,
+    passes_when_below=True
+)
+
+# Assert results
+AssertHelpers.assert_sensor_result_valid(result)
+AssertHelpers.assert_value_in_range(score, 0.0, 1.0)
+
+# Performance testing
+PerformanceTester.assert_execution_time(analyze, max_seconds=5.0, data=test_data)
+```
+
+### UI Components (`ui-components/`)
+
+React components for file upload and analysis display:
+
+```tsx
+import {
+  UploadArea,
+  LoadingSpinner,
+  VerdictDisplay,
+  ErrorDisplay,
+  useFileUpload,
+} from '@/reusable-components/ui-components';
+
+// Use the file upload hook
+const { state, handleFiles, reset } = useFileUpload({
+  baseUrl: 'https://api.example.com',
+  endpoint: '/api/v2/detect/quick',
+});
+
+// Render components
+<UploadArea onFileSelect={handleFiles} acceptedTypes="audio/*" />
+<LoadingSpinner message="Analyzing..." />
+<VerdictDisplay verdict="REAL" detail="All checks passed" />
+<ErrorDisplay error={error} onReset={reset} />
+```
+
+### Architectural Guidance
+
+See `HYBRID_OOP_FP_GUIDE.md` for detailed patterns combining OOP structure with functional programming transformations.
+
+---
 
 ## 🆕 Sonotheia MVP - Voice Deepfake Detection
 
