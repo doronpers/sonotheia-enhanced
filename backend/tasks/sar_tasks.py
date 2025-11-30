@@ -209,8 +209,9 @@ def generate_sar_from_analysis(self, analysis_result: dict, additional_context: 
             generator = SARGenerator()
             narrative = generator.generate_sar(context)
             validation = generator.validate_sar_quality(narrative)
-        except Exception:
+        except Exception as e:
             # Fall back to simple narrative
+            logger.warning(f"SAR generation failed, using fallback: {e}")
             narrative = _generate_simple_narrative(data, risk_result)
             validation = {"is_valid": True, "issues": []}
 

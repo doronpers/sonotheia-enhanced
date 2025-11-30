@@ -179,7 +179,8 @@ async def submit_async_analysis(
                     status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                     detail=get_error_response("PAYLOAD_TOO_LARGE", "Audio data exceeds maximum size of 15MB"),
                 )
-        except base64.binascii.Error:
+        except (ValueError, TypeError):
+            # base64.b64decode raises ValueError or TypeError for invalid input
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=get_error_response("INVALID_AUDIO_DATA", "Audio data is not valid base64"),

@@ -179,13 +179,13 @@ def validate_audio_data(audio_data: bytes, max_size_mb: int = 15) -> bool:
     return True
 
 
-def safe_cleanup(resources: List[Any], cleanup_fn: callable = None):
+def safe_cleanup(resources: List[Any], cleanup_fn=None):
     """
     Safely cleanup resources after task completion or failure.
 
     Args:
         resources: List of resources to cleanup
-        cleanup_fn: Optional custom cleanup function
+        cleanup_fn: Optional custom cleanup function (callable)
     """
     for resource in resources:
         try:
@@ -193,8 +193,6 @@ def safe_cleanup(resources: List[Any], cleanup_fn: callable = None):
                 cleanup_fn(resource)
             elif hasattr(resource, "close"):
                 resource.close()
-            elif hasattr(resource, "__del__"):
-                del resource
         except Exception as e:
             logger.warning(f"Failed to cleanup resource: {e}")
 

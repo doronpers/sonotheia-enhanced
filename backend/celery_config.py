@@ -9,16 +9,7 @@ import os
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
-# Task Queues Configuration
-CELERY_TASK_QUEUES = {
-    "default": {"binding_key": "default"},
-    "audio": {"binding_key": "audio"},
-    "detection": {"binding_key": "detection"},
-    "analysis": {"binding_key": "analysis"},
-    "sar": {"binding_key": "sar"},
-}
-
-# Task Routing
+# Task Routing - route tasks to specific queues
 CELERY_TASK_ROUTES = {
     "tasks.audio_tasks.*": {"queue": "audio"},
     "tasks.detection_tasks.*": {"queue": "detection"},

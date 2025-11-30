@@ -25,6 +25,7 @@ services:
     environment:
       - DEMO_MODE=true
       - PYTHONUNBUFFERED=1
+      # Celery config shared between API and workers for job submission via celery_app
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
