@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 
 def evaluate_fusion_methods(
+    genuine_scores: list[dict],
+    spoof_scores: list[dict],
+    output_dir: str = None,
+) -> dict:
     genuine_scores: dict,
     spoof_scores: dict,
     output_dir: str = None,
