@@ -224,7 +224,7 @@ async def detect_quick(
         logger.error(f"Quick detection error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=get_error_response("PROCESSING_ERROR", str(e)),
+            detail=get_error_response("PROCESSING_ERROR", "Unexpected error", {"error": str(e)}),
         )
 
 
