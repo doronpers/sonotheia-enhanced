@@ -2,7 +2,11 @@
 Module Registry
 
 Centralized module management for enabling/disabling features at runtime.
-Loads configuration from modules.yaml and allows environment variable overrides.
+
+Configuration loading order (later overrides earlier):
+1. Profile defaults (MODULE_PROFILE=minimal|standard|full)
+2. YAML configuration (modules.yaml)
+3. Environment variable overrides (MODULE_<NAME>=0|1)
 """
 
 import os
@@ -11,6 +15,8 @@ from pathlib import Path
 from typing import Dict, Optional, Set
 import yaml
 
+from core.profiles import get_current_profile, get_profile_defaults
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,10 +24,10 @@ class ModuleRegistry:
     """
     Centralized registry for managing module states.
 
-    Loads module configuration from YAML file and supports environment
-    variable overrides (e.g., MODULE_CALIBRATION=0 to disable calibration).
-
-    Environment variables take precedence over YAML configuration.
+    Configuration loading order (later overrides earlier):
+    1. Profile defaults (from MODULE_PROFILE env var)
+    2. YAML configuration (modules.yaml)
+    3. Environment variable overrides (MODULE_<NAME>=0|1)
     """
 
     _instance: Optional["ModuleRegistry"] = None
@@ -33,6 +39,8 @@ class ModuleRegistry:
             cls._instance._initialized = False
             cls._instance._modules = {}
             cls._instance._config_path = None
+            cls._instance._profile = None
+            cls._instance._configured_modules = {}  # Before health gating
         return cls._instance
 
     def __init__(self, config_path: Optional[str] = None):
@@ -49,6 +57,7 @@ class ModuleRegistry:
 
         self._initialized = True
         self._modules = {}
+        self._configured_modules = {}
 
         # Determine config path
         if config_path:
@@ -59,36 +68,64 @@ class ModuleRegistry:
             current = Path(__file__).parent.parent.parent
             self._config_path = current / "modules.yaml"
 
-        self._load_config()
+        # Load configuration in order: profile -> YAML -> env
+        self._profile = get_current_profile()
+        self._apply_profile_defaults()
+        self._load_yaml_config()
         self._apply_env_overrides()
 
-        logger.info(f"ModuleRegistry initialized with {len(self._modules)} modules")
+        # Store configured state before any health gating
+        self._configured_modules = {
+            name: info.copy() for name, info in self._modules.items()
+        }
 
-    def _load_config(self) -> None:
-        """Load module configuration from YAML file."""
+        logger.info(
+            f"ModuleRegistry initialized with profile '{self._profile}' "
+            f"and {len(self._modules)} modules"
+        )
+
+    def _apply_profile_defaults(self) -> None:
+        """Apply profile defaults as the base configuration."""
+        profile_defaults = get_profile_defaults(self._profile)
+        self._modules = profile_defaults
+        logger.info(f"Applied profile '{self._profile}' defaults")
+
+    def _load_yaml_config(self) -> None:
+        """Load and merge YAML configuration (overrides profile defaults)."""
         if not self._config_path or not self._config_path.exists():
             logger.warning(
-                f"Module config not found at {self._config_path}, using defaults"
+                f"Module config not found at {self._config_path}, using profile defaults"
             )
-            self._modules = {}
             return
 
         try:
             with open(self._config_path, "r") as f:
                 config = yaml.safe_load(f)
 
-            if config and "modules" in config:
-                self._modules = config["modules"]
-                logger.info(f"Loaded module config from {self._config_path}")
+            if isinstance(config, dict) and config.get("modules"):
+
+                # Merge YAML config over profile defaults
+                for name, info in config["modules"].items():
+                    if info is None:
+                        continue
+                    # Validate info is a dictionary before merging
+                    if not isinstance(info, dict):
+                        logger.warning(
+                            f"Invalid config for module '{name}': expected dict, got {type(info).__name__}"
+                        )
+                        continue
+                    name_lower = name.lower()
+                    if name_lower in self._modules:
+                        self._modules[name_lower].update(info)
+                    else:
+                        self._modules[name_lower] = info
+                logger.info(f"Merged YAML config from {self._config_path}")
             else:
                 logger.warning(f"No 'modules' key found in {self._config_path}")
-                self._modules = {}
         except yaml.YAMLError as e:
             logger.error(f"Error parsing modules.yaml: {e}")
-            self._modules = {}
         except IOError as e:
             logger.error(f"Error reading modules.yaml: {e}")
-            self._modules = {}
 
     def _apply_env_overrides(self) -> None:
         """
@@ -98,9 +135,15 @@ class ModuleRegistry:
         Examples:
             MODULE_CALIBRATION=0  -> Disable calibration module
             MODULE_SAR=1          -> Enable SAR module
+
+        Note: MODULE_PROFILE is handled separately and skipped here.
         """
         for key, value in os.environ.items():
             if key.startswith("MODULE_"):
+                # Skip MODULE_PROFILE as it's handled separately
+                if key == "MODULE_PROFILE":
+                    continue
+
                 module_name = key[7:].lower()  # Remove 'MODULE_' prefix
 
                 # Parse boolean value
@@ -218,6 +261,35 @@ class ModuleRegistry:
         }
         logger.info(f"Module '{module_name}' created with enabled={enabled}")
         return True
+
+    def get_profile(self) -> str:
+        """
+        Get the current profile name.
+
+        Returns:
+            Profile name (minimal, standard, or full)
+        """
+        return self._profile
+
+    def get_configured_modules(self) -> Dict[str, Dict]:
+        """
+        Get modules as configured (before any health gating).
+
+        Returns:
+            Dictionary of configured module states
+        """
+        return dict(self._configured_modules)
+
+    def get_effective_modules(self) -> Dict[str, Dict]:
+        """
+        Get modules with their effective (current) states.
+
+        This reflects any runtime changes including health gating.
+
+        Returns:
+            Dictionary of effective module states
+        """
+        return dict(self._modules)
 
     @classmethod
     def reset(cls) -> None:

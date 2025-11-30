@@ -32,6 +32,7 @@ from api.detection_router import router as detection_router
 from api.routes.admin_modules import router as admin_modules_router
 from core.module_registry import get_registry, is_module_enabled
 from api.jobs import router as jobs_router
+from observability.metrics import metrics_endpoint, update_module_metrics
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -124,8 +125,14 @@ app = FastAPI(
         {
             "name": "admin",
             "description": "Administrative endpoints for module management (requires admin API key)"
+        },
+        {
             "name": "jobs",
             "description": "Async job management for heavy processing tasks"
+        },
+        {
+            "name": "metrics",
+            "description": "Prometheus metrics endpoint"
         }
     ]
 )
@@ -200,16 +207,35 @@ app.include_router(session_management.router)
 app.include_router(escalation.router)
 app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
-        {
-            "name": "admin",
-            "description": "Administrative endpoints for module management (requires admin API key)"
-        },
-        {
-            "name": "jobs",
-            "description": "Async job management for heavy processing tasks"
-        }
-    ]
+app.include_router(detection_router)
+app.include_router(admin_modules_router)
+app.include_router(jobs_router)
+
+
+# Prometheus metrics endpoint
+@app.get(
+    "/metrics",
+    tags=["metrics"],
+    summary="Prometheus Metrics",
+    description="Export Prometheus metrics including module states"
 )
+async def get_metrics(request: Request):
+    """
+    Prometheus metrics endpoint.
+
+    Exports module state metrics as:
+    - sonotheia_module_enabled{name="<module>"} 0|1
+    """
+    return await metrics_endpoint(request)
+
+
+# Startup event to initialize metrics
+@app.on_event("startup")
+async def startup_event():
+    """Initialize metrics on application startup."""
+    update_module_metrics()
+    logger.info("Prometheus metrics initialized on startup")
+
 
 # Request models with enhanced validation and documentation
 class AuthRequest(BaseModel):
