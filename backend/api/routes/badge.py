@@ -23,7 +23,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/badge", tags=["badge"])
 
-# Simple in-memory cache for badge responses
+# Simple in-memory cache for badge responses with thread-safe lock
+import threading
+
+_badge_cache_lock = threading.Lock()
 _badge_cache = {
     "modules_enabled": None,
     "cache_time": 0.0,
@@ -110,16 +113,18 @@ async def modules_enabled_badge(request: Request):
     """
     global _badge_cache
 
-    # Check cache
     current_time = time.time()
-    if (
-        _badge_cache["modules_enabled"] is not None
-        and (current_time - _badge_cache["cache_time"]) < _CACHE_TTL_SECONDS
-    ):
-        logger.debug("Returning cached badge response")
-        return _badge_cache["modules_enabled"]
 
-    # Compute fresh response
+    # Thread-safe cache read
+    with _badge_cache_lock:
+        if (
+            _badge_cache["modules_enabled"] is not None
+            and (current_time - _badge_cache["cache_time"]) < _CACHE_TTL_SECONDS
+        ):
+            logger.debug("Returning cached badge response")
+            return _badge_cache["modules_enabled"]
+
+    # Compute fresh response (outside lock for better concurrency)
     registry = get_registry()
     modules = registry.list_modules()
 
@@ -136,9 +141,10 @@ async def modules_enabled_badge(request: Request):
         color=color,
     )
 
-    # Update cache
-    _badge_cache["modules_enabled"] = response
-    _badge_cache["cache_time"] = current_time
+    # Thread-safe cache update
+    with _badge_cache_lock:
+        _badge_cache["modules_enabled"] = response
+        _badge_cache["cache_time"] = current_time
 
     logger.debug(f"Badge response: {message} ({color})")
     return response
