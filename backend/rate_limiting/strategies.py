@@ -96,7 +96,8 @@ class FixedWindowStrategy(RateLimitStrategy):
     def get_current_count(self, key: str, window_seconds: int) -> int:
         """Get current count for the key in the current window."""
         window_key, _ = self._get_window_key(key, window_seconds)
-        return self.storage.get(window_key)
+        count = self.storage.get(window_key)
+        return count if count is not None else 0
 
     def reset(self, key: str) -> None:
         """Reset all windows for a key (removes all related keys)."""
@@ -173,8 +174,8 @@ class SlidingWindowStrategy(RateLimitStrategy):
     def get_current_count(self, key: str, window_seconds: int) -> int:
         """Get current weighted count for the key."""
         current_key, previous_key, _, weight = self._get_window_keys(key, window_seconds)
-        current_count = self.storage.get(current_key)
-        previous_count = self.storage.get(previous_key)
+        current_count = self.storage.get(current_key) or 0
+        previous_count = self.storage.get(previous_key) or 0
         return int(previous_count * (1 - weight) + current_count)
 
     def reset(self, key: str) -> None:
