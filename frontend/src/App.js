@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress, Button, AppBar, Toolbar, Tabs, Tab } from "@mui/material";
 import WaveformDashboard from "./components/WaveformDashboard";
@@ -15,12 +15,7 @@ function HomePage() {
   const [authResult, setAuthResult] = useState(null);
   const [factorResults, setFactorResults] = useState([]);
 
-  useEffect(() => {
-    // Fetch demo data from backend
-    loadDemoData();
-  }, []);
-
-  const loadDemoData = async () => {
+  const loadDemoData = useCallback(async () => {
     setLoading(true);
     try {
       const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
@@ -32,7 +27,12 @@ function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Fetch demo data from backend
+    loadDemoData();
+  }, [loadDemoData]);
 
   const handleAuthenticate = (result) => {
     setAuthResult(result);

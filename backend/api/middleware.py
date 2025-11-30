@@ -23,9 +23,6 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 # Load API keys from environment (secure)
 # Note: API keys should ONLY be set via environment variables, never hardcoded
-_demo_key = os.getenv("DEMO_API_KEY")  # Must be set via environment if demo mode is used
-import os
-
 _demo_key = os.getenv("DEMO_API_KEY")  # No default - must be set explicitly
 _api_keys_env = os.getenv("API_KEYS", "")  # Format: "key1:client1:tier1,key2:client2:tier2"
 
@@ -52,8 +49,17 @@ async def verify_api_key(api_key: Optional[str] = None) -> dict:
 
     Security: API keys are not logged to prevent exposure.
     """
-    # For now, API key is optional - can be made required by removing Optional
+    # Check if API key is required (production mode)
     if api_key is None:
+        # Only allow anonymous access in demo mode
+        if os.getenv("DEMO_MODE", "false").lower() != "true":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "error_code": "MISSING_API_KEY",
+                    "message": "API key required in production mode"
+                }
+            )
         # Allow unauthenticated access for demo/development
         return {"client": "anonymous", "tier": "free"}
 

@@ -1,6 +1,30 @@
 # Module Control Documentation
+[![Modules Enabled](https://img.shields.io/endpoint?url=https://sonotheia.ai/api/badge/modules_enabled)](https://sonotheia.ai/api/badge/modules_enabled)
+
+[![Modules Enabled](https://img.shields.io/endpoint?url=https%3A%2F%2F<PUBLIC_BASE_URL>%2Fapi%2Fbadge%2Fmodules_enabled&label=modules)](./README_MODULE_CONTROL.md)
 
 This document describes the centralized module control system for Sonotheia Enhanced.
+
+## Current Module Status
+
+<!-- MODULE_STATUS_TABLE_START -->
+| Module | Configured | Effective | Last Change (UTC) | Last Recheck (UTC) | Reason |
+|--------|-----------|-----------|-------------------|--------------------|--------|
+| audio | ✅ | ✅ | N/A | N/A | configured |
+| analysis | ✅ | ✅ | N/A | N/A | configured |
+| detection | ✅ | ✅ | N/A | N/A | configured |
+| calibration | ✅ | ✅ | N/A | N/A | configured |
+| transcription | ✅ | ✅ | N/A | N/A | configured |
+| risk_engine | ✅ | ✅ | N/A | N/A | configured |
+| sar | ✅ | ✅ | N/A | N/A | configured |
+| rate_limiting | ✅ | ✅ | N/A | N/A | configured |
+| celery | ✅ | ✅ | N/A | N/A | configured |
+| observability | ✅ | ✅ | N/A | N/A | configured |
+| tenants | ✅ | ✅ | N/A | N/A | configured |
+| mlflow | ✅ | ✅ | N/A | N/A | configured |
+
+*This table is auto-generated. Run `python scripts/generate_module_status_table.py` to update.*
+<!-- MODULE_STATUS_TABLE_END -->
 
 ## Overview
 
@@ -195,8 +219,57 @@ Triggers a health re-assessment and refreshes Prometheus metrics.
     "audio": 1,
     "detection": 1,
     "calibration": 0
-  }
+  },
+  "last_health_recheck": "2025-01-15T12:00:00Z"
 }
+```
+
+### Module Summary
+```bash
+GET /api/admin/modules/summary
+```
+
+**Requires**: Admin-level API key
+
+Quick summary of module states for dashboards and monitoring.
+
+**Response**:
+```json
+{
+  "total": 12,
+  "enabled": 10,
+  "disabled": 2,
+  "last_recheck": "2025-01-15T12:00:00Z"
+}
+```
+
+### Shields.io Badge Endpoint
+```bash
+GET /api/badge/modules_enabled
+```
+
+**No authentication required** - Lightweight endpoint for dynamic badges.
+
+Returns Shields.io compatible JSON for embedding badges in documentation.
+
+**Response**:
+```json
+{
+  "schemaVersion": 1,
+  "label": "modules",
+  "message": "10/12",
+  "color": "brightgreen"
+}
+```
+
+**Color thresholds**:
+- ≥80% enabled: `brightgreen`
+- ≥50% enabled: `yellow`
+- <50% enabled: `red`
+
+**Usage in Markdown**:
+```markdown
+![Modules Enabled](https://img.shields.io/endpoint?url=https://YOUR_HOST/api/badge/modules_enabled)
 ```
 
 ### Prometheus Metrics Endpoint

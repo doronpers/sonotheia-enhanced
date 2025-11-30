@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -58,15 +58,28 @@ export default function AuthenticationForm({ onAuthenticate }) {
 
   const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
+  // Ref to track if component is mounted
+  const isMountedRef = useRef(true);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      isMountedRef.current = false;
       if (timerRef.current) {
         clearInterval(timerRef.current);
+      }
+      if (isRecording && mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
       }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+    };
+  }, [isRecording]);
+
+  // Separate cleanup for audioUrl
+  useEffect(() => {
+    return () => {
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
@@ -143,27 +156,36 @@ export default function AuthenticationForm({ onAuthenticate }) {
       };
       
       mediaRecorder.onstop = async () => {
+        // Check if component is still mounted before updating state
+        if (!isMountedRef.current) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioBlob(audioBlob);
-        
+
         // Create URL for playback
         if (audioUrl) {
           URL.revokeObjectURL(audioUrl);
         }
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
-        
+
         // Convert to base64
         const reader = new FileReader();
         reader.onloadend = () => {
-          const base64String = reader.result.split(',')[1];
-          setFormData((prev) => ({
-            ...prev,
-            voice_sample: base64String,
-          }));
+          // Check again before updating state
+          if (isMountedRef.current) {
+            const base64String = reader.result.split(',')[1];
+            setFormData((prev) => ({
+              ...prev,
+              voice_sample: base64String,
+            }));
+          }
         };
         reader.readAsDataURL(audioBlob);
-        
+
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
@@ -180,6 +202,7 @@ export default function AuthenticationForm({ onAuthenticate }) {
     } catch (err) {
       console.error('Error accessing microphone:', err);
       setError('Failed to access microphone. Please check permissions.');
+      setIsRecording(false);  // Reset recording state on error
     }
   };
 

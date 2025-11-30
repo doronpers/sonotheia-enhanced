@@ -1,0 +1,95 @@
+# Python cache and compiled files
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+*.so
+*.egg
+*.egg-info
+dist/
+build/
+*.whl
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+tests/
+test_*.py
+*_test.py
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+Documentation/
+README*
+CHANGELOG*
+LICENSE*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Logs
+*.log
+logs/
+__logs__/
+
+# Data and uploads
+data/
+uploads/
+*.csv
+*.json
+!package.json
+!pyproject.toml
+
+# Development tools
+.pre-commit-config.yaml
+.flake8
+.black
+mypy.ini
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini

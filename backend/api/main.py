@@ -30,8 +30,10 @@ from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.detection_router import router as detection_router
 from api.routes.admin_modules import router as admin_modules_router
+from api.routes.badge import router as badge_router
 from core.module_registry import get_registry, is_module_enabled
 from api.jobs import router as jobs_router
+from api.transcription_router import router as transcription_router
 from observability.metrics import metrics_endpoint, update_module_metrics
 
 # Configure logging
@@ -131,6 +133,14 @@ app = FastAPI(
             "description": "Async job management for heavy processing tasks"
         },
         {
+            "name": "transcription",
+            "description": "Voice-to-text transcription with speaker diarization"
+        },
+        {
+            "name": "badge",
+            "description": "Shields.io dynamic badge endpoints"
+        },
+        {
             "name": "metrics",
             "description": "Prometheus metrics endpoint"
         }
@@ -164,17 +174,16 @@ async def global_exception_handler(request: Request, exc: Exception):
     """
     Global exception handler to prevent information disclosure
     """
-    # Log the full error for debugging
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    # Log the full error for debugging (including type and stack trace)
+    logger.error(f"Unhandled exception: {type(exc).__name__}: {str(exc)}", exc_info=True)
 
-    # Return generic error to client (security: don't leak stack traces)
+    # Return generic error to client (security: don't leak stack traces or exception types)
     import os
     if os.getenv("DEMO_MODE", "true").lower() == "true":
-        # In demo mode, provide more details
+        # In demo mode, provide error message but not exception type (security)
         detail = {
             "error_code": "INTERNAL_ERROR",
-            "message": f"An error occurred: {str(exc)}",
-            "type": type(exc).__name__
+            "message": f"An error occurred: {str(exc)}"
         }
     else:
         # In production, minimal information
@@ -209,7 +218,9 @@ app.include_router(audit_logging.router)
 app.include_router(analyze_call_router)
 app.include_router(detection_router)
 app.include_router(admin_modules_router)
+app.include_router(badge_router)
 app.include_router(jobs_router)
+app.include_router(transcription_router)
 
 
 # Prometheus metrics endpoint
