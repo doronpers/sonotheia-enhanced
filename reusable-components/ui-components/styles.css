@@ -1,0 +1,275 @@
+/**
+ * Base styles for UI components.
+ *
+ * These styles provide a foundation that can be customized.
+ * Import this CSS file or use the classes as reference for your own styles.
+ */
+
+/* CSS Variables / Design Tokens */
+:root {
+  --ui-bg-primary: #05070d;
+  --ui-bg-secondary: #0a0e1b;
+  --ui-text-primary: #f4f6fb;
+  --ui-text-secondary: rgba(244, 246, 251, 0.85);
+
+  --ui-color-success: #61d5a3;
+  --ui-color-error: #ff7b7b;
+  --ui-color-warning: #ffb84d;
+
+  --ui-color-brand-blue: #5b8eff;
+  --ui-color-brand-purple: #8f6bff;
+
+  --ui-border-subtle: rgba(255, 255, 255, 0.05);
+  --ui-border-normal: rgba(255, 255, 255, 0.1);
+
+  --ui-radius-sm: 0.5rem;
+  --ui-radius-md: 1rem;
+  --ui-radius-lg: 1.5rem;
+
+  --ui-spacing-xs: 0.5rem;
+  --ui-spacing-sm: 1rem;
+  --ui-spacing-md: 1.5rem;
+  --ui-spacing-lg: 2rem;
+}
+
+/* Upload Area */
+.upload-area {
+  border: 2px dashed var(--ui-border-normal);
+  border-radius: var(--ui-radius-lg);
+  padding: var(--ui-spacing-lg);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--ui-color-brand-blue);
+  background: rgba(91, 142, 255, 0.04);
+}
+
+.upload-area.dragging {
+  border-color: var(--ui-color-brand-blue);
+  background: rgba(91, 142, 255, 0.08);
+}
+
+.upload-area.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.upload-area:focus {
+  outline: 2px solid var(--ui-color-brand-blue);
+  outline-offset: 2px;
+}
+
+.upload-instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-spacing-xs);
+}
+
+.upload-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ui-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.upload-subtitle {
+  font-size: 0.9rem;
+  color: var(--ui-text-secondary);
+}
+
+/* Loading Spinner */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ui-spacing-lg);
+  gap: var(--ui-spacing-sm);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--ui-border-normal);
+  border-top-color: var(--ui-color-brand-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-message {
+  font-size: 1rem;
+  color: var(--ui-text-secondary);
+}
+
+/* Verdict Display */
+.verdict-section {
+  padding: var(--ui-spacing-md);
+  border-radius: var(--ui-radius-md);
+  text-align: center;
+}
+
+.verdict-REAL {
+  background: rgba(70, 190, 125, 0.15);
+  border: 1px solid rgba(70, 190, 125, 0.3);
+}
+
+.verdict-SYNTHETIC {
+  background: rgba(255, 94, 94, 0.15);
+  border: 1px solid rgba(255, 94, 94, 0.3);
+}
+
+.verdict-UNKNOWN {
+  background: rgba(255, 184, 77, 0.15);
+  border: 1px solid rgba(255, 184, 77, 0.3);
+}
+
+.verdict-label {
+  font-size: 0.85rem;
+  color: var(--ui-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--ui-spacing-xs);
+}
+
+.verdict-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--ui-text-primary);
+}
+
+.verdict-detail {
+  margin-top: var(--ui-spacing-xs);
+  font-size: 0.95rem;
+  color: var(--ui-text-secondary);
+}
+
+/* Error Display */
+.error-display {
+  padding: var(--ui-spacing-md);
+  border-radius: var(--ui-radius-md);
+  background: rgba(255, 94, 94, 0.1);
+  border: 1px solid rgba(255, 94, 94, 0.3);
+  text-align: center;
+}
+
+.error-message {
+  color: var(--ui-color-error);
+  font-size: 1rem;
+  margin-bottom: var(--ui-spacing-sm);
+}
+
+.error-reset-button {
+  padding: 0.6rem 1.5rem;
+  border: 1px solid var(--ui-border-normal);
+  border-radius: var(--ui-radius-sm);
+  background: transparent;
+  color: var(--ui-text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.error-reset-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--ui-color-brand-blue);
+}
+
+/* Evidence Grid */
+.evidence-grid {
+  display: grid;
+  gap: var(--ui-spacing-xs);
+}
+
+.evidence-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--ui-spacing-sm);
+  padding: var(--ui-spacing-xs);
+  border-radius: var(--ui-radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.evidence-label {
+  font-weight: 500;
+  color: var(--ui-text-secondary);
+}
+
+.evidence-value {
+  color: var(--ui-text-primary);
+}
+
+.evidence-value.pass {
+  color: var(--ui-color-success);
+}
+
+.evidence-value.fail {
+  color: var(--ui-color-error);
+}
+
+.evidence-value.info {
+  color: var(--ui-text-secondary);
+}
+
+/* Glass Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: var(--ui-radius-md);
+  padding: var(--ui-spacing-md);
+  backdrop-filter: blur(6px);
+}
+
+/* Gradient Button */
+.gradient-button {
+  background: linear-gradient(
+    120deg,
+    var(--ui-color-brand-blue),
+    var(--ui-color-brand-purple)
+  );
+  box-shadow: 0 20px 40px rgba(91, 142, 255, 0.25);
+  border-radius: 999px;
+  padding: 0.9rem 2.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 55px rgba(91, 142, 255, 0.35);
+}
+
+.gradient-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .upload-area {
+    padding: var(--ui-spacing-md);
+  }
+
+  .verdict-text {
+    font-size: 1.5rem;
+  }
+
+  .evidence-row {
+    grid-template-columns: 1fr;
+  }
+}
