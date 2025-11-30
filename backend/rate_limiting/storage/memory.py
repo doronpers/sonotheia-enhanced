@@ -103,7 +103,7 @@ class MemoryStorage(BaseStorage):
     def set_many(self, mapping: Dict[str, Any], ttl: Optional[int] = None) -> bool:
         """Set multiple values in storage."""
         with self._lock:
-            expiry_time = time.time() + ttl if ttl else None
+            expiry_time = time.time() + ttl if ttl is not None else None
             for key, value in mapping.items():
                 self._data[key] = value
                 if expiry_time:
