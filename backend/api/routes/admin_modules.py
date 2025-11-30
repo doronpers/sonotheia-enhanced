@@ -6,7 +6,7 @@ These endpoints require admin-level authentication.
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 from fastapi import APIRouter, Request, HTTPException, Depends, status
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -18,7 +18,9 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from core.module_registry import get_registry  # noqa: E402
+from core.profiles import list_profiles  # noqa: E402
 from api.middleware import limiter, verify_api_key, get_error_response  # noqa: E402
+from observability.metrics import refresh_metrics, get_module_metrics_values  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,7 @@ class ModuleInfo(BaseModel):
                 "name": "calibration",
                 "enabled": True,
                 "description": "Audio calibration and preprocessing tools",
+                "metrics_value": 1,
             }
         }
     )
@@ -41,6 +44,9 @@ class ModuleInfo(BaseModel):
     name: str = Field(..., description="Module name")
     enabled: bool = Field(..., description="Whether the module is currently enabled")
     description: Optional[str] = Field(None, description="Module description")
+    metrics_value: Optional[int] = Field(
+        None, description="Prometheus metrics value (0 or 1)"
+    )
 
 
 class ModuleListResponse(BaseModel):
@@ -50,6 +56,10 @@ class ModuleListResponse(BaseModel):
     total: int = Field(..., description="Total number of modules")
     enabled_count: int = Field(..., description="Number of enabled modules")
     disabled_count: int = Field(..., description="Number of disabled modules")
+    profile: str = Field(..., description="Current module profile")
+    available_profiles: Dict[str, Dict] = Field(
+        ..., description="Available profile presets"
+    )
 
 
 class ModuleToggleRequest(BaseModel):
@@ -67,6 +77,14 @@ class ModuleToggleResponse(BaseModel):
     enabled: bool = Field(..., description="New enabled state")
     previous_state: bool = Field(..., description="Previous enabled state")
     message: str = Field(..., description="Status message")
+
+
+class RecheckResponse(BaseModel):
+    """Response from health recheck endpoint."""
+
+    message: str = Field(..., description="Status message")
+    modules_updated: int = Field(..., description="Number of modules updated")
+    metrics: Dict[str, int] = Field(..., description="Updated metrics values")
 
 
 def _is_admin_tier(api_key_info: dict) -> bool:
@@ -117,10 +135,13 @@ async def list_modules(request: Request, admin_info: dict = Depends(require_admi
 
     **Rate Limit**: 100 requests per minute
 
-    **Returns**: List of all modules with their states
+    **Returns**: List of all modules with their states, profile info, and metrics
     """
     registry = get_registry()
     modules_dict = registry.list_modules()
+
+    # Get current metrics values
+    metrics_values = get_module_metrics_values()
 
     modules = []
     for name, info in modules_dict.items():
@@ -129,6 +150,7 @@ async def list_modules(request: Request, admin_info: dict = Depends(require_admi
                 name=name,
                 enabled=info.get("enabled", True),
                 description=info.get("description"),
+                metrics_value=metrics_values.get(name),
             )
         )
 
@@ -148,6 +170,8 @@ async def list_modules(request: Request, admin_info: dict = Depends(require_admi
         total=len(modules),
         enabled_count=enabled_count,
         disabled_count=disabled_count,
+        profile=registry.get_profile(),
+        available_profiles=list_profiles(),
     )
 
 
@@ -325,4 +349,40 @@ async def disable_module(
         enabled=False,
         previous_state=previous_state,
         message=f"Module '{module_name}' has been disabled",
+    )
+
+
+@router.post(
+    "/recheck",
+    response_model=RecheckResponse,
+    summary="Recheck Module Health",
+    description="Force a health re-assessment and refresh metrics for all modules",
+)
+@limiter.limit("10/minute")
+async def recheck_modules(
+    request: Request, admin_info: dict = Depends(require_admin)
+):
+    """
+    Force a health re-assessment and refresh Prometheus metrics.
+
+    **Requires**: Admin-level API key
+
+    **Rate Limit**: 10 requests per minute
+
+    **Returns**: Updated metrics for all modules
+    """
+    registry = get_registry()
+    modules = registry.list_modules()
+
+    # Refresh metrics based on current module states
+    updated_metrics = refresh_metrics()
+
+    logger.info(
+        f"Admin '{admin_info.get('client', 'unknown')}' triggered module health recheck"
+    )
+
+    return RecheckResponse(
+        message="Module health recheck completed and metrics refreshed",
+        modules_updated=len(modules),
+        metrics=updated_metrics,
     )

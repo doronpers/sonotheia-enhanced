@@ -5,9 +5,37 @@ This document describes the centralized module control system for Sonotheia Enha
 ## Overview
 
 The module registry provides a declarative way to enable/disable features at runtime through:
-1. **Configuration file** (`modules.yaml`) - Default states
-2. **Environment variables** - Override configuration (takes precedence)
-3. **Admin API endpoints** - Runtime toggling (non-persistent)
+1. **Profile presets** (`MODULE_PROFILE=minimal|standard|full`) - Base configuration
+2. **Configuration file** (`modules.yaml`) - Override profile defaults
+3. **Environment variables** - Override YAML (highest precedence)
+4. **Admin API endpoints** - Runtime toggling (non-persistent)
+
+## Profile Presets
+
+Profile presets provide predefined module sets for different deployment environments. Set via the `MODULE_PROFILE` environment variable.
+
+### Available Profiles
+
+| Profile | Modules Included |
+|---------|------------------|
+| `minimal` | audio, detection, sar, rate_limiting, observability |
+| `standard` | minimal + calibration, analysis, celery |
+| `full` | standard + transcription, tenants, mlflow, risk_engine |
+
+### Using Profiles
+
+```bash
+# Use minimal profile for lightweight deployments
+export MODULE_PROFILE=minimal
+
+# Use standard profile (default if not specified)
+export MODULE_PROFILE=standard
+
+# Use full profile for all features
+export MODULE_PROFILE=full
+```
+
+**Default**: If `MODULE_PROFILE` is not set, the system defaults to `full`.
 
 ## Configuration
 
@@ -48,6 +76,37 @@ Valid values:
 - Enable: `1`, `true`, `True`, `TRUE`, `yes`, `Yes`, `YES`
 - Disable: `0`, `false`, `False`, `FALSE`, `no`, `No`, `NO`
 
+## Prometheus Metrics
+
+Module states are exported as Prometheus metrics for monitoring.
+
+### Metrics Format
+
+```
+sonotheia_module_enabled{name="audio"} 1
+sonotheia_module_enabled{name="detection"} 1
+sonotheia_module_enabled{name="calibration"} 0
+```
+
+Values: `1` = enabled, `0` = disabled
+
+### Accessing Metrics
+
+```bash
+# Get Prometheus metrics
+curl http://localhost:8000/metrics
+
+# Filter for module metrics
+curl http://localhost:8000/metrics | grep sonotheia_module_enabled
+```
+
+### Metrics Refresh
+
+Metrics are automatically updated:
+- On application startup
+- When the `/metrics` endpoint is called
+- When `/api/admin/modules/recheck` is triggered
+
 ## Managed Modules
 
 The following modules can be controlled:
@@ -83,12 +142,19 @@ GET /api/admin/modules
     {
       "name": "audio",
       "enabled": true,
-      "description": "Core audio processing..."
+      "description": "Core audio processing...",
+      "metrics_value": 1
     }
   ],
   "total": 12,
   "enabled_count": 10,
-  "disabled_count": 2
+  "disabled_count": 2,
+  "profile": "full",
+  "available_profiles": {
+    "minimal": {"modules": ["audio", "detection", "observability", "rate_limiting", "sar"], "module_count": 5},
+    "standard": {"modules": [...], "module_count": 8},
+    "full": {"modules": [...], "module_count": 12}
+  }
 }
 ```
 
@@ -112,6 +178,33 @@ Content-Type: application/json
 POST /api/admin/modules/{module_name}/enable
 POST /api/admin/modules/{module_name}/disable
 ```
+
+### Force Health Recheck
+```bash
+POST /api/admin/modules/recheck
+```
+
+Triggers a health re-assessment and refreshes Prometheus metrics.
+
+**Response**:
+```json
+{
+  "message": "Module health recheck completed and metrics refreshed",
+  "modules_updated": 12,
+  "metrics": {
+    "audio": 1,
+    "detection": 1,
+    "calibration": 0
+  }
+}
+```
+
+### Prometheus Metrics Endpoint
+```bash
+GET /metrics
+```
+
+Returns Prometheus-formatted metrics including module states.
 
 ## Using in Code
 
@@ -221,10 +314,10 @@ docker run -e MODULE_CALIBRATION=0 \
 
 Configuration is applied in this order (later overrides earlier):
 
-1. **Default** - Unknown modules default to `enabled=true`
-2. **YAML file** - `modules.yaml` configuration
-3. **Environment variables** - `MODULE_<NAME>=0|1`
-4. **Runtime API** - Admin API toggle (non-persistent)
+1. **Profile defaults** - `MODULE_PROFILE` selects base configuration (minimal/standard/full)
+2. **YAML file** - `modules.yaml` configuration overrides profile defaults
+3. **Environment variables** - `MODULE_<NAME>=0|1` overrides YAML
+4. **Runtime API** - Admin API toggle (non-persistent, resets on restart)
 
 ## Security Considerations
 
