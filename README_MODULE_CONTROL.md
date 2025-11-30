@@ -1,4 +1,5 @@
 # Module Control Documentation
+[![Modules Enabled](https://img.shields.io/endpoint?url=https://sonotheia.ai/api/badge/modules_enabled)](https://sonotheia.ai/api/badge/modules_enabled)
 
 This document describes the centralized module control system for Sonotheia Enhanced.
 
