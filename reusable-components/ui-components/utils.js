@@ -119,7 +119,14 @@ export function getVerdictClass(verdict) {
 export function isAcceptedFileType(file, acceptedTypes) {
   if (acceptedTypes === '*') return true;
 
-  const [type, subtype] = acceptedTypes.split('/');
+  const parts = acceptedTypes.split('/');
+  
+  // If no '/' in acceptedTypes, do exact match
+  if (parts.length < 2) {
+    return file.type === acceptedTypes;
+  }
+
+  const [type, subtype] = parts;
 
   if (subtype === '*') {
     return file.type.startsWith(`${type}/`);
