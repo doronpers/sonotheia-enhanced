@@ -94,6 +94,7 @@ def transcribe_async_task(
                 )
             )
         finally:
+            asyncio.set_event_loop(None)
             loop.close()
         
         if hasattr(self, 'update_state'):
