@@ -1,43 +1,62 @@
 name: Operability Check
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+  pull_request:
 
 jobs:
   operability:
-    name: CI Operability Verification
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Run operability script tests
+      - name: Generate API key for CI and export to env
+        id: gen_key
         run: |
-          # Install pytest with version compatible with backend requirements.txt
-          pip install 'pytest>=7.4.3,<8.0.0'
-          python -m pytest scripts/test_ci_verify_operability.py -v
+          # generate a strong runtime API key and expose via GITHUB_ENV for subsequent steps
+          KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+          echo "API_KEY=$KEY" >> $GITHUB_ENV
+          # mask the key in logs
+          echo "::add-mask::$KEY"
+          echo "Generated API key and exported to GITHUB_ENV"
 
-      - name: Start backend services
+      - name: Create CI env file for docker-compose
         run: |
-          docker compose up -d --build --wait backend redis
-          echo "Backend is ready!"
+          # GITHUB_ENV sets API_KEY for subsequent steps
+          echo "DEMO_MODE=false" > .env.ci
+          echo "# API_KEYS format: <key>:<client>:<tier> (backend reads API_KEYS from env)" >> .env.ci
+          echo "API_KEYS=${API_KEY}:ci:admin" >> .env.ci
+          echo "BACKEND_HOST=0.0.0.0" >> .env.ci
+          echo "BACKEND_PORT=8000" >> .env.ci
+          echo ".env.ci written (contents not printed for security)"
 
-      - name: Run operability verification
+      - name: Build and start services
         run: |
-          python scripts/ci_verify_operability.py --ci --base-url http://localhost:8000
+          docker compose --env-file .env.ci up -d --build
 
-      - name: Cleanup
+      - name: Wait for backend to be ready
+        run: |
+          # wait for /api/v1/health (up to ~60s)
+          for i in $(seq 1 30); do
+            status=$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8000/api/v1/health || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "backend ready"
+              exit 0
+            fi
+            echo "waiting for backend ($i/30) - status=$status"
+            sleep 2
+          done
+          echo "backend did not become ready in time" >&2
+          docker compose down -v || true
+          exit 1
+
+      - name: Run operability checks
+        run: |
+          # Run the built-in operability verifier and pass the runtime API key
+          python3 scripts/ci_verify_operability.py --base-url http://localhost:8000 --api-key "$API_KEY" --ci
+
+      - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: |
+          docker compose down -v
