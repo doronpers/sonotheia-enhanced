@@ -1,0 +1,43 @@
+name: Operability Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  operability:
+    name: CI Operability Verification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run operability script tests
+        run: |
+          # Install pytest with version compatible with backend requirements.txt
+          pip install 'pytest>=7.4.3,<8.0.0'
+          python -m pytest scripts/test_ci_verify_operability.py -v
+
+      - name: Start backend services
+        run: |
+          docker compose up -d --build --wait backend redis
+          echo "Backend is ready!"
+
+      - name: Run operability verification
+        run: |
+          python scripts/ci_verify_operability.py --ci --base-url http://localhost:8000
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
