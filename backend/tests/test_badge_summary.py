@@ -87,7 +87,6 @@ class TestShieldsBadgeResponse:
                 label="modules", message="5/10", color=color
             )
             assert response.color == color
-            assert response.color in valid_colors
 
     def test_response_json_serialization(self):
         """Test that response can be serialized to JSON for Shields.io."""
