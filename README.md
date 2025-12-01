@@ -2,7 +2,8 @@
 
 > Multi-factor voice authentication & SAR reporting system combining deepfake detection, MFA orchestration, and automated suspicious activity reporting
 
-[![Modules Enabled](https://img.shields.io/endpoint?url=https%3A%2F%2F<PUBLIC_BASE_URL>%2Fapi%2Fbadge%2Fmodules_enabled&label=modules)](./README_MODULE_CONTROL.md)
+[![Modules Enabled](https://img.shields.io/badge/modules-12%2F12-brightgreen)](./README_MODULE_CONTROL.md)
+[![Operability](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml/badge.svg)](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml)
 
 ## Features
 
