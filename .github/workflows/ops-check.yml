@@ -1,0 +1,179 @@
+name: Ops Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'modules.yaml'
+      - 'backend/**'
+      - '.github/workflows/ops-check.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  ops-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate API key for CI and export to env
+        id: gen_key
+        run: |
+          # Generate a strong runtime API key and expose via GITHUB_ENV for subsequent steps
+          KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+          echo "API_KEY=$KEY" >> $GITHUB_ENV
+          # Mask the key in logs
+          echo "::add-mask::$KEY"
+          echo "Generated API key and exported to GITHUB_ENV"
+
+      - name: Create CI env file for docker-compose
+        run: |
+          # GITHUB_ENV sets API_KEY for subsequent steps
+          echo "DEMO_MODE=false" > .env.ci
+          echo "# API_KEYS format: <key>:<client>:<tier> (backend reads API_KEYS from env)" >> .env.ci
+          echo "API_KEYS=${API_KEY}:ci:admin" >> .env.ci
+          echo "BACKEND_HOST=0.0.0.0" >> .env.ci
+          echo "BACKEND_PORT=8000" >> .env.ci
+          echo ".env.ci written (contents not printed for security)"
+
+      - name: Build and start services
+        run: |
+          docker compose --env-file .env.ci up -d --build
+
+      - name: Wait for backend to be ready
+        run: |
+          # Wait for /api/v1/health (up to ~60s)
+          for i in $(seq 1 30); do
+            status=$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8000/api/v1/health || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Backend ready"
+              exit 0
+            fi
+            echo "Waiting for backend ($i/30) - status=$status"
+            sleep 2
+          done
+          echo "Backend did not become ready in time" >&2
+          docker compose logs backend || true
+          docker compose down -v || true
+          exit 1
+
+      - name: Run operability checks
+        run: |
+          # Run the built-in operability verifier and pass the runtime API key
+          python3 scripts/ci_verify_operability.py --base-url http://localhost:8000 --api-key "$API_KEY" --ci
+
+      - name: Generate MODULE_STATUS_FRAGMENT.md
+        run: |
+          # Generate the module status table from the running API
+          python3 scripts/generate_module_status_table.py \
+            --api-url http://localhost:8000 \
+            --api-key "$API_KEY" \
+            --output MODULE_STATUS_FRAGMENT.md
+          
+          echo "Generated MODULE_STATUS_FRAGMENT.md:"
+          cat MODULE_STATUS_FRAGMENT.md
+
+      - name: Inject module status into STATUS.md
+        run: |
+          # Read the MODULE_STATUS_FRAGMENT.md content
+          FRAGMENT=$(cat MODULE_STATUS_FRAGMENT.md)
+          
+          # Check if STATUS.md exists and has the markers
+          if [ -f STATUS.md ]; then
+            # Check if markers exist
+            if grep -q "<!-- MODULE_STATUS_TABLE_START -->" STATUS.md; then
+              # Replace content between markers using awk
+              awk -v fragment="$FRAGMENT" '
+                /<!-- MODULE_STATUS_TABLE_START -->/ { 
+                  print fragment
+                  skip=1
+                  next
+                }
+                /<!-- MODULE_STATUS_TABLE_END -->/ {
+                  skip=0
+                  next
+                }
+                !skip { print }
+              ' STATUS.md > STATUS.md.tmp && mv STATUS.md.tmp STATUS.md
+              echo "Updated existing STATUS.md with new module status"
+            else
+              # Append fragment to STATUS.md if markers don't exist
+              echo "" >> STATUS.md
+              echo "$FRAGMENT" >> STATUS.md
+              echo "Appended module status to STATUS.md"
+            fi
+          else
+            echo "STATUS.md not found, skipping injection (MODULE_STATUS_FRAGMENT.md is the primary output)"
+          fi
+
+      - name: Inject module status into README_MODULE_CONTROL.md
+        run: |
+          # Read the MODULE_STATUS_FRAGMENT.md content
+          FRAGMENT=$(cat MODULE_STATUS_FRAGMENT.md)
+          
+          # Check if README_MODULE_CONTROL.md exists and has the markers
+          if [ -f README_MODULE_CONTROL.md ]; then
+            if grep -q "<!-- MODULE_STATUS_TABLE_START -->" README_MODULE_CONTROL.md; then
+              # Extract the table portion (without the fragment header)
+              TABLE_CONTENT=$(awk '
+                /\| Module \|/,/<!-- MODULE_STATUS_TABLE_END -->/ { 
+                  if (!/<!-- MODULE_STATUS_TABLE_END -->/) print 
+                }
+              ' MODULE_STATUS_FRAGMENT.md)
+              
+              # Replace content between markers
+              awk -v table="$TABLE_CONTENT" '
+                /<!-- MODULE_STATUS_TABLE_START -->/ { 
+                  print
+                  print table
+                  print ""
+                  print "*This table is auto-generated. Run `python scripts/generate_module_status_table.py` to update.*"
+                  skip=1
+                  next
+                }
+                /<!-- MODULE_STATUS_TABLE_END -->/ {
+                  print
+                  skip=0
+                  next
+                }
+                !skip { print }
+              ' README_MODULE_CONTROL.md > README_MODULE_CONTROL.md.tmp && mv README_MODULE_CONTROL.md.tmp README_MODULE_CONTROL.md
+              echo "Updated README_MODULE_CONTROL.md with new module status"
+            fi
+          fi
+
+      - name: Teardown services
+        if: always()
+        run: |
+          docker compose down -v
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --quiet MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md 2>/dev/null || echo "changes=true" >> $GITHUB_OUTPUT
+          if [ -f STATUS.md ]; then
+            git diff --quiet STATUS.md 2>/dev/null || echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md
+          if [ -f STATUS.md ]; then
+            git add STATUS.md
+          fi
+          
+          git commit -m "chore: update module status tables [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
