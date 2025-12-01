@@ -43,6 +43,8 @@ services:
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
+      # API Keys for authentication (set via .env file or environment)
+      - API_KEYS=${API_KEYS:-}
     volumes:
       # SECURITY: Remove bind mounts in production - use COPY in Dockerfile instead
       - ./backend:/app
