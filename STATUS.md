@@ -14,13 +14,13 @@ This document provides the current operational status of all platform modules. T
 
 **Profile:** standard | **Total:** 3 | **Enabled:** 2 | **Disabled:** 1
 
-*Last generated: 2025-11-30T22:43:54Z*
+*Last generated: (auto-updated by CI)*
 
 | Module | Configured | Effective | Last Change (UTC) | Last Recheck (UTC) | Reason |
 |--------|-----------|-----------|-------------------|--------------------|--------|
-| audio | ✅ | ✅ | N/A | 2025-01-15T12:00:00Z | configured |
-| detection | ✅ | ✅ | N/A | 2025-01-15T12:00:00Z | configured |
-| calibration | ❌ | ❌ | 2025-01-15T10:30:00Z | 2025-01-15T12:00:00Z | configured |
+| audio | ✅ | ✅ | N/A | N/A | configured |
+| detection | ✅ | ✅ | N/A | N/A | configured |
+| calibration | ❌ | ❌ | N/A | N/A | configured |
 
 <!-- MODULE_STATUS_TABLE_END -->
 

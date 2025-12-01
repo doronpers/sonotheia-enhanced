@@ -123,9 +123,9 @@ jobs:
           # Check if README_MODULE_CONTROL.md exists and has the markers
           if [ -f README_MODULE_CONTROL.md ]; then
             if grep -q "<!-- MODULE_STATUS_TABLE_START -->" README_MODULE_CONTROL.md; then
-              # Extract the table portion (without the fragment header)
+              # Extract the table portion - match table header at line start for robustness
               TABLE_CONTENT=$(awk '
-                /\| Module \|/,/<!-- MODULE_STATUS_TABLE_END -->/ { 
+                /^\| Module \| Configured/,/<!-- MODULE_STATUS_TABLE_END -->/ { 
                   if (!/<!-- MODULE_STATUS_TABLE_END -->/) print 
                 }
               ' MODULE_STATUS_FRAGMENT.md)
@@ -159,9 +159,22 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          git diff --quiet MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md 2>/dev/null || echo "changes=true" >> $GITHUB_OUTPUT
-          if [ -f STATUS.md ]; then
-            git diff --quiet STATUS.md 2>/dev/null || echo "changes=true" >> $GITHUB_OUTPUT
+          # Check if files exist and have changes
+          has_changes=false
+          
+          for file in MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md STATUS.md; do
+            if [ -f "$file" ]; then
+              if ! git diff --quiet "$file" 2>/dev/null; then
+                has_changes=true
+                echo "Changes detected in $file"
+              fi
+            fi
+          done
+          
+          if [ "$has_changes" = true ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes detected in status files"
           fi
 
       - name: Commit and push changes
@@ -170,10 +183,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md
-          if [ -f STATUS.md ]; then
-            git add STATUS.md
-          fi
+          # Add files that exist
+          for file in MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md STATUS.md; do
+            if [ -f "$file" ]; then
+              git add "$file"
+            fi
+          done
           
-          git commit -m "chore: update module status tables [skip ci]" || echo "No changes to commit"
-          git push || echo "No changes to push"
+          # Commit if there are staged changes
+          if git diff --staged --quiet; then
+            echo "No staged changes to commit"
+          else
+            git commit -m "chore: update module status tables [skip ci]"
+            if ! git push; then
+              echo "::warning::Failed to push changes. This may be due to branch protection or permissions."
+              exit 1
+            fi
+          fi
