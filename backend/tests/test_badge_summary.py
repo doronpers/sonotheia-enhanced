@@ -17,6 +17,98 @@ from core.module_registry import ModuleRegistry, get_registry  # noqa: E402
 from api.routes.badge import _get_badge_color, ShieldsBadgeResponse  # noqa: E402
 
 
+class TestShieldsBadgeResponse:
+    """Test ShieldsBadgeResponse Pydantic model schema validation."""
+
+    def test_schema_version_is_one(self):
+        """Test that schemaVersion defaults to and equals 1."""
+        response = ShieldsBadgeResponse(
+            label="modules", message="10/12", color="brightgreen"
+        )
+        assert response.schemaVersion == 1
+
+    def test_schema_version_explicit_one(self):
+        """Test that schemaVersion can be explicitly set to 1."""
+        response = ShieldsBadgeResponse(
+            schemaVersion=1, label="modules", message="5/10", color="yellow"
+        )
+        assert response.schemaVersion == 1
+
+    def test_message_enabled_total_format(self):
+        """Test that message follows E/N (enabled/total) format."""
+        response = ShieldsBadgeResponse(
+            label="modules", message="10/12", color="brightgreen"
+        )
+        # Message should contain "/" separator
+        assert "/" in response.message
+        # Message should be in format "N/M" where N and M are numbers
+        parts = response.message.split("/")
+        assert len(parts) == 2
+        assert parts[0].isdigit()
+        assert parts[1].isdigit()
+
+    def test_message_zero_enabled(self):
+        """Test E/N format with zero enabled modules."""
+        response = ShieldsBadgeResponse(label="modules", message="0/10", color="red")
+        parts = response.message.split("/")
+        assert len(parts) == 2
+        assert parts[0] == "0"
+        assert parts[1] == "10"
+
+    def test_message_all_enabled(self):
+        """Test E/N format with all modules enabled."""
+        response = ShieldsBadgeResponse(
+            label="modules", message="10/10", color="brightgreen"
+        )
+        parts = response.message.split("/")
+        assert parts[0] == parts[1]  # enabled equals total
+
+    def test_message_large_numbers(self):
+        """Test E/N format with large module counts."""
+        response = ShieldsBadgeResponse(
+            label="modules", message="100/125", color="brightgreen"
+        )
+        parts = response.message.split("/")
+        assert len(parts) == 2
+        assert int(parts[0]) == 100
+        assert int(parts[1]) == 125
+
+    def test_label_is_modules(self):
+        """Test that label is 'modules' for module badge."""
+        response = ShieldsBadgeResponse(label="modules", message="5/10", color="yellow")
+        assert response.label == "modules"
+
+    def test_valid_colors(self):
+        """Test that color values match expected Shields.io colors."""
+        valid_colors = ["brightgreen", "yellow", "red", "lightgrey"]
+
+        for color in valid_colors:
+            response = ShieldsBadgeResponse(
+                label="modules", message="5/10", color=color
+            )
+            assert response.color == color
+
+    def test_response_json_serialization(self):
+        """Test that response can be serialized to JSON for Shields.io."""
+        response = ShieldsBadgeResponse(
+            schemaVersion=1, label="modules", message="8/10", color="brightgreen"
+        )
+        json_dict = response.model_dump()
+
+        assert json_dict["schemaVersion"] == 1
+        assert json_dict["label"] == "modules"
+        assert json_dict["message"] == "8/10"
+        assert json_dict["color"] == "brightgreen"
+
+    def test_init_message_format(self):
+        """Test 'init' message for uninitialized registry."""
+        response = ShieldsBadgeResponse(
+            label="modules", message="init", color="lightgrey"
+        )
+        assert response.message == "init"
+        assert response.color == "lightgrey"
+
+
 class TestBadgeColorSelection:
     """Test badge color selection logic for different ratios."""
 
@@ -108,9 +200,7 @@ modules:
   test_disabled:
     enabled: false
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             temp_path = f.name
 
@@ -153,9 +243,7 @@ modules:
   test_module:
     enabled: true
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             temp_path = f.name
 
@@ -218,9 +306,7 @@ modules:
   disabled_1:
     enabled: false
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             temp_path = f.name
 
