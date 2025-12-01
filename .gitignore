@@ -36,6 +36,7 @@ models/weights/
 config/secrets.yaml
 .env.local
 .env.production
+.env.ci
 
 # Quick start scripts
 .backend.pid
