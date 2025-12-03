@@ -26,6 +26,7 @@ from api.middleware import (
     add_security_headers_middleware,
     get_error_response
 )
+from api.validation import SensorResult
 from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.detection_router import router as detection_router

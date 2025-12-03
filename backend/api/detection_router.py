@@ -12,6 +12,8 @@ from fastapi import APIRouter, HTTPException, File, UploadFile, Request, Depends
 from pydantic import BaseModel, Field
 
 from api.middleware import limiter, verify_api_key, get_error_response
+from api.validation import SensorResult
+from backend.sensors.utils import load_and_preprocess_audio
 from detection import get_pipeline, convert_numpy_types
 
 logger = logging.getLogger(__name__)
@@ -106,8 +108,9 @@ async def detect_full(
     """
     try:
         # Read audio file
+        import io
         audio_bytes = await file.read()
-
+        
         if len(audio_bytes) == 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -122,9 +125,13 @@ async def detect_full(
                 ),
             )
 
+        # Preprocess
+        audio_io = io.BytesIO(audio_bytes)
+        audio_array, sr = load_and_preprocess_audio(audio_io)
+
         # Get pipeline and run detection
         pipeline = get_pipeline()
-        result = pipeline.detect(audio_bytes, quick_mode=quick_mode)
+        result = pipeline.detect(audio_array, quick_mode=quick_mode)
 
         if not result.get("success", False):
             raise HTTPException(
@@ -192,8 +199,13 @@ async def detect_quick(
                 detail=get_error_response("VALIDATION_ERROR", "Empty audio file"),
             )
 
+        # Preprocess
+        import io
+        audio_io = io.BytesIO(audio_bytes)
+        audio_array, sr = load_and_preprocess_audio(audio_io)
+
         pipeline = get_pipeline()
-        result = pipeline.detect(audio_bytes, quick_mode=True)
+        result = pipeline.detect(audio_array, quick_mode=True)
 
         if not result.get("success", False):
             raise HTTPException(
@@ -257,8 +269,13 @@ async def detect_async(
                 detail=get_error_response("VALIDATION_ERROR", "Empty audio file"),
             )
 
+        # Preprocess
+        import io
+        audio_io = io.BytesIO(audio_bytes)
+        audio_array, sr = load_and_preprocess_audio(audio_io)
+
         pipeline = get_pipeline()
-        job_id = pipeline.detect_async(audio_bytes, quick_mode=quick_mode)
+        job_id = pipeline.detect_async(audio_array, quick_mode=quick_mode)
 
         return {
             "job_id": job_id,

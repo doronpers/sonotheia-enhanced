@@ -5,6 +5,7 @@ Security-focused validation for all API inputs
 
 import re
 from typing import Optional, Any, Dict
+from pydantic import BaseModel
 import logging
 import sys
 from pathlib import Path
@@ -420,3 +421,15 @@ def validate_device_info(value: Optional[dict]) -> Optional[dict]:
     
     return value
 
+
+class SensorResult(BaseModel):
+    """
+    Standardized sensor result model
+    """
+    sensor_name: str
+    passed: Optional[bool] = None
+    value: float
+    threshold: float
+    reason: Optional[str] = None
+    detail: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
