@@ -4,11 +4,12 @@
 
 [![Modules Enabled](https://img.shields.io/badge/modules-12%2F12-brightgreen)](./README_MODULE_CONTROL.md)
 [![Operability](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml/badge.svg)](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml)
+[![Patent Compliance](https://img.shields.io/badge/patent-safe-blue)](Documentation/PATENT_COMPLIANCE.md)
 
 ## Features
 
 - **Multi-Factor Authentication (MFA)**: Comprehensive authentication orchestrator with voice, device, and behavioral factors
-- **Voice Deepfake Detection**: Physics-based voice authentication with liveness checks and speaker verification
+- **Voice Deepfake Detection**: Patent-safe physics-based authentication using Formant Trajectory (velocity analysis) and Phase Coherence (entropy) models
 - **SAR Generation**: Automated Suspicious Activity Report generation with Jinja2 templates
 - **Risk Scoring**: Transaction risk assessment with configurable thresholds
 - **Interactive Dashboard**: React-based dashboard with waveform visualization and factor-level explainability

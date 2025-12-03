@@ -24,6 +24,18 @@ This document provides the current operational status of all platform modules. T
 
 <!-- MODULE_STATUS_TABLE_END -->
 
+## Sensor Status (Patent Compliance)
+
+| Sensor | Status | Compliance Method | Weight |
+|--------|--------|-------------------|--------|
+| **FormantTrajectory** | ✅ Active | Dynamic Velocity Analysis | 0.35 |
+| **PhaseCoherence** | ✅ Active | Entropy & Discontinuity | 0.25 |
+| **Coarticulation** | ✅ Active | Motor Planning (White Space) | 0.20 |
+| **Bandwidth** | ✅ Active | Spectral Analysis | 0.10 |
+| **HuggingFace** | ⚠️ Blocked | Transformer Model | 0.10 |
+| *VocalTract* | ❌ Removed | LPC (Infringing) | 0.00 |
+| *Breath* | ❌ Removed | LPC (Infringing) | 0.00 |
+
 ## Status Legend
 
 | Symbol | Meaning |

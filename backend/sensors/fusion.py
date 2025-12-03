@@ -15,12 +15,21 @@ logger = logging.getLogger(__name__)
 
 
 # Default sensor weights (can be overridden via config)
+# **Patent-Safe Sensor Set** - No LPC, No Source-Filter Model
 DEFAULT_WEIGHTS = {
-    "BreathSensor": 0.30,
-    "BandwidthSensor": 0.25,
-    "DynamicRangeSensor": 0.25,
-    "PhaseCoherenceSensor": 0.10,
-    "HuggingFaceDetector": 0.10,
+    # Physics-based sensors (patent-safe)
+    "FormantTrajectory": 0.35,      # Formant velocity analysis (high weight - physics-based)
+    "PhaseCoherence": 0.25,          # Phase derivative entropy (enhanced sensor)
+    "Coarticulation": 0.20,          # Motor planning analysis (white space)
+    
+    # Legacy/other sensors (if still in use)
+    "BandwidthSensor": 0.10,        # Reduced weight
+    "HuggingFaceDetector": 0.10,    # ML-based (once model fixed)
+    
+    # Deprecated sensors (DO NOT USE - patent infringement risk)
+    # "BreathSensor": REMOVED - used LPC residuals
+    # "VocalTractSensor": REMOVED - used LPC (replaced by FormantTrajectory)
+    
     # Fallback weight for unknown sensors
     "_default": 0.05,
 }

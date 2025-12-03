@@ -1,3 +1,18 @@
+"""
+Coarticulation Sensor - Patent-Safe Motor Planning Analysis
+
+**Patent Compliance**: This implementation analyzes MOTOR PLANNING and
+temporal dependencies (coarticulation), which is in "white space"
+not covered by Pindrop's Source-Filter Model patents.
+
+**Design-Around Strategy**:
+- ❌ RESTRICTED: LPC residuals, static spectral values
+- ✅ SAFE: Spectral transition speed, motor planning analysis
+
+Detects synthetic speech by measuring articulation velocity and
+identifying transitions that violate physiological constraints.
+"""
+
 import numpy as np
 import librosa
 from typing import Dict, Any, Optional
@@ -10,7 +25,16 @@ logger = logging.getLogger(__name__)
 class CoarticulationSensor(BaseSensor):
     """
     Analyzes coarticulation by measuring spectral transition speed.
-    Synthetic speech often has faster-than-natural transitions between phonemes.
+    
+    **Patent-Safe Approach**:
+    - Uses Mel spectrogram delta features (not LPC)
+    - Analyzes temporal dependencies between phonemes
+    - Detects violations of physiological articulation speed limits
+    - Focuses on motor planning, not current-sound modeling
+    
+    Synthetic speech often has faster-than-natural transitions between
+    phonemes because TTS systems lack biomechanical constraints of 
+    human articulators (tongue, lips, jaw movement speeds).
     """
     
     def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:
