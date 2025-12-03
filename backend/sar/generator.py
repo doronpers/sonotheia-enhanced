@@ -24,19 +24,38 @@ class SARGenerator:
         # In-memory storage for demo (use database in production)
         self._reports = {}
     
-    def generate_sar(self, context: SARContext) -> str:
-        """Generate SAR narrative from context."""
+    def generate_sar(self, context: SARContext, fusion_verdict: Dict = None) -> str:
+        """Generate SAR narrative from context.
+        
+        Args:
+            context: SAR context with transaction data
+            fusion_verdict: Optional fusion engine output with technical evidence
+        """
         # Enhance context with intelligence if not provided
         if not context.risk_intelligence:
             context.risk_intelligence = self._generate_risk_intelligence(context)
         
+        # Add fusion technical evidence if provided
+        technical_evidence = None
+        if fusion_verdict:
+            technical_evidence = self._format_fusion_evidence(fusion_verdict)
+        
         template = self.env.get_template("sar_narrative.j2")
-        narrative = template.render(**context.model_dump())
+        narrative = template.render(
+            **context.model_dump(),
+            technical_evidence=technical_evidence,
+            fusion_verdict=fusion_verdict
+        )
         return narrative
     
-    def create_sar_report(self, context: SARContext) -> SARReport:
-        """Create a complete SAR report with metadata."""
-        narrative = self.generate_sar(context)
+    def create_sar_report(self, context: SARContext, fusion_verdict: Dict = None) -> SARReport:
+        """Create a complete SAR report with metadata.
+        
+        Args:
+            context: SAR context with transaction data  
+            fusion_verdict: Optional fusion engine output
+        """
+        narrative = self.generate_sar(context, fusion_verdict=fusion_verdict)
         validation = self.validate_sar_quality(narrative)
         
         sar_id = f"SAR-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
@@ -289,3 +308,56 @@ class SARGenerator:
             ))
         
         return schemes
+    
+    def _format_fusion_evidence(self, fusion_verdict: Dict) -> str:
+        """Format fusion verdict into SAR-ready technical evidence.
+        
+        Maps specific sensor failures to SAR narrative templates.
+        """
+        if not fusion_verdict:
+            return ""
+        
+        evidence_lines = []
+        verdict = fusion_verdict.get('verdict', 'UNKNOWN')
+        score = fusion_verdict.get('global_risk_score', 0.0)
+        factors = fusion_verdict.get('contributing_factors', [])
+        
+        # Header
+        evidence_lines.append(f"Deepfake Detection Analysis: {verdict} (Risk Score: {score:.1%})")
+        evidence_lines.append("")
+        
+        # Get top 2 contributing factors
+        top_factors = factors[:2] if len(factors) >= 2 else factors
+        
+        for i, factor in enumerate(top_factors, 1):
+            sensor_name = factor.get('sensor_name', 'Unknown')
+            contribution = factor.get('contribution', 0.0)
+            reason = factor.get('reason') or factor.get('detail', '')
+            
+            evidence_lines.append(f"{i}. {sensor_name} (Contribution: {contribution:.0%})")
+            
+            # Map sensor failures to specific findings
+            # risk_score = 1.0 means failed (synthetic), 0.0 means passed (real)
+            risk_score = factor.get('risk_score', 0.0)
+            
+            if 'Breath' in sensor_name and risk_score >= 0.5:
+                evidence_lines.append("   Finding: No respiratory artifacts detected in audio")
+                evidence_lines.append("   Implication: Possible vocoder or speech synthesis")
+            elif 'Phase' in sensor_name and risk_score >= 0.5:
+                evidence_lines.append("   Finding: Abnormal phase coherence patterns")
+                evidence_lines.append("   Implication: Indications of digital audio manipulation")
+            elif 'Bandwidth' in sensor_name and reason:
+                evidence_lines.append(f"   Finding: {reason}")
+            else:
+                if reason:
+                    evidence_lines.append(f"   Finding: {reason}")
+            
+            evidence_lines.append("")
+        
+        # Combination patterns
+        sensor_names = [f.get('sensor_name', '') for f in top_factors]
+        if 'Breath' in ''.join(sensor_names) and 'Phase' in ''.join(sensor_names):
+            evidence_lines.append("Combined Analysis: Breath + Phase anomalies indicate")
+            evidence_lines.append("vocoder processing with lack of biological respiration markers.")
+        
+        return '\n'.join(evidence_lines)

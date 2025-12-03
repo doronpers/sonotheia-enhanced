@@ -18,20 +18,27 @@ export default function WaveformDashboard({
   };
 
   // Build Plotly shapes for segment overlays
-  const segmentShapes = segments?.map(seg => ({
-    type: "rect",
-    xref: "x",
-    yref: "paper",
-    x0: seg.start,
-    x1: seg.end,
-    y0: 0,
-    y1: 1,
-    fillcolor: seg.type === "genuine" 
-      ? "rgba(60, 180, 100, 0.15)" 
-      : "rgba(220, 50, 50, 0.2)",
-    line: { width: 0 },
-    layer: "below"
-  })) || [];
+  // Parse evidence.segments from API response if available
+  const segmentShapes = segments?.map(seg => {
+    // API response format: { start, end, is_synthetic, risk_score, ... }
+    const isSynthetic = seg.is_synthetic ?? (seg.type !== "genuine");
+    const riskScore = seg.risk_score ?? (isSynthetic ? 0.8 : 0.2);
+
+    return {
+      type: "rect",
+      xref: "x",
+      yref: "paper",
+      x0: seg.start,
+      x1: seg.end,
+      y0: 0,
+      y1: 1,
+      fillcolor: isSynthetic
+        ? `rgba(220, 50, 50, ${0.15 + riskScore * 0.2})`  // Red zones for synthetic
+        : "rgba(60, 180, 100, 0.15)",  // Green for genuine
+      line: { width: isSynthetic ? 2 : 0, color: isSynthetic ? "rgba(220, 50, 50, 0.8)" : undefined },
+      layer: "below"
+    };
+  }) || [];
 
   // Add cursor line
   const cursorShape = {
@@ -75,7 +82,7 @@ export default function WaveformDashboard({
           if (seg) playSegment(seg.start, seg.end);
         }}
       />
-      
+
       <Box sx={{ display: "flex", gap: 1, mb: 2, mt: 2 }}>
         {segments?.map((seg, idx) => (
           <Button
@@ -93,10 +100,10 @@ export default function WaveformDashboard({
         {factorResults?.map((factor, idx) => {
           // Find corresponding segment for this factor if available
           const correspondingSegment = segments?.[idx];
-          const isHighlighted = playingSegment && 
-                                correspondingSegment &&
-                                playingSegment.start === correspondingSegment.start;
-          
+          const isHighlighted = playingSegment &&
+            correspondingSegment &&
+            playingSegment.start === correspondingSegment.start;
+
           return (
             <Grid item xs={12} sm={6} md={4} key={idx}>
               <FactorCard

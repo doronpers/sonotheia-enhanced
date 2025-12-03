@@ -51,6 +51,14 @@ RED FLAGS AND INDICATORS
 {{ loop.index }}. {{ flag }}
 {% endfor %}
 
+{% if technical_evidence -%}
+TECHNICAL EVIDENCE (Deepfake Detection)
+================================================================================
+{{ technical_evidence }}
+
+{% endif -%}
+
+
 {% if risk_intelligence -%}
 RISK INTELLIGENCE ANALYSIS
 ================================================================================

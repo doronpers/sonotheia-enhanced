@@ -27,28 +27,91 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
       </DialogTitle>
       <DialogContent>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
+          <Tab label="Fusion Analysis" />
           <Tab label="Waveform" />
           <Tab label="Spectrogram" />
-          <Tab label="Metadata" />
+          <Tab label="Sensor Breakdown" />
           <Tab label="SAR Narrative" />
         </Tabs>
-        
+
         <TabPanel value={tabValue} index={0}>
-          <img 
-            src={evidence?.waveformImg || '/placeholder-waveform.png'} 
-            alt="Waveform" 
+          {evidence?.fusion_verdict ? (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Global Risk Assessment
+              </Typography>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Risk Score: {(evidence.fusion_verdict.global_risk_score * 100).toFixed(1)}%
+                </Typography>
+                <Box sx={{
+                  width: '100%',
+                  height: 24,
+                  bgcolor: 'grey.200',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  mt: 1
+                }}>
+                  <Box sx={{
+                    width: `${evidence.fusion_verdict.global_risk_score * 100}%`,
+                    height: '100%',
+                    bgcolor: evidence.fusion_verdict.verdict === 'SYNTHETIC' ? 'error.main' :
+                      evidence.fusion_verdict.verdict === 'REAL' ? 'success.main' : 'warning.main',
+                    transition: 'width 0.5s ease'
+                  }} />
+                </Box>
+                <Typography variant="h5" sx={{ mt: 2 }}>
+                  Verdict: <strong>{evidence.fusion_verdict.verdict}</strong>
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Confidence: {(evidence.fusion_verdict.confidence * 100).toFixed(1)}%
+                </Typography>
+              </Box>
+
+              <Typography variant="h6" gutterBottom>
+                Top Contributing Sensors
+              </Typography>
+              {evidence.fusion_verdict.contributing_factors?.slice(0, 3).map((factor, idx) => (
+                <Box key={idx} sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="subtitle2">
+                    {idx + 1}. {factor.sensor_name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Weight: {(factor.weight * 100).toFixed(0)}% | Contribution: {(factor.contribution * 100).toFixed(1)}%
+                  </Typography>
+                  {factor.reason && (
+                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                      Finding: {factor.reason}
+                    </Typography>
+                  )}
+                  {factor.detail && (
+                    <Typography variant="caption" color="text.secondary">
+                      {factor.detail}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Typography>No fusion analysis available</Typography>
+          )}
+        </TabPanel>
+        <TabPanel value={tabValue} index={0}>
+          <img
+            src={evidence?.waveformImg || '/placeholder-waveform.png'}
+            alt="Waveform"
             style={{ width: "100%" }}
           />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={1}>
-          <img 
-            src={evidence?.spectrogramImg || '/placeholder-spectrogram.png'} 
-            alt="Spectrogram" 
+          <img
+            src={evidence?.spectrogramImg || '/placeholder-spectrogram.png'}
+            alt="Spectrogram"
             style={{ width: "100%" }}
           />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={2}>
           <Typography variant="body2">
             <strong>Device:</strong> {evidence?.device || "N/A"}
@@ -60,7 +123,7 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
             <strong>Session ID:</strong> {evidence?.sessionId || "N/A"}
           </Typography>
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={3}>
           <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
             {evidence?.sarNarrative || "No SAR narrative generated"}
