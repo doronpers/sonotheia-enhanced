@@ -155,6 +155,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:3002",
     "http://localhost:3003",
     "http://localhost:3004",
+    "http://localhost:5173", # Website-Sonotheia Vite Dev Server
     # Add production domains here
     # "https://yourdomain.com",
 ]

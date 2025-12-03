@@ -1,6 +1,10 @@
 import asyncio
 import logging
-from typing import Dict, List, Type, Optional, Any
+from typing import Dict, List, Type, Optional, Any, Tuple
+import io
+import numpy as np
+import soundfile as sf
+import librosa
 import numpy as np
 
 from backend.sensors.base import BaseSensor, SensorResult
@@ -25,6 +29,13 @@ class SensorRegistry:
         logger.info(f"Registered sensor: {sensor_name}")
 
     def get_sensor(self, name: str) -> Optional[BaseSensor]:
+        """Retrieve a registered sensor by name.
+
+        Args:
+            name: The identifier of the sensor.
+        Returns:
+            The sensor instance if registered, otherwise ``None``.
+        """
         return self._sensors.get(name)
 
     async def analyze_all(self, audio_data: np.ndarray, samplerate: int, timeout: float = 10.0) -> Dict[str, Any]:
