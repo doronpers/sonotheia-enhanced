@@ -9,7 +9,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
-from backend.sensors.base import SensorResult
+from .base import SensorResult
 
 logger = logging.getLogger(__name__)
 
@@ -18,17 +18,16 @@ logger = logging.getLogger(__name__)
 # **Patent-Safe Sensor Set** - No LPC, No Source-Filter Model
 DEFAULT_WEIGHTS = {
     # Physics-based sensors (patent-safe)
-    "FormantTrajectory": 0.35,      # Formant velocity analysis (high weight - physics-based)
-    "PhaseCoherence": 0.25,          # Phase derivative entropy (enhanced sensor)
-    "Coarticulation": 0.20,          # Motor planning analysis (white space)
+    "GlottalInertiaSensor": 0.25,    # Impossible acceleration (Strong indicator)
+    "FormantTrajectorySensor": 0.25, # Velocity analysis (Strong indicator)
+    "PhaseCoherenceSensor": 0.20,    # Phase entropy (Strong indicator)
+    "DigitalSilenceSensor": 0.15,    # Splicing artifacts
+    "GlobalFormantSensor": 0.10,     # Statistical envelope
+    "CoarticulationSensor": 0.05,    # Motor planning
     
-    # Legacy/other sensors (if still in use)
-    "BandwidthSensor": 0.10,        # Reduced weight
-    "HuggingFaceDetector": 0.10,    # ML-based (once model fixed)
-    
-    # Deprecated sensors (DO NOT USE - patent infringement risk)
-    # "BreathSensor": REMOVED - used LPC residuals
-    # "VocalTractSensor": REMOVED - used LPC (replaced by FormantTrajectory)
+    # Fallback/Legacy
+    "BandwidthSensor": 0.0,         # Deprioritized
+    "HFDeepfakeSensor": 0.0,        # Tie-breaker only (if enabled)
     
     # Fallback weight for unknown sensors
     "_default": 0.05,
