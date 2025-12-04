@@ -1,351 +1,168 @@
-# Implementation Summary
-
-## Project: Sonotheia Enhanced - Multi-Factor Voice Authentication & SAR
-
-**Date:** 2025-11-23  
-**Author:** GitHub Copilot Agent  
-**Repository:** doronpers/sonotheia-enhanced
-
+---
+title: Implementation Summary
+tags: [architecture, implementation, design]
 ---
 
-## Overview
+# Sonotheia Implementation Summary
 
-Successfully implemented all superior aspects from "Sonotheia Multi-Factor Voice Authentication & SAR.md" into the sonotheia-enhanced repository. This implementation transforms the repository into a production-ready multi-factor authentication system with automated SAR generation capabilities.
+Architectural overview of how Sonotheia components work together.
 
----
+📖 **For design history and comparisons, see [IMPLEMENTATION_COMPARISON.md](IMPLEMENTATION_COMPARISON.md).**
 
-## Key Deliverables
+## System Architecture
 
-### 1. Backend Implementation
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Frontend  │────▶│   Backend    │────▶│   Sensors   │
+│  (React)    │     │  (FastAPI)   │     │  (Physics)  │
+│   Nginx     │     │   Port 8000  │     │  Registry   │
+└─────────────┘     └──────────────┘     └─────────────┘
+                            │
+                            ▼
+                    ┌──────────────┐
+                    │ SAR/LLM Gen  │
+                    │  (Compliance)│
+                    └──────────────┘
+```
 
-#### SAR (Suspicious Activity Report) Module
-- **Location:** `backend/sar/`
-- **Components:**
-  - `models.py`: Pydantic data models for SAR context and transactions
-  - `generator.py`: SAR narrative generation using Jinja2 templates
-  - `templates/sar_narrative.j2`: Professional SAR narrative template
-- **Features:**
-  - Automated narrative generation from transaction data
-  - Quality validation with completeness checks
-  - Support for multiple transaction types
+## Component Communication
 
-#### Enhanced MFA Orchestrator
-- **Location:** `backend/authentication/mfa_orchestrator.py`
-- **Features:**
-  - Comprehensive multi-factor authentication
-  - Configurable policy engine with 5 decision rules
-  - Risk-based authentication requirements
-  - Automatic SAR trigger detection
-  - Support for voice, device, knowledge, and behavioral factors
+### Frontend → Backend
 
-#### Authentication Factors
-- **Voice Factor** (`voice_factor.py`):
-  - Deepfake detection (placeholder for proprietary model)
-  - Liveness checks (replay attack detection)
-  - Speaker verification
-  - Demo mode with production safeguards
-  
-- **Device Factor** (`device_factor.py`):
-  - Device trust scoring
-  - Enrollment validation
-  - Integrity checks
-  - Location consistency verification
+1. **User uploads audio** via React component (`frontend/src/components/Demo.jsx`)
+2. **FormData sent** to `/api/v2/detect/quick` endpoint
+3. **Nginx proxies** API requests to backend (production)
+4. **Backend processes** audio through sensor pipeline
+5. **Response returned** with verdict and evidence
 
-#### Configuration System
-- **Location:** `backend/config/settings.yaml`
-- **Features:**
-  - Demo mode flag for safe testing
-  - Authentication policies and thresholds
-  - Risk level definitions
-  - High-risk country lists
-  - SAR detection rules
+### Backend → Sensors
 
-### 2. Frontend Implementation
+1. **Audio decoded** once using `soundfile` (mono conversion, float32 normalization)
+2. **Sensor Registry** (`backend/sensors/registry.py`) orchestrates analysis
+3. **Each sensor** (`backend/sensors/*.py`) analyzes audio independently
+4. **Results aggregated** into unified verdict
+5. **Evidence packaged** for response
 
-#### React Components
-- **FactorCard** (`components/FactorCard.jsx`):
-  - Expandable authentication factor cards
-  - Color-coded status indicators
-  - Detailed explanations on demand
-  
-- **WaveformDashboard** (`components/WaveformDashboard.jsx`):
-  - Plotly.js waveform visualization
-  - Segment overlays for genuine/synthetic regions
-  - Interactive segment playback
-  - Safe factor highlighting logic
-  
-- **EvidenceModal** (`components/EvidenceModal.jsx`):
-  - Tabbed interface for evidence viewing
-  - Waveform, spectrogram, metadata, and SAR tabs
-  - Full-screen modal display
-  
-- **RiskScoreBox** (`components/RiskScoreBox.jsx`):
-  - Visual risk score indicator
-  - Color-coded risk levels
-  - Risk factor enumeration
+### Backend → SAR/LLM
 
-#### Enhanced UI
-- Material-UI based design system
-- Responsive layout with Grid
-- Factor-level explainability
-- Real-time authentication feedback
+1. **Detection triggers** SAR generation (if enabled)
+2. **SAR Generator** (`backend/sar/generator.py`) creates compliance narrative
+3. **Optional LLM** (`backend/sar/llm_generator.py`) enhances narrative
+4. **Output stored** or returned for compliance workflows
 
-### 3. API Endpoints
-
-#### Authentication
-- `POST /api/authenticate`: Enhanced MFA with detailed results
-- `POST /api/v1/authenticate`: Legacy endpoint (backward compatible)
-
-#### SAR Generation
-- `POST /api/sar/generate`: Generate SAR narrative from context
-
-#### Demo Data
-- `GET /api/demo/waveform/{sample_id}`: Demo waveform visualization data
-
-#### Health & Status
-- `GET /`: Service information
-- `GET /api/v1/health`: Health check
-
-### 4. Documentation
-
-#### API Documentation (`API.md`)
-- Complete endpoint specifications
-- Request/response examples
-- Error handling guide
-- Rate limiting recommendations
-- CORS configuration
-- Best practices
-
-#### Integration Guide (`INTEGRATION.md`)
-- Banking/financial institution integration
-- Real estate/escrow system integration
-- Webhook patterns
-- Batch processing
-- Configuration examples
-- Testing strategies
-- Troubleshooting guide
-
-#### README (`README.md`)
-- Architecture diagram
-- Project structure
-- Quick start guide
-- Feature overview
-- Configuration documentation
-- Integration examples
-- Security checklist
-
----
-
-## Technical Highlights
+## Sensor Framework
 
 ### Architecture
-```
-Frontend (React + Material-UI + Plotly.js)
-    ↕ REST API
-Backend (Python + FastAPI)
-    ├── MFA Orchestrator
-    │   ├── Voice Factor
-    │   ├── Device Factor
-    │   └── Risk Scorer
-    ├── SAR Generator
-    └── Configuration System
-```
 
-### Security Features
-- Demo mode flag to prevent accidental production use
-- NotImplementedError for production paths requiring implementation
-- Input validation with Pydantic models
-- CORS configuration
-- Rate limiting ready (requires configuration)
-- Comprehensive logging
-- SAR trigger detection
+**Base Classes:**
+- `BaseSensor` (`backend/sensors/base.py`): Abstract sensor interface
+- `SensorResult` (`backend/sensors/base.py`): Standardized result format
+- `SensorRegistry` (`backend/sensors/registry.py`): Centralized sensor management
 
-### Code Quality
-- Type hints throughout
-- Comprehensive docstrings
-- Logging at appropriate levels
-- Error handling
-- Configuration-driven behavior
-- Modular architecture
-- Clean separation of concerns
-
----
-
-## Testing Results
-
-### Backend Tests
-✅ All endpoints functional:
-- Root endpoint returns service information
-- Demo waveform endpoint returns visualization data
-- SAR generation creates valid narratives with quality checks
-- Authentication endpoint performs comprehensive MFA validation
-
-### Code Quality
-✅ Code review completed - all feedback addressed:
-- Added demo mode flags
-- Removed hard-coded production values
-- Fixed array indexing issues
-- Improved documentation
-- Enhanced security warnings
-
-✅ CodeQL security scan:
-- Python: 0 vulnerabilities
-- JavaScript: 0 vulnerabilities
-
----
-
-## Production Readiness Checklist
-
-### Before Deploying to Production
-
-1. **Replace Demo Implementations:**
-   - [ ] Integrate actual deepfake detection model
-   - [ ] Implement real liveness detection
-   - [ ] Add speaker verification system
-   - [ ] Connect to device enrollment database
-   
-2. **Configuration:**
-   - [ ] Set `demo_mode: false` in settings.yaml
-   - [ ] Configure production thresholds
-   - [ ] Add API authentication
-   - [ ] Set up rate limiting
-   - [ ] Configure CORS for production domains
-   
-3. **Infrastructure:**
-   - [ ] Set up database for device enrollment
-   - [ ] Configure Redis for session management
-   - [ ] Set up monitoring and alerting
-   - [ ] Configure backup systems
-   - [ ] Set up audit logging
-   
-4. **Security:**
-   - [ ] Enable HTTPS
-   - [ ] Add API authentication
-   - [ ] Configure rate limiting
-   - [ ] Set up WAF
-   - [ ] Implement audit logging
-   
-5. **Testing:**
-   - [ ] Load testing
-   - [ ] Security penetration testing
-   - [ ] Integration testing with production systems
-   - [ ] Failover testing
-
----
-
-## Usage Examples
-
-### Banking Integration
+**Sensor Pattern:**
 ```python
-from backend.authentication.mfa_orchestrator import MFAOrchestrator
+class MySensor(BaseSensor):
+    def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:
+        # Analysis logic
+        return SensorResult(
+            sensor_name="My Sensor",
+            passed=True,
+            value=0.95,
+            threshold=0.8,
+            reason="Explanation",
+            detail="Details"
+        )
+The system uses a modular sensor architecture inheriting from `BaseSensor`.
 
-orchestrator = MFAOrchestrator()
+**Active Sensors:**
+1.  **GlottalInertiaSensor**: Checks for impossible amplitude rise velocities (Phase 1 Patent-Safe).
+2.  **GlobalFormantSensor**: Checks for robotic spectral envelope statistics (Phase 1 Patent-Safe).
+3.  **PhaseCoherenceSensor**: Checks for phase entropy and derivative anomalies (Phase 1 Patent-Safe).
+4.  **DigitalSilenceSensor**: Checks for non-biological silence signatures.
+5.  **CoarticulationSensor**: Checks for natural phoneme transitions.
+6.  **BreathSensor**: Checks for "Infinite Lung Capacity".
+7.  **DynamicRangeSensor**: Checks crest factor.
+8.  **BandwidthSensor**: Checks frequency cutoff.
+9.  **HFDeepfakeSensor**: Optional ML-based detection (Wav2Vec2).
 
-# Authenticate wire transfer
-result = orchestrator.authenticate(
-    context=TransactionContext(...),
-    factors=AuthenticationFactors(voice={...}, device={...})
-)
+**Removed Components:**
+- `VocalTractSensor`: Removed due to patent infringement concerns (LPC-based).
 
-if result['decision'] == 'APPROVE':
-    execute_wire_transfer()
-```
+## SAR/LLM Generation
 
 ### SAR Generation
-```python
-from backend.sar.generator import SARGenerator
 
-sar = SARGenerator()
-narrative = sar.generate_sar(context)
-validation = sar.validate_sar_quality(narrative)
-```
+**Template-based** (`backend/sar/generator.py`):
+- Uses Jinja2 templates (`backend/sar/templates/`)
+- Generates compliance-ready narratives
+- Includes evidence packaging and audit trails
 
----
+**LLM Enhancement** (`backend/sar/llm_generator.py`):
+- Optional AI-powered narrative generation
+- Supports Vercel AI Gateway / OpenAI
+- Falls back to template if API key missing
+- Includes PII redaction
 
-## File Structure
+**Code Location:** `backend/sar/`
 
-```
-backend/
-├── api/
-│   └── main.py                    # FastAPI entry point
-├── authentication/
-│   ├── mfa_orchestrator.py        # Enhanced MFA engine
-│   ├── voice_factor.py            # Voice authentication
-│   ├── device_factor.py           # Device validation
-│   └── unified_orchestrator.py    # Legacy orchestrator
-├── sar/
-│   ├── models.py                  # Pydantic models
-│   ├── generator.py               # SAR generator
-│   ├── __init__.py
-│   └── templates/
-│       └── sar_narrative.j2       # SAR template
-├── config/
-│   └── settings.yaml              # Configuration
-└── requirements.txt
+## Frontend Architecture
 
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── FactorCard.jsx
-│   │   ├── WaveformDashboard.jsx
-│   │   ├── EvidenceModal.jsx
-│   │   └── RiskScoreBox.jsx
-│   ├── App.js
-│   └── index.js
-└── package.json
+### React Components
 
-docs/
-├── API.md                         # API documentation
-├── INTEGRATION.md                 # Integration guide
-└── README.md                      # Main documentation
-```
+- **Demo.jsx**: Main audio upload and results display
+- **DetectorChat.jsx**: Explanation interface
+- **Other components**: About, Contact, Team, etc.
 
----
+### Build & Serve
 
-## Metrics
+- **Build**: Vite compiles React to static assets
+- **Serve**: Nginx serves static files in production
+- **Proxy**: Nginx proxies `/api/*` to backend
 
-- **Files Created:** 15
-- **Files Modified:** 10
-- **Lines of Code Added:** ~2,500
-- **Documentation Pages:** 3
-- **React Components:** 4
-- **Backend Modules:** 5
-- **API Endpoints:** 6
-- **Test Coverage:** Backend endpoints tested
+**Code Location:** `frontend/`
 
----
+## Performance-Optimized Sensor Pipeline
 
-## Success Criteria Met
+*(Milestone 1: Profiling & Baselines - Completed)*
+*(Milestone 2: Optimization - In Progress)*
 
-✅ All superior aspects from reference document implemented  
-✅ Production-ready code with proper safety guards  
-✅ Comprehensive documentation  
-✅ Zero security vulnerabilities (CodeQL verified)  
-✅ All code review feedback addressed  
-✅ Backward compatibility maintained  
-✅ Modular and extensible architecture  
+**Planned Optimizations:**
+- Vectorized NumPy operations
+- Single audio decode shared across sensors
+- Cached FFT results
+- Streaming analysis for large files
+
+## Data Flow
+
+1. **Audio Upload** → FastAPI receives multipart/form-data
+2. **Validation** → File size, format, sample rate checks
+3. **Decode** → `soundfile` reads audio to NumPy array
+4. **Preprocess** → Mono conversion, float32 normalization
+5. **Sensor Analysis** → Registry executes all sensors
+6. **Aggregation** → Verdict determined from sensor results
+7. **Response** → JSON with verdict, evidence, metadata
+
+## Configuration
+
+**Settings:** `backend/config/settings.yaml`
+- Authentication policies
+- Risk assessment thresholds
+- SAR generation triggers
+- API limits
+
+**Environment Variables:**
+- `PORT`: Backend port
+- `BACKEND_URL`: Frontend proxy target
+- `LLM_API_KEY`: Optional LLM access
+
+## Related Documentation
+
+- [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) - API integration details
+- [ROADMAP.md](ROADMAP.md) - Future improvements and optimizations
+- [IMPLEMENTATION_COMPARISON.md](IMPLEMENTATION_COMPARISON.md) - Design history
 
 ---
 
-## Next Steps
+**Last Updated:** 2025-01-XX  
+**Version:** 9.0 (Bandwidth Aware)
 
-1. **Integration:** Connect to production deepfake detection models
-2. **Testing:** Conduct comprehensive load and security testing
-3. **Deployment:** Deploy to staging environment for validation
-4. **Training:** Train operations team on new features
-5. **Monitoring:** Set up dashboards and alerts
-6. **Documentation:** Add operational runbooks
-
----
-
-## Support
-
-For questions or issues:
-- Review documentation in `API.md` and `INTEGRATION.md`
-- Check configuration in `backend/config/settings.yaml`
-- Review logs for detailed error information
-- Contact development team
-
----
-
-**End of Implementation Summary**

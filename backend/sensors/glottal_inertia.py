@@ -19,7 +19,7 @@ import numpy as np
 import logging
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from backend.sensors.base import BaseSensor, SensorResult
+from .base import BaseSensor, SensorResult
 
 try:
     import librosa
@@ -62,8 +62,7 @@ class GlottalInertiaSensor(BaseSensor):
         
         Method: Amplitude Rise Velocity (NOT LPC residual analysis)
         """
-        # Validate input
-        if audio is None or len(audio) == 0:
+        if not self.validate_input(audio, sr):
              return SensorResult(
                 sensor_name=self.name,
                 passed=None,
@@ -91,6 +90,8 @@ class GlottalInertiaSensor(BaseSensor):
             # Check for phase chaos at onset (natural glottal burst signature)
             has_phase_chaos = self._check_onset_phase_chaos(audio, sr, onset)
             
+            # Violation: Too fast AND missing natural phase signature
+            # We only flag if it's significantly faster than the minimum
             # Violation: Too fast AND missing natural phase signature
             # We only flag if it's significantly faster than the minimum
             if rise_time_ms < self.MIN_RISE_TIME_MS and not has_phase_chaos:

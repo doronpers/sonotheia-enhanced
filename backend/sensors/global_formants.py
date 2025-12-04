@@ -13,7 +13,7 @@ Patent Safety:
 import numpy as np
 from scipy import signal, stats
 from typing import Dict, List, Optional, Tuple
-from backend.sensors.base import BaseSensor, SensorResult
+from .base import BaseSensor, SensorResult
 
 try:
     import librosa

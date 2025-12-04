@@ -14,7 +14,7 @@ Key Design-Around Strategy:
 import numpy as np
 from scipy import signal
 from typing import Dict
-from backend.sensors.base import BaseSensor, SensorResult
+from .base import BaseSensor, SensorResult
 
 # Detection thresholds
 PLV_NATURAL_MIN = 0.7  # Minimum phase locking value for natural speech

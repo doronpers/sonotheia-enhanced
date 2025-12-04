@@ -1,0 +1,182 @@
+"""
+Configuration loader for Sonotheia backend.
+
+Loads sensor thresholds and other settings from config/settings.yaml.
+Provides default values if config file is not found or values are missing.
+"""
+
+import logging
+import threading
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import yaml
+
+logger = logging.getLogger(__name__)
+
+# Path to settings.yaml (relative to backend directory)
+# Using .resolve() for more robust path handling
+CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
+SETTINGS_FILE = CONFIG_DIR / "settings.yaml"
+
+# Thread-safe cached settings
+_settings_cache: Optional[Dict[str, Any]] = None
+_settings_lock = threading.Lock()
+
+
+def load_settings(reload: bool = False) -> Dict[str, Any]:
+    """
+    Load settings from config/settings.yaml.
+
+    Thread-safe implementation using a lock to prevent race conditions.
+
+    Args:
+        reload: If True, force reload from disk even if cached.
+
+    Returns:
+        Dictionary of settings.
+    """
+    global _settings_cache
+
+    with _settings_lock:
+        if _settings_cache is not None and not reload:
+            return _settings_cache
+
+        settings: Dict[str, Any] = {}
+
+        if SETTINGS_FILE.exists():
+            try:
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                    settings = yaml.safe_load(f) or {}
+                logger.info(f"Loaded settings from {SETTINGS_FILE}")
+            except yaml.YAMLError as e:
+                logger.error(f"Failed to parse settings.yaml: {e}")
+            except Exception as e:
+                logger.error(f"Failed to load settings.yaml: {e}")
+        else:
+            logger.warning(f"Settings file not found: {SETTINGS_FILE}")
+
+        _settings_cache = settings
+        return settings
+
+
+def get_sensor_thresholds() -> Dict[str, Any]:
+    """
+    Get sensor threshold configuration.
+
+    Returns:
+        Dictionary of sensor thresholds with defaults.
+    """
+    settings = load_settings()
+    sensor_config = settings.get("sensor_thresholds", {})
+
+    # Default values - used if not specified in config
+    defaults = {
+        "dynamic_range": {
+            "crest_factor_threshold": 5.0,  # Lowered from 12.0 to reduce false positives
+        },
+        "breath": {
+            "max_phonation_seconds": 14.0,
+            "silence_threshold_db": -60,
+            "frame_size_seconds": 0.02,
+        },
+        "bandwidth": {
+            "rolloff_threshold_hz": 4000,
+            "rolloff_percent": 0.90,
+            "contribute_to_verdict": True,  # Narrowband detection now contributes to verdict
+        },
+        "phase_coherence": {
+            "plv_natural_min": 0.7,
+            "plv_synthetic_max": 0.5,
+            "phase_jump_rate_threshold": 0.15,
+            "suspicion_threshold": 0.5,
+        },
+        "vocal_tract": {
+            "min_cm": 12.0,
+            "max_cm": 20.0,
+            "impossible_threshold_cm": 25.0,
+        },
+        "coarticulation": {
+            "max_formant_velocity_hz_ms": 300,
+            "min_transition_duration_ms": 20,
+            "max_transition_duration_ms": 150,
+            "min_formant_continuity": 0.7,
+        },
+        "verdict": {
+            "fail_on_any": False,  # Changed from True to require weighted/minimum fails
+            "min_fail_count": 2,  # Minimum sensors that must fail to trigger SYNTHETIC
+            "use_weighted_verdict": True,  # Enable weighted scoring for verdict
+            "sensor_weights": {
+                "breath": 1.0,
+                "dynamic_range": 1.0,
+                "bandwidth": 0.5,  # Lower weight for bandwidth (info-like)
+                "phase_coherence": 0.8,
+                "vocal_tract": 1.0,
+                "coarticulation": 0.7,
+                # HF AI model weight allows solo SYNTHETIC verdict when AI detects fake
+                "hf_deepfake": 1.5,
+            },
+            "weighted_threshold": 1.5,  # Sum of weights must exceed this for SYNTHETIC
+        },
+    }
+
+    # Merge config with defaults (config values override defaults)
+    result = {}
+    for sensor_name, default_values in defaults.items():
+        config_values = sensor_config.get(sensor_name, {})
+        if isinstance(default_values, dict) and isinstance(config_values, dict):
+            result[sensor_name] = {**default_values, **config_values}
+        else:
+            result[sensor_name] = config_values if config_values else default_values
+
+    return result
+
+
+def get_threshold(sensor_name: str, threshold_name: str, default: Any = None) -> Any:
+    """
+    Get a specific threshold value for a sensor.
+
+    Args:
+        sensor_name: Name of the sensor (e.g., 'dynamic_range', 'breath')
+        threshold_name: Name of the threshold (e.g., 'crest_factor_threshold')
+        default: Default value if not found
+
+    Returns:
+        Threshold value or default.
+    """
+    thresholds = get_sensor_thresholds()
+    sensor_thresholds = thresholds.get(sensor_name, {})
+
+    if isinstance(sensor_thresholds, dict):
+        return sensor_thresholds.get(threshold_name, default)
+    return default
+
+
+def get_verdict_config() -> Dict[str, Any]:
+    """
+    Get verdict configuration.
+
+    Returns:
+        Dictionary with verdict settings.
+    """
+    settings = load_settings()
+    
+    # Try new structure first (verdict_logic)
+    verdict_config = settings.get("verdict_logic", {})
+    
+    # Fallback to old structure (sensor_thresholds.verdict)
+    if not verdict_config:
+        thresholds = get_sensor_thresholds()
+        verdict_config = thresholds.get("verdict", {})
+    
+    # Default values if neither structure found
+    if not verdict_config:
+        verdict_config = {
+            "fail_on_any": False,
+            "min_fail_count": 2,
+            "use_weighted_verdict": True,
+            "sensor_weights": {},
+            "weighted_threshold": 1.5,
+        }
+    
+    return verdict_config
