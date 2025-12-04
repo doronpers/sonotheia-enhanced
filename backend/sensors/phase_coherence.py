@@ -1,220 +1,217 @@
 """
-Phase Coherence Sensor - Patent-Safe Vocoder Artifact Detection
+Phase coherence sensor for detecting vocoder artifacts.
 
-**Patent Compliance**: This implementation uses PHASE-PHYSICS MODEL
-(phase derivative entropy) rather than LPC residuals or source-filter modeling,
-providing freedom to operate around Pindrop's patents.
+Adapted from RecApp's phase_coherence.py to work with BaseSensor interface.
+Detects phase relationship violations that indicate synthetic audio generation.
 
-**Design-Around Strategy**:
-- ❌ RESTRICTED: LPC residuals, glottal closure/opening analysis
-- ✅ SAFE: Phase derivative entropy, instantaneous frequency analysis
-
-Detects synthetic speech by identifying vocoder artifacts through 
-phase discontinuities and unnatural phase coherence patterns.
+Key Design-Around Strategy:
+- Uses "Phase Entropy" and "Phase Derivative" analysis.
+- REMOVED: Glottal Inertia logic (moved to glottal_inertia.py).
+- REMOVED: LPC residual analysis.
+- Focuses on the chaotic nature of natural phase vs. the structured phase of vocoders.
 """
 
 import numpy as np
 from scipy import signal
-from scipy.stats import entropy
-from typing import Dict, Any, Optional
-import logging
-
+from typing import Dict
 from backend.sensors.base import BaseSensor, SensorResult
 
-logger = logging.getLogger(__name__)
+# Detection thresholds
+PLV_NATURAL_MIN = 0.7  # Minimum phase locking value for natural speech
+PLV_SYNTHETIC_MAX = 0.5  # Maximum PLV for synthetic speech
+PHASE_JUMP_RATE_THRESHOLD = 0.15  # Max acceptable phase discontinuity rate
+LOW_FREQ_ENERGY_MIN = 0.6  # Natural speech has 60%+ energy below 4kHz
+PARSEVAL_TOLERANCE = 0.01  # Energy conservation tolerance
+
+# Entropy thresholds
+PHASE_ENTROPY_MIN = 3.5 # Natural speech usually has high phase entropy
+PHASE_ENTROPY_MAX_SYNTHETIC = 2.5 # Vocoders often have lower entropy
+
+# Suspicion score weights
+PHASE_JUMP_WEIGHT = 0.3
+ENERGY_VIOLATION_WEIGHT = 0.2
+ENTROPY_WEIGHT = 0.5
 
 
 class PhaseCoherenceSensor(BaseSensor):
     """
-    Analyzes phase coherence using instantaneous frequency entropy.
+    Phase coherence sensor that detects vocoder phase artifacts.
     
-    **Patent-Safe Approach**:
-    - Uses Hilbert transform for analytic signal
-    - Calculates instantaneous frequency (phase derivative)  
-    - Measures Shannon entropy of phase derivative distribution
-    - Detects vocoder artifacts via phase discontinuities
-    - No LPC, no residuals, no source-filter modeling
-    
-    Synthetic speech from vocoders often exhibits:
-    - Lower entropy (too regular/predictable phase)
-    - Abrupt phase resets ("digital silence")
-    - Unnatural phase coherence across frequency bands
+    Analyzes phase relationships between frequency components to identify
+    synthesis patterns. Natural speech has strong phase locking between
+    harmonics, while synthetic speech often shows independent synthesis or
+    unnatural phase structure (too regular or too random in wrong ways).
     """
     
-    def __init__(self):
-        super().__init__()
-        self.name = "PhaseCoherence"
-    
-    def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:
+    def __init__(
+        self,
+        n_fft: int = 2048,
+        hop_length: int = 512,
+    ):
         """
-        Analyze phase coherence using entropy of instantaneous frequency.
+        Initialize phase coherence sensor.
         
         Args:
-            audio_data: Audio signal (normalized float32)
-            samplerate: Sample rate in Hz
+            n_fft: FFT window size
+            hop_length: Hop length for STFT
+        """
+        super().__init__("Phase Coherence Sensor")
+        self.n_fft = n_fft
+        self.hop_length = hop_length
+    
+    def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:
+        """
+        Analyze phase coherence of audio signal.
+        
+        Args:
+            audio: Audio signal as numpy array
+            sr: Sample rate in Hz
             
         Returns:
-            SensorResult indicating if phase patterns are natural
+            SensorResult with phase coherence analysis
         """
-        try:
-            # Calculate instantaneous phase using Hilbert transform
-            analytic_signal = signal.hilbert(audio_data)
-            instantaneous_phase = np.unwrap(np.angle(analytic_signal))
-            
-            # Calculate instantaneous frequency (phase derivative)
-            # This is the core "phase-physics" measurement
-            instantaneous_freq = np.diff(instantaneous_phase) * samplerate / (2 * np.pi)
-            
-            # Remove outliers (due to numerical issues at silence)
-            instantaneous_freq = self._remove_outliers(instantaneous_freq)
-            
-            if len(instantaneous_freq) == 0:
-                return SensorResult(
-                    sensor_name=self.name,
-                    passed=None,
-                    value=0.0,
-                    threshold=0.0,
-                    reason="Insufficient data for phase analysis",
-                    detail="Audio too short or all silence"
-                )
-            
-            # Calculate Shannon entropy of instantaneous frequency distribution
-            # High entropy = natural (unpredictable phase evolution)
-            # Low entropy = synthetic (too regular, vocoder artifact)
-            phase_entropy = self._calculate_phase_entropy(instantaneous_freq)
-            
-            # Detect "digital silence" artifacts (abrupt phase resets)
-            num_discontinuities = self._detect_phase_discontinuities(instantaneous_phase)
-            
-            # Calculate coherence score
-            # High entropy is good (natural), low is suspicious
-            # Normalize entropy to 0-1 range (empirically, natural speech ~3-6 nats)
-            normalized_entropy = min(phase_entropy / 6.0, 1.0)
-            
-            # Penalize for discontinuities
-            discontinuity_penalty = min(num_discontinuities * 0.05, 0.3)
-            coherence_score = max(normalized_entropy - discontinuity_penalty, 0.0)
-            
-            # Threshold: coherence score < 0.4 indicates synthetic
-            threshold = 0.4
-            passed = coherence_score >= threshold
-            
-            detail_parts = [
-                f"Entropy: {phase_entropy:.3f}",
-                f"Coherence: {coherence_score:.3f}"
-            ]
-            
-            if num_discontinuities > 0:
-                detail_parts.append(f"Discontinuities: {num_discontinuities}")
-            
-            return SensorResult(
-                sensor_name=self.name,
-                passed=passed,
-                value=float(coherence_score),
-                threshold=threshold,
-                reason="Low phase coherence (vocoder artifacts)" if not passed else None,
-                detail=", ".join(detail_parts),
-                metadata={
-                    "phase_entropy_nats": float(phase_entropy),
-                    "discontinuities": int(num_discontinuities),
-                    "mean_inst_freq": float(np.mean(instantaneous_freq))
-                }
-            )
-            
-        except Exception as e:
-            logger.error(f"Phase coherence analysis failed: {e}", exc_info=True)
+        if not self.validate_input(audio, sr):
             return SensorResult(
                 sensor_name=self.name,
                 passed=None,
                 value=0.0,
-                threshold=0.0,
-                reason=f"Analysis failed: {str(e)}",
-                detail=None
+                threshold=0.5,
+                detail="Invalid or empty audio input."
             )
-    
-    def _remove_outliers(self, data: np.ndarray, threshold: float = 3.0) -> np.ndarray:
-        """
-        Remove outliers using Z-score method.
         
-        Args:
-            data: Input array
-            threshold: Z-score threshold (standard deviations)
+        # 1. Analyze Phase Entropy (New Patent-Safe Method)
+        entropy_results = self._analyze_phase_entropy(audio, sr)
+        
+        # 2. Analyze Phase Jumps (Discontinuities)
+        jump_results = self._analyze_phase_jumps(audio, sr)
+        
+        # 3. Analyze Energy Distribution
+        energy_results = self._analyze_energy_distribution(audio, sr)
+        
+        # Combine scores
+        suspicion_score = 0.0
+        violations = 0
+        
+        # Entropy check
+        if entropy_results["entropy_suspicious"]:
+            suspicion_score += ENTROPY_WEIGHT
+            violations += 1
             
-        Returns:
-            Data with outliers removed
-        """
-        if len(data) == 0:
-            return data
-        
-        mean = np.mean(data)
-        std = np.std(data)
-        
-        if std == 0:
-            return data
-        
-        z_scores = np.abs((data - mean) / std)
-        return data[z_scores < threshold]
-    
-    def _calculate_phase_entropy(self, instantaneous_freq: np.ndarray) -> float:
-        """
-        Calculate Shannon entropy of instantaneous frequency distribution.
-        
-        **Patent-Safe**: Analyzes phase derivative distribution, not LPC residuals.
-        
-        Args:
-            instantaneous_freq: Instantaneous frequency values
+        # Phase jump check
+        if jump_results["jump_rate"] > PHASE_JUMP_RATE_THRESHOLD:
+            suspicion_score += PHASE_JUMP_WEIGHT
+            violations += 1
             
-        Returns:
-            Shannon entropy in nats (natural logarithm)
+        # Energy check
+        if not energy_results["natural_energy_dist"]:
+            suspicion_score += ENERGY_VIOLATION_WEIGHT
+            violations += 1
+            
+        # Normalize score
+        suspicion_score = min(1.0, suspicion_score)
+        
+        passed = suspicion_score < 0.5
+        
+        detail = f"Phase coherence analysis passed. Score: {suspicion_score:.2f}"
+        if not passed:
+            detail = (
+                f"Phase coherence analysis indicates synthetic audio. "
+                f"Score: {suspicion_score:.2f} (violations: {violations}, "
+                f"jump rate: {jump_results['jump_rate']:.3f}, "
+                f"entropy: {entropy_results['phase_entropy']:.2f})"
+            )
+        
+        return SensorResult(
+            sensor_name=self.name,
+            passed=passed,
+            value=suspicion_score,
+            threshold=0.5,
+            detail=detail,
+            metadata={
+                "violation_count": violations,
+                "phase_jump_rate": round(jump_results["jump_rate"], 4),
+                "energy_ratio": round(energy_results["low_freq_ratio"], 4),
+                "low_freq_ratio": round(energy_results["low_freq_ratio"], 4),
+                "phase_entropy": round(entropy_results["phase_entropy"], 4),
+                "entropy_suspicious": entropy_results["entropy_suspicious"]
+            }
+        )
+    
+    def _analyze_phase_entropy(self, audio: np.ndarray, sr: int) -> Dict:
         """
-        # Create histogram of instantaneous frequencies
-        # More bins = more sensitive to regularity
-        hist, bin_edges = np.histogram(instantaneous_freq, bins=50, density=True)
+        Analyze the entropy of the phase derivative.
+        Natural speech has high entropy in phase derivatives due to turbulent airflow.
+        Vocoders often produce signals with lower, more structured phase entropy.
+        """
+        # Compute STFT
+        f, t, Zxx = signal.stft(audio, fs=sr, nperseg=self.n_fft, noverlap=self.n_fft-self.hop_length)
         
-        # Normalize to probability distribution
-        hist = hist / np.sum(hist)
+        # Extract phase
+        phase = np.angle(Zxx)
         
-        # Remove zero bins (log(0) is undefined)
+        # Compute phase derivative (instantaneous frequency deviation)
+        # Unwrap phase first to avoid 2pi jumps
+        unwrapped_phase = np.unwrap(phase, axis=1)
+        phase_derivative = np.diff(unwrapped_phase, axis=1)
+        
+        # Compute entropy of the distribution of phase derivatives
+        # We use a histogram to estimate the probability distribution
+        hist, _ = np.histogram(phase_derivative.flatten(), bins=100, density=True)
+        
+        # Filter zeros to avoid log(0)
         hist = hist[hist > 0]
         
-        # Calculate Shannon entropy: -sum(p * log(p))
-        phase_entropy = entropy(hist, base=np.e)  # Use natural log (nats)
+        # Shannon entropy
+        entropy = -np.sum(hist * np.log(hist))
         
-        return phase_entropy
+        # Check if entropy is suspiciously low (characteristic of some vocoders)
+        # Note: This threshold might need tuning based on the specific vocoder types
+        is_suspicious = entropy < PHASE_ENTROPY_MAX_SYNTHETIC
+        
+        return {
+            "phase_entropy": float(entropy),
+            "entropy_suspicious": is_suspicious
+        }
+
+    def _analyze_phase_jumps(self, audio: np.ndarray, sr: int) -> Dict:
+        """
+        Analyze phase discontinuities (jumps) in the signal.
+        """
+        # Compute analytic signal using Hilbert transform
+        analytic_signal = signal.hilbert(audio)
+        instantaneous_phase = np.unwrap(np.angle(analytic_signal))
+        
+        # Compute second derivative of phase (angular acceleration)
+        # Large spikes indicate unnatural discontinuities
+        phase_accel = np.diff(np.diff(instantaneous_phase))
+        
+        # Count significant jumps (> pi/2)
+        jumps = np.sum(np.abs(phase_accel) > np.pi / 2)
+        jump_rate = jumps / (len(audio) / sr)  # Jumps per second
+        
+        return {
+            "jump_count": int(jumps),
+            "jump_rate": float(jump_rate)
+        }
     
-    def _detect_phase_discontinuities(
-        self, 
-        instantaneous_phase: np.ndarray,
-        threshold_std: float = 10.0
-    ) -> int:
+    def _analyze_energy_distribution(self, audio: np.ndarray, sr: int) -> Dict:
         """
-        Detect abrupt phase resets ("digital silence" artifacts).
+        Analyze spectral energy distribution.
+        """
+        # Compute PSD
+        freqs, psd = signal.welch(audio, sr, nperseg=self.n_fft)
         
-        Vocoder artifacts often manifest as sudden phase jumps when
-        transitioning between synthetic segments.
+        # Calculate energy in low (<4kHz) vs high frequencies
+        low_mask = freqs < 4000
+        total_energy = np.sum(psd)
         
-        Args:
-            instantaneous_phase: Unwrapped instantaneous phase
-            threshold_std: Threshold in standard deviations
+        if total_energy == 0:
+            return {"low_freq_ratio": 0.0, "natural_energy_dist": False}
             
-        Returns:
-            Number of discontinuities detected
-        """
-        # Calculate second derivative (acceleration of phase)
-        phase_accel = np.diff(instantaneous_phase, n=2)
+        low_energy = np.sum(psd[low_mask])
+        low_freq_ratio = low_energy / total_energy
         
-        if len(phase_accel) == 0:
-            return 0
-        
-        # Find points where acceleration is abnormally high
-        mean_accel = np.mean(phase_accel)
-        std_accel = np.std(phase_accel)
-        
-        if std_accel == 0:
-            return 0
-        
-        # Count discontinuities (phase accelerations > threshold)
-        z_scores = np.abs((phase_accel - mean_accel) / std_accel)
-        num_discontinuities = np.sum(z_scores > threshold_std)
-        
-        return int(num_discontinuities)
+        return {
+            "low_freq_ratio": float(low_freq_ratio),
+            "natural_energy_dist": low_freq_ratio > LOW_FREQ_ENERGY_MIN
+        }
