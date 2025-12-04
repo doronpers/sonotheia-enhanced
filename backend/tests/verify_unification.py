@@ -23,7 +23,7 @@ sys.modules["librosa"] = librosa_mock
 from backend.sensors.base import BaseSensor, SensorResult
 from backend.sensors.registry import SensorRegistry
 from backend.sensors.phase_coherence import PhaseCoherenceSensor
-from backend.sensors.vocal_tract import VocalTractSensor
+# VocalTractSensor removed
 from backend.sensors.coarticulation import CoarticulationSensor
 from backend.sensors.huggingface_detector import HuggingFaceDetectorSensor
 
@@ -46,7 +46,7 @@ async def verify_sensors():
     
     # 3. Register Sensors
     registry.register(PhaseCoherenceSensor)
-    registry.register(VocalTractSensor)
+    # VocalTractSensor removed
     registry.register(CoarticulationSensor)
     registry.register(HuggingFaceDetectorSensor)
     
@@ -83,27 +83,8 @@ async def verify_sensors():
     else:
         logger.error(f"Timeout logic failed: {results_timeout['SlowSensor']}")
 
-    # 7. Verify Silence Handling (VocalTract)
-    logger.info("Verifying silence handling...")
-    silent_audio = np.zeros_like(audio)
-    # Reset mocks to track calls
-    librosa_mock.lpc.reset_mock()
-    
-    # We need to ensure VocalTractSensor uses the silent frame check
-    # Since we mocked librosa, we can't easily test the *logic* inside the sensor 
-    # without unmocking or complex mock setup. 
-    # But we can check if it runs without crashing.
-    vt_sensor = VocalTractSensor()
-    vt_result = vt_sensor.analyze(silent_audio, sr)
-    logger.info(f"Silence analysis result: {vt_result.passed}")
-    
-    # If our logic is correct, librosa.lpc should NOT be called for silent frames
-    # But wait, the loop runs on frames. If all frames are silent, it should never call lpc.
-    # Let's check call count.
-    if librosa_mock.lpc.call_count == 0:
-         logger.info("Silence handling verified: librosa.lpc was not called for silent audio.")
-    else:
-         logger.warning(f"Silence handling warning: librosa.lpc called {librosa_mock.lpc.call_count} times.")
+    # 7. Verify Silence Handling (VocalTract) - Removed
+    logger.info("Silence handling verification skipped (VocalTractSensor removed).")
 
     logger.info("Verification complete.")
 

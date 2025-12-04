@@ -2,11 +2,11 @@
 Formant Trajectory Sensor - Patent-Safe Vocal Tract Analysis
 
 **Patent Compliance**: This implementation uses FORMANT TRAJECTORY VELOCITIES
-(dynamic analysis) rather than static spectral values or LPC residuals, 
-providing freedom to operate around Pindrop's Source-Filter Model patents.
+(dynamic analysis) rather than static spectral values or Linear Predictive Coding error signals, 
+providing freedom to operate around Pindrop's Source-Filter Theory patents.
 
 **Design-Around Strategy**:
-- ❌ RESTRICTED: LPC residuals, glottal closure detection, static formant values
+- ❌ RESTRICTED: Linear Predictive Coding error signals, glottal closing detection, static formant values
 - ✅ SAFE: Formant velocity analysis, physiological speed limit detection
 
 Detects synthetic speech by identifying physiologically impossible formant 
@@ -36,7 +36,7 @@ class FormantTrajectorySensor(BaseSensor):
     - Uses spectral peak tracking (not LPC)
     - Analyzes dynamic trajectories (rate of change)
     - Detects violations of physiological speed limits
-    - No source-filter modeling or residual analysis
+    - No source-filter theory application or residual analysis
     """
     
     # Physiological speed limits (Hz per 10ms frame)

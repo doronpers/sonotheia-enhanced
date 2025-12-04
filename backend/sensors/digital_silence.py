@@ -10,7 +10,7 @@ or at the very start/end of a clip. The noise floor variance drops to zero or ch
 texture instantly between phrases, indicating the audio was generated piecemeal rather
 than continuous recording.
 
-Design-Around Strategy: Uses spectral flux and noise floor analysis (NOT LPC residual
+Design-Around Strategy: Uses spectral flux and noise floor analysis (NOT Linear Predictive Coding error signal
 analysis) to detect perfect mathematical silence and instant texture changes.
 """
 
@@ -42,9 +42,9 @@ class DigitalSilenceSensor(BaseSensor):
     continuous recording.
     
     Design-Around Strategy:
-    - Uses spectral flux and noise floor variance analysis (NOT LPC residuals)
+    - Uses spectral flux and noise floor variance analysis (NOT Linear Predictive Coding error signals)
     - Focuses on acoustic consistency (reverb vs background noise) rather than
-      source-filter model error signals
+      source-filter theory error signals
     """
     
     def __init__(

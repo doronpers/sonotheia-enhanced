@@ -49,6 +49,7 @@ def get_default_sensors() -> List[BaseSensor]:
     from .global_formants import GlobalFormantSensor
     from .coarticulation import CoarticulationSensor
     from .formant import FormantTrajectorySensor
+    from .two_mouth import TwoMouthSensor
     from .hf_deepfake import HFDeepfakeSensor
     
     return [
@@ -60,7 +61,9 @@ def get_default_sensors() -> List[BaseSensor]:
         DigitalSilenceSensor(),
         GlobalFormantSensor(),
         CoarticulationSensor(),
+
         FormantTrajectorySensor(),
+        TwoMouthSensor(),
         HFDeepfakeSensor(),  # AI model sensor - after PhaseCoherenceSensor for tie-breaking
     ]
 

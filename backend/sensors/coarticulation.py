@@ -9,7 +9,6 @@ unnatural phoneme blending that indicates synthetic speech.
 import numpy as np
 from typing import Optional
 from .base import BaseSensor, SensorResult
-# from .vocal_tract import VocalTractSensor  # Removed due to patent infringement concerns
 
 # Detection thresholds
 MIN_VOWEL_DURATION_MS = 50.0  # Minimum duration for a stable vowel

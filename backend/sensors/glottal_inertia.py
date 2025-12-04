@@ -11,7 +11,7 @@ Synthetic audio, especially spliced or older vocoder output, exhibits:
 - Missing the chaotic phase signature of genuine glottal onset
 
 Patent Safety:
-- Analyzes amplitude dynamics (velocity), NOT LPC residuals.
+- Analyzes amplitude dynamics (velocity), NOT Linear Predictive Coding error signals.
 - Focuses on velocity of onset rather than spectral shape.
 """
 
@@ -43,7 +43,7 @@ class GlottalInertiaSensor(BaseSensor):
     """
     Detects impossible amplitude rise velocities.
     
-    PATENT SAFE: Analyzes amplitude dynamics, NOT LPC residuals.
+    PATENT SAFE: Analyzes amplitude dynamics, NOT Linear Predictive Coding error signals.
     Focuses on velocity of onset rather than spectral shape.
     """
     
@@ -60,7 +60,7 @@ class GlottalInertiaSensor(BaseSensor):
         """
         Detect biologically impossible amplitude transitions.
         
-        Method: Amplitude Rise Velocity (NOT LPC residual analysis)
+        Method: Amplitude Rise Velocity (NOT Linear Predictive Coding error signal analysis)
         """
         if not self.validate_input(audio, sr):
              return SensorResult(
@@ -248,12 +248,12 @@ class GlottalInertiaSensor(BaseSensor):
         return violations
 
     def _measure_decay_time(self, envelope_db: np.ndarray, offset: Onset) -> float:
-         # Find point it drops below speech threshold (going backwards)
+         # Find point it drops below speech threshold (moving backwards)
          start_idx = offset.frame_index
          while start_idx > 0 and envelope_db[start_idx] < self.SPEECH_THRESHOLD_DB:
              start_idx -= 1
              
-         # Find point it drops below silence threshold (going forwards)
+         # Find point it drops below silence threshold (moving forwards)
          end_idx = offset.frame_index
          while end_idx < len(envelope_db) and envelope_db[end_idx] > self.SILENCE_THRESHOLD_DB:
              end_idx += 1

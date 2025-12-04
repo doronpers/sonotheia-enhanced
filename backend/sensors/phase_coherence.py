@@ -7,7 +7,7 @@ Detects phase relationship violations that indicate synthetic audio generation.
 Key Design-Around Strategy:
 - Uses "Phase Entropy" and "Phase Derivative" analysis.
 - REMOVED: Glottal Inertia logic (moved to glottal_inertia.py).
-- REMOVED: LPC residual analysis.
+- REMOVED: Linear Predictive Coding error signal analysis.
 - Focuses on the chaotic nature of natural phase vs. the structured phase of vocoders.
 """
 
