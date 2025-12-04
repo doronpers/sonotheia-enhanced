@@ -85,18 +85,13 @@ class BandwidthSensor(BaseSensor):
         
         energy_threshold = spectral_sum * self.rolloff_percent
         cumulative_energy = np.cumsum(spectrum)
-        rolloff_indices = np.where(cumulative_energy >= energy_threshold)[0]
+        # Optimize search for rolloff index using searchsorted (O(log n) vs O(n))
+        # cumulative_energy is sorted by definition
+        rolloff_idx = np.searchsorted(cumulative_energy, energy_threshold)
         
-        if len(rolloff_indices) == 0:
-            return SensorResult(
-                sensor_name=self.name,
-                passed=None,
-                value=0,
-                threshold=self.rolloff_threshold_hz,
-                metadata={"type": "UNKNOWN"}
-            )
-        
-        rolloff_idx = rolloff_indices[0]
+        if rolloff_idx >= len(spectrum):
+            # Should not happen if logic is correct, but safety check
+            rolloff_idx = len(spectrum) - 1
         # For rfft, nyquist frequency corresponds to len(spectrum)
         rolloff_hz = (rolloff_idx / len(spectrum)) * (samplerate / 2)
         is_narrowband = rolloff_hz < self.rolloff_threshold_hz

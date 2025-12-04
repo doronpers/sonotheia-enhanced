@@ -167,14 +167,31 @@ class VoiceActivityDetector:
             return []
         
         # Compute frame-level energy
+        # Vectorized frame energy calculation
+        # Create a strided view of the audio data to avoid copying
+
+        # Calculate number of frames
         num_frames = (len(audio_data) - frame_size) // hop_size + 1
-        energies_db = np.zeros(num_frames)
         
-        for i in range(num_frames):
-            start = i * hop_size
-            frame = audio_data[start:start + frame_size]
-            rms = np.sqrt(np.mean(frame ** 2))
-            energies_db[i] = 20 * np.log10(rms + 1e-9)
+        # Create strided view: shape (num_frames, frame_size)
+        # This is a view, not a copy, so it's memory efficient
+        from numpy.lib.stride_tricks import as_strided
+        
+        strides = (hop_size * audio_data.itemsize, audio_data.itemsize)
+        frames = as_strided(
+            audio_data, 
+            shape=(num_frames, frame_size), 
+            strides=strides
+        )
+        
+        # Calculate RMS for all frames at once
+        # mean(frame**2) -> axis 1
+        # We add 1e-9 inside the log, but for RMS we just need mean square
+        mean_squares = np.mean(frames ** 2, axis=1)
+        rms_values = np.sqrt(mean_squares)
+        
+        # Convert to dB
+        energies_db = 20 * np.log10(rms_values + 1e-9)
         
         # Adaptive threshold: use a combination of fixed and relative thresholds
         # This handles varying recording levels better

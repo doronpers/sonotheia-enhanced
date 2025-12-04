@@ -111,6 +111,7 @@ class BreathSensor(BaseSensor):
             )
         
         # Use robust VAD to find speech segments (breath groups)
+        # The VAD module is now vectorized for performance
         max_duration = self._vad.get_max_continuous_speech(audio_data, samplerate)
         max_duration = round(float(max_duration), 2)
         

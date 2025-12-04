@@ -104,6 +104,8 @@ class BaseSensor(ABC):
             return False
         if samplerate <= 0:
             return False
+        if not np.all(np.isfinite(audio_data)):
+            return False
         return True
     
     def __repr__(self) -> str:
