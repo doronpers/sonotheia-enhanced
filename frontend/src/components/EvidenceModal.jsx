@@ -96,7 +96,7 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
             <Typography>No fusion analysis available</Typography>
           )}
         </TabPanel>
-        <TabPanel value={tabValue} index={0}>
+        <TabPanel value={tabValue} index={1}>
           <img
             src={evidence?.waveformImg || '/placeholder-waveform.png'}
             alt="Waveform"
@@ -104,7 +104,7 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
           />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={1}>
+        <TabPanel value={tabValue} index={2}>
           <img
             src={evidence?.spectrogramImg || '/placeholder-spectrogram.png'}
             alt="Spectrogram"
@@ -112,19 +112,41 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
           />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
-          <Typography variant="body2">
-            <strong>Device:</strong> {evidence?.device || "N/A"}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Location:</strong> {evidence?.location || "N/A"}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Session ID:</strong> {evidence?.sessionId || "N/A"}
-          </Typography>
+        <TabPanel value={tabValue} index={3}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>Session Metadata</Typography>
+              <Typography variant="body2"><strong>Device:</strong> {evidence?.device || "N/A"}</Typography>
+              <Typography variant="body2"><strong>Location:</strong> {evidence?.location || "N/A"}</Typography>
+              <Typography variant="body2"><strong>Session ID:</strong> {evidence?.sessionId || "N/A"}</Typography>
+            </Paper>
+
+            <Typography variant="h6" sx={{ mt: 1 }}>Sensor Results</Typography>
+            {Object.entries(evidence || {})
+              .filter(([key]) => !['device', 'location', 'sessionId', 'fusion_verdict', 'waveformImg', 'spectrogramImg', 'sarNarrative'].includes(key))
+              .map(([key, data]) => (
+                <Paper key={key} sx={{ p: 2, borderLeft: 6, borderColor: data.passed ? 'success.main' : 'error.main' }}>
+                  <Typography variant="subtitle1" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
+                    {key.replace(/_/g, ' ')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    Status: <strong style={{ color: data.passed ? 'green' : 'red' }}>{data.passed ? 'PASSED' : 'FAILED'}</strong>
+                  </Typography>
+                  {data.value !== undefined && (
+                    <Typography variant="body2">Score: {data.value}</Typography>
+                  )}
+                  {data.detail && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                      {data.detail}
+                    </Typography>
+                  )}
+                </Paper>
+              ))
+            }
+          </Box>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
             {evidence?.sarNarrative || "No SAR narrative generated"}
           </Typography>
