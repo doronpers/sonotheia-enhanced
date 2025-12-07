@@ -31,6 +31,7 @@ except ImportError:
 
 from .base import BaseSensor, SensorResult
 from .breath import BreathSensor
+from .breathing_pattern import BreathingPatternSensor
 from .dynamic_range import DynamicRangeSensor
 from .bandwidth import BandwidthSensor
 from .phase_coherence import PhaseCoherenceSensor
@@ -61,6 +62,7 @@ __all__ = [
     "BaseSensor",
     "SensorResult",
     "BreathSensor",
+    "BreathingPatternSensor",
     "DynamicRangeSensor",
     "BandwidthSensor",
     "PhaseCoherenceSensor",
