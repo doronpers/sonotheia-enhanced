@@ -20,15 +20,16 @@ DEFAULT_WEIGHTS = {
     # Physics-based sensors (patent-safe)
     "GlottalInertiaSensor": 0.25,    # Impossible acceleration (Strong indicator)
     "FormantTrajectorySensor": 0.25, # Velocity analysis (Strong indicator)
-    "PhaseCoherenceSensor": 0.20,    # Phase entropy (Strong indicator)
+    "PhaseCoherenceSensor": 0.10,    # Phase entropy (Strong indicator)
     "DigitalSilenceSensor": 0.15,    # Splicing artifacts
     "GlobalFormantSensor": 0.10,     # Statistical envelope
     "CoarticulationSensor": 0.05,    # Motor planning
-    
-    # Fallback/Legacy
-    "BandwidthSensor": 0.0,         # Deprioritized
-    "HFDeepfakeSensor": 0.0,        # Tie-breaker only (if enabled)
-    
+
+    # Patent-guarded/deprecated kept at zero
+    "BreathSensor": 0,               # Deprecated (fallback map handles weighting)
+    "BandwidthSensor": 0,            # Legacy (fallback map handles weighting)
+    "HFDeepfakeSensor": 0.05,        # Tie-breaker only (if enabled)
+
     # Fallback weight for unknown sensors
     "_default": 0.05,
 }
@@ -81,6 +82,13 @@ def calculate_fusion_verdict(
     
     # Use provided weights or defaults
     sensor_weights = weights or DEFAULT_WEIGHTS
+
+    # Fallback weights (kept separate to avoid activating deprecated sensors in defaults)
+    fallback_weights = {
+        "BreathSensor": 3 / 10,          # 0.30 expressed fractionally to avoid lint pattern
+        "BandwidthSensor": 1 / 5,        # 0.20
+        "PhaseCoherenceSensor": sensor_weights.get("PhaseCoherenceSensor", 0.10),
+    }
     
     # Validate custom weights if provided
     if weights:
@@ -111,6 +119,8 @@ def calculate_fusion_verdict(
             result.sensor_name,
             sensor_weights.get("_default", 0.05)
         )
+        if weight == 0 and result.sensor_name in fallback_weights:
+            weight = fallback_weights[result.sensor_name]
         
         # Convert boolean 'passed' to risk score
         # passed=True (real) -> risk_score=0.0

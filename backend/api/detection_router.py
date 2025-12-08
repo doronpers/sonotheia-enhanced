@@ -6,10 +6,10 @@ API endpoints for the 6-stage detection pipeline.
 
 import logging
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, File, UploadFile, Request, Depends, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from api.middleware import limiter, verify_api_key, get_error_response
 from api.validation import SensorResult
@@ -29,6 +29,14 @@ router = APIRouter(prefix="/api/detect", tags=["detection"])
 class DetectionRequest(BaseModel):
     """Detection request with audio data or reference."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "quick_mode": False,
+            }
+        }
+    )
+
     audio_base64: Optional[str] = Field(
         None, description="Base64-encoded audio data"
     )
@@ -38,14 +46,6 @@ class DetectionRequest(BaseModel):
     quick_mode: bool = Field(
         False, description="Run quick detection (stages 1-3 only)"
     )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "quick_mode": False,
-            }
-        }
-
 
 class DetectionResponse(BaseModel):
     """Detection pipeline response."""
@@ -152,7 +152,7 @@ async def detect_full(
             quick_mode=result.get("quick_mode", False),
             demo_mode=result.get("demo_mode", True),
             duration_seconds=result.get("duration_seconds"),
-            timestamp=result.get("timestamp", datetime.utcnow().isoformat()),
+            timestamp=result.get("timestamp", datetime.now(timezone.utc).isoformat()),
             explanation=result.get("explanation"),
         )
 
@@ -226,7 +226,7 @@ async def detect_quick(
             quick_mode=True,
             demo_mode=result.get("demo_mode", True),
             duration_seconds=result.get("duration_seconds"),
-            timestamp=result.get("timestamp", datetime.utcnow().isoformat()),
+            timestamp=result.get("timestamp", datetime.now(timezone.utc).isoformat()),
             explanation=result.get("explanation"),
         )
 

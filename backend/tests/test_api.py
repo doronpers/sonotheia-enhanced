@@ -220,7 +220,7 @@ class TestErrorHandling:
         """Test error handling for invalid JSON"""
         response = client.post(
             "/api/v1/authenticate",
-            data="not valid json",
+            content=b"not valid json",
             headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 422

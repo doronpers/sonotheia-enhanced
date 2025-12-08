@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 import logging
 import time
+import yaml
 
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -20,6 +21,37 @@ from utils.celery_utils import (  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
+def _load_voice_config() -> dict:
+    """Load voice config from settings.yaml."""
+    config_path = Path(__file__).parent.parent / "config" / "settings.yaml"
+    if config_path.exists():
+        try:
+            with open(config_path) as f:
+                settings = yaml.safe_load(f) or {}
+                return settings.get("voice", {})
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning(f"Failed to load voice config: {exc}")
+    return {}
+
+
+def _resolve_model_path() -> Path:
+    """Resolve model path from config or default gmm_test.pkl."""
+    voice_cfg = _load_voice_config()
+    model_path = voice_cfg.get("model_path")
+    if model_path:
+        candidate = Path(model_path)
+        if not candidate.is_absolute():
+            candidate = Path(__file__).parent.parent / candidate
+    else:
+        candidate = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+    return candidate
+
+
+def _resolve_threshold(key: str, default: float) -> float:
+    voice_cfg = _load_voice_config()
+    return float(voice_cfg.get(key, default))
+
+
 @app.task(
     bind=True,
     name="tasks.detection_tasks.detect_deepfake",
@@ -28,7 +60,7 @@ logger = logging.getLogger(__name__)
     soft_time_limit=120,
     time_limit=180,
 )
-def detect_deepfake(self, features: list, threshold: float = 0.3):
+def detect_deepfake(self, features: list, threshold: float = None):
     """
     Run deepfake detection on extracted features.
 
@@ -49,12 +81,15 @@ def detect_deepfake(self, features: list, threshold: float = 0.3):
         # Convert features
         features_array = np.array(features, dtype=np.float32)
 
+        if threshold is None:
+            threshold = _resolve_threshold("deepfake_threshold", 0.3)
+
         update_task_progress(self, 30, "Running deepfake detection")
 
         # Load model
         from models.baseline import GMMSpoofDetector
 
-        model_path = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+        model_path = _resolve_model_path()
 
         detector = GMMSpoofDetector()
         model_loaded = False
@@ -110,7 +145,7 @@ def detect_deepfake(self, features: list, threshold: float = 0.3):
     soft_time_limit=120,
     time_limit=180,
 )
-def detect_spoof(self, features: list, codec_name: str = "landline", threshold: float = 0.3):
+def detect_spoof(self, features: list, codec_name: str = "landline", threshold: float = None):
     """
     Run physics-based spoof detection on extracted features.
 
@@ -132,12 +167,15 @@ def detect_spoof(self, features: list, codec_name: str = "landline", threshold: 
         # Convert features
         features_array = np.array(features, dtype=np.float32)
 
+        if threshold is None:
+            threshold = _resolve_threshold("liveness_threshold", 0.3)
+
         update_task_progress(self, 30, "Running spoof detection")
 
         # Load model
         from models.baseline import GMMSpoofDetector
 
-        model_path = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+        model_path = _resolve_model_path()
 
         detector = GMMSpoofDetector()
         model_loaded = False

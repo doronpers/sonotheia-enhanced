@@ -291,6 +291,19 @@ async def submit_async_transcription(
                 enable_diarization=transcription_request.enable_diarization,
                 num_speakers=transcription_request.num_speakers
             )
+        except Exception as exc:
+            # Redis/Celery backend unavailable; degrade gracefully for tests/demo
+            logger.warning(f"Celery backend unavailable, falling back to background task: {exc}")
+            background_tasks.add_task(
+                _run_transcription_background,
+                job_id=job_id,
+                audio_data_base64=transcription_request.audio_data_base64,
+                audio_id=transcription_request.audio_id,
+                language=transcription_request.language,
+                provider=transcription_request.provider,
+                enable_diarization=transcription_request.enable_diarization,
+                num_speakers=transcription_request.num_speakers
+            )
         
         logger.info(f"Async transcription job submitted: {job_id}")
         

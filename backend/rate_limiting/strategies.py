@@ -78,8 +78,30 @@ class FixedWindowStrategy(RateLimitStrategy):
         """Check if request is allowed under fixed window rate limit."""
         window_key, reset_time = self._get_window_key(key, window_seconds)
 
-        # Increment and get current count
-        current_count = self.storage.increment(window_key, ttl=window_seconds)
+        # Pre-check count to avoid boundary race; use atomic guard if available
+        if hasattr(self.storage, "increment_if_below"):
+            current_count, allowed = self.storage.increment_if_below(
+                window_key, limit, ttl=window_seconds
+            )
+            if not allowed:
+                return RateLimitResult(
+                    allowed=False,
+                    limit=limit,
+                    remaining=0,
+                    reset_time=reset_time,
+                    retry_after=max(0, reset_time - int(time.time())),
+                )
+        else:
+            current_raw = self.storage.get(window_key) or 0
+            if current_raw >= limit:
+                return RateLimitResult(
+                    allowed=False,
+                    limit=limit,
+                    remaining=0,
+                    reset_time=reset_time,
+                    retry_after=max(0, reset_time - int(time.time())),
+                )
+            current_count = self.storage.increment(window_key, ttl=window_seconds)
 
         allowed = current_count <= limit
         remaining = max(0, limit - current_count)

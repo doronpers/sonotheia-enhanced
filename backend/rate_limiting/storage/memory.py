@@ -74,6 +74,32 @@ class MemoryStorage(BaseStorage):
 
             return new_value
 
+    def increment_if_below(self, key: str, limit: int, ttl: Optional[int] = None) -> tuple:
+        """
+        Atomically check the current value and increment only if below limit.
+
+        Returns:
+            (new_value, allowed)
+        """
+        with self._lock:
+            if self._is_expired(key):
+                self._cleanup_key(key)
+
+            current = self._data.get(key, 0)
+            if not isinstance(current, (int, float)):
+                current = 0
+
+            if current >= limit:
+                return current, False
+
+            new_value = int(current) + 1
+            self._data[key] = new_value
+
+            if ttl is not None and key not in self._expiry:
+                self._expiry[key] = time.time() + ttl
+
+            return new_value, True
+
     def delete(self, key: str) -> bool:
         """Delete a key from storage."""
         with self._lock:

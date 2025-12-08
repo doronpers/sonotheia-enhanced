@@ -261,6 +261,27 @@ async def authenticate(request: AuthenticationRequest, token: str = Depends(secu
 
 ---
 
+## Voice Liveness Evaluation (Offline)
+
+Use `backend/scripts/eval_liveness.py` to benchmark spoof/liveness detection when accuracy is prioritized (e.g., suspected fraud calls). The harness loads the configured GMM model, runs LFCC/logspec features, and emits ROC/DET plots, EER, and per-file scores.
+
+Example:
+```
+python backend/scripts/eval_liveness.py \
+  --dataset-dir backend/data/test_dataset \
+  --metadata-file metadata.csv \
+  --model-path backend/models/gmm_test.pkl \
+  --output-dir backend/eval_results \
+  --target-fpr 0.01
+```
+
+Relevant configuration (`backend/config/settings.yaml`):
+- `voice.model_path`: trained spoof/liveness model path
+- `voice.deepfake_threshold` / `voice.liveness_threshold`: operating thresholds
+- `voice.codec`, `voice.sample_rate`, `voice.feature_types`, `voice.target_fpr`: pipeline settings used by MFA and `/api/analyze_call`
+
+---
+
 ## Best Practices
 
 1. **Always validate input**: Use Pydantic models for request validation

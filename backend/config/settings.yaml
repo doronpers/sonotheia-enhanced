@@ -21,8 +21,16 @@ authentication_policy:
 
 voice:
   deepfake_threshold: 0.3
+  liveness_threshold: 0.3
   speaker_threshold: 0.85
   min_quality: 0.7
+  model_path: backend/models/gmm_test.pkl
+  sample_rate: 16000
+  feature_types:
+    - lfcc
+    - logspec
+  codec: landline
+  target_fpr: 0.01
 
 device:
   require_enrollment: true

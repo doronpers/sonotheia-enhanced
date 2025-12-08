@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 import logging
 import time
+import yaml
 
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -20,6 +21,36 @@ from utils.celery_utils import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _load_voice_config() -> dict:
+    """Load voice config for detection thresholds and model path."""
+    config_path = Path(__file__).parent.parent / "config" / "settings.yaml"
+    if config_path.exists():
+        try:
+            with open(config_path) as f:
+                settings = yaml.safe_load(f) or {}
+                return settings.get("voice", {})
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning(f"Failed to load voice config: {exc}")
+    return {}
+
+
+def _resolve_model_path() -> Path:
+    voice_cfg = _load_voice_config()
+    model_path = voice_cfg.get("model_path")
+    if model_path:
+        candidate = Path(model_path)
+        if not candidate.is_absolute():
+            candidate = Path(__file__).parent.parent / candidate
+    else:
+        candidate = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+    return candidate
+
+
+def _resolve_threshold(key: str, default: float) -> float:
+    voice_cfg = _load_voice_config()
+    return float(voice_cfg.get(key, default))
 
 
 @app.task(
@@ -70,6 +101,9 @@ def analyze_call_async(
 
         start_time = time.time()
 
+        voice_cfg = _load_voice_config()
+        sample_rate = int(voice_cfg.get("sample_rate", 16000))
+
         logger.info(f"Starting async analysis for call: {call_id}")
 
         # Step 1: Decode and load audio (10%)
@@ -80,7 +114,7 @@ def analyze_call_async(
         update_task_progress(self, 10, "Loading audio")
         from data_ingest.loader import AudioLoader
 
-        loader = AudioLoader(target_sr=16000)
+        loader = AudioLoader(target_sr=sample_rate)
         audio, sr = loader.load_from_bytes(audio_bytes)
         duration = len(audio) / sr
         logger.info(f"Loaded audio: duration={duration:.2f}s, sr={sr}")
@@ -100,7 +134,7 @@ def analyze_call_async(
         update_task_progress(self, 40, "Extracting audio features")
         from features.extraction import FeatureExtractor
 
-        extractor = FeatureExtractor(sr=16000)
+        extractor = FeatureExtractor(sr=sample_rate)
         features = extractor.extract_feature_stack(audio_coded, feature_types=["lfcc", "logspec"])
         logger.info(f"Extracted features: shape={features.shape}")
 
@@ -108,7 +142,7 @@ def analyze_call_async(
         update_task_progress(self, 60, "Running deepfake detection")
         from models.baseline import GMMSpoofDetector
 
-        model_path = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+        model_path = _resolve_model_path()
 
         detector = GMMSpoofDetector()
         model_loaded = False
@@ -133,9 +167,11 @@ def analyze_call_async(
 
         factors = []
 
+        threshold = _resolve_threshold("deepfake_threshold", 0.30)
+
         # Physics-based deepfake factor
         physics_factor = RiskEngine.create_physics_factor(
-            spoof_score=spoof_score, codec_name=codec, threshold=0.30, weight=2.0
+            spoof_score=spoof_score, codec_name=codec, threshold=threshold, weight=2.0
         )
         factors.append(physics_factor)
 
@@ -271,7 +307,7 @@ def run_full_analysis(self, audio_data: list, sample_rate: int, metadata: dict):
         detector = GMMSpoofDetector()
 
         # Try to load model
-        model_path = Path(__file__).parent.parent / "models" / "gmm_test.pkl"
+        model_path = _resolve_model_path()
         model_loaded = False
         if model_path.exists():
             try:
@@ -291,8 +327,10 @@ def run_full_analysis(self, audio_data: list, sample_rate: int, metadata: dict):
         # Compute risk
         from risk_engine.factors import RiskEngine
 
+        threshold = _resolve_threshold("deepfake_threshold", 0.30)
+
         factors = [
-            RiskEngine.create_physics_factor(spoof_score=spoof_score, codec_name=codec, threshold=0.30, weight=2.0),
+            RiskEngine.create_physics_factor(spoof_score=spoof_score, codec_name=codec, threshold=threshold, weight=2.0),
             RiskEngine.create_asv_factor(score=0.15, weight=1.5),
             RiskEngine.create_liveness_factor(score=0.10, weight=1.5),
             RiskEngine.create_device_factor(score=0.20, weight=1.0),

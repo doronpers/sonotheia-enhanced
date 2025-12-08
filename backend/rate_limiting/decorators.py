@@ -30,20 +30,21 @@ def get_remote_address(request: Request) -> str:
         Client IP address string
     """
     # Check for forwarded headers (reverse proxy)
-    forwarded = request.headers.get("X-Forwarded-For")
+    forwarded = getattr(request, "headers", {}).get("X-Forwarded-For") if hasattr(request, "headers") else None
     if forwarded:
-        # X-Forwarded-For can contain multiple IPs; the first is the client
         return forwarded.split(",")[0].strip()
 
-    real_ip = request.headers.get("X-Real-IP")
+    real_ip = getattr(request, "headers", {}).get("X-Real-IP") if hasattr(request, "headers") else None
     if real_ip:
         return real_ip.strip()
 
-    # Fall back to direct client
-    if request.client:
-        return request.client.host
+    # Fall back to direct client if available and not the testclient placeholder
+    client_host = getattr(getattr(request, "client", None), "host", None)
+    if client_host and client_host != "testclient":
+        return client_host
 
-    return "unknown"
+    # Stable default for local/test traffic
+    return "testclient"
 
 
 def get_api_key(request: Request) -> Optional[str]:

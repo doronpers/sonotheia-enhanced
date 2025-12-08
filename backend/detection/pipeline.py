@@ -6,7 +6,7 @@ Main orchestrator for the 6-stage audio deepfake detection pipeline.
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Union
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -43,7 +43,7 @@ class DetectionJob:
     def __init__(self, job_id: str):
         self.job_id = job_id
         self.status = JobStatus.PENDING
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
         self.started_at: Optional[datetime] = None
         self.completed_at: Optional[datetime] = None
         self.result: Optional[Dict[str, Any]] = None
@@ -170,7 +170,7 @@ class DetectionPipeline:
 
         try:
             job.status = JobStatus.RUNNING
-            job.started_at = datetime.utcnow()
+            job.started_at = datetime.now(timezone.utc)
 
             # Load and preprocess audio
             job.current_stage = "preprocessing"
@@ -201,10 +201,10 @@ class DetectionPipeline:
             result["duration_seconds"] = duration
             result["quick_mode"] = quick_mode
             result["demo_mode"] = self.config.demo_mode
-            result["timestamp"] = datetime.utcnow().isoformat()
+            result["timestamp"] = datetime.now(timezone.utc).isoformat()
 
             job.status = JobStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             job.result = result
             job.progress = 1.0
 
@@ -214,13 +214,13 @@ class DetectionPipeline:
             logger.error(f"Detection failed: {e}")
             job.status = JobStatus.FAILED
             job.error = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
             return convert_numpy_types({
                 "success": False,
                 "job_id": job_id,
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
     def detect_async(

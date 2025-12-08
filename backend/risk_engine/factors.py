@@ -4,7 +4,7 @@ Factor-Level Risk Engine
 Implements factor-based risk scoring for the Sonotheia MVP.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 from enum import Enum
 import logging
@@ -31,8 +31,8 @@ class FactorScore(BaseModel):
     explanation: str = Field(..., description="Human-readable explanation")
     evidence: Optional[Dict[str, Any]] = Field(default=None, description="Supporting evidence data")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "physics_deepfake",
                 "score": 0.25,
@@ -46,6 +46,7 @@ class FactorScore(BaseModel):
                 }
             }
         }
+    )
 
 
 class RiskResult(BaseModel):
@@ -56,8 +57,8 @@ class RiskResult(BaseModel):
     meta: Dict[str, Any] = Field(default_factory=dict, description="Metadata (call_id, codecs, etc.)")
     decision: str = Field(default="REVIEW", description="Recommended decision: APPROVE, DECLINE, REVIEW")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "overall_score": 0.28,
                 "risk_level": "LOW",
@@ -77,6 +78,7 @@ class RiskResult(BaseModel):
                 "decision": "APPROVE"
             }
         }
+    )
 
 
 class RiskEngine:

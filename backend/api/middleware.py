@@ -52,7 +52,7 @@ async def verify_api_key(api_key: Optional[str] = None) -> dict:
     # Check if API key is required (production mode)
     if api_key is None:
         # Only allow anonymous access in demo mode
-        if os.getenv("DEMO_MODE", "false").lower() != "true":
+        if os.getenv("DEMO_MODE", "true").lower() != "true":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={

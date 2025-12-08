@@ -20,9 +20,9 @@ client = TestClient(app)
 
 class TestSessionManagement:
     """Test session management endpoints"""
-    
-    def test_start_session(self):
-        """Test starting a new onboarding session"""
+
+    def _start_session(self):
+        """Helper: start session and return session_id"""
         request_data = {
             "user_id": "USER-TEST-001",
             "session_type": "onboarding",
@@ -40,11 +40,16 @@ class TestSessionManagement:
         assert data["session_type"] == "onboarding"
         assert data["status"] == "initiated"
         return data["session_id"]
+
+    def test_start_session(self):
+        """Test starting a new onboarding session"""
+        session_id = self._start_session()
+        assert session_id.startswith("SESSION-")
     
     def test_get_session(self):
         """Test retrieving session details"""
         # First create a session
-        session_id = self.test_start_session()
+        session_id = self._start_session()
         
         # Then retrieve it
         response = client.get(f"/api/session/{session_id}")
@@ -56,7 +61,7 @@ class TestSessionManagement:
     def test_update_biometric_data(self):
         """Test updating session with Incode biometric data"""
         # Create session first
-        session_id = self.test_start_session()
+        session_id = self._start_session()
         
         # Update with biometric data
         biometric_data = {
@@ -76,7 +81,7 @@ class TestSessionManagement:
     def test_update_voice_data(self):
         """Test updating session with Sonotheia voice data"""
         # Create session first
-        session_id = self.test_start_session()
+        session_id = self._start_session()
         
         # Update with voice data
         voice_data = {
@@ -97,7 +102,7 @@ class TestSessionManagement:
     def test_evaluate_session_risk(self):
         """Test composite risk evaluation"""
         # Create session and add both biometric and voice data
-        session_id = self.test_start_session()
+        session_id = self._start_session()
         
         # Add biometric data
         biometric_data = {
@@ -137,7 +142,7 @@ class TestSessionManagement:
     def test_list_sessions(self):
         """Test listing sessions"""
         # Create a few sessions
-        self.test_start_session()
+        self._start_session()
         
         # List all sessions
         response = client.get("/api/session/")
@@ -154,9 +159,9 @@ class TestSessionManagement:
 
 class TestEscalationAPI:
     """Test escalation and human review endpoints"""
-    
-    def test_create_escalation(self):
-        """Test creating an escalation for manual review"""
+
+    def _create_escalation(self):
+        """Helper: create escalation and return id"""
         escalation_data = {
             "session_id": "SESSION-TEST-001",
             "reason": "High deepfake score detected",
@@ -176,11 +181,16 @@ class TestEscalationAPI:
         assert data["status"] == "pending"
         assert data["priority"] == "high"
         return data["escalation_id"]
+
+    def test_create_escalation(self):
+        """Test creating an escalation for manual review"""
+        escalation_id = self._create_escalation()
+        assert escalation_id.startswith("ESC-")
     
     def test_get_escalation(self):
         """Test retrieving escalation details"""
         # Create escalation first
-        escalation_id = self.test_create_escalation()
+        escalation_id = self._create_escalation()
         
         # Retrieve it
         response = client.get(f"/api/escalation/{escalation_id}")
@@ -191,7 +201,7 @@ class TestEscalationAPI:
     def test_list_escalations(self):
         """Test listing escalations with filtering"""
         # Create an escalation
-        self.test_create_escalation()
+        self._create_escalation()
         
         # List all
         response = client.get("/api/escalation/")
@@ -208,7 +218,7 @@ class TestEscalationAPI:
     
     def test_assign_escalation(self):
         """Test assigning escalation to reviewer"""
-        escalation_id = self.test_create_escalation()
+        escalation_id = self._create_escalation()
         
         response = client.post(
             f"/api/escalation/{escalation_id}/assign",
@@ -221,7 +231,7 @@ class TestEscalationAPI:
     
     def test_submit_review(self):
         """Test submitting a review decision"""
-        escalation_id = self.test_create_escalation()
+        escalation_id = self._create_escalation()
         
         review_data = {
             "decision": "approve",
@@ -250,9 +260,9 @@ class TestEscalationAPI:
 
 class TestAuditLogging:
     """Test audit logging and compliance endpoints"""
-    
-    def test_create_audit_log(self):
-        """Test creating an audit log entry"""
+
+    def _create_audit_log(self):
+        """Helper: create audit log and return id"""
         log_data = {
             "event_type": "session_started",
             "user_id": "USER-MASKED-123",
@@ -273,11 +283,16 @@ class TestAuditLogging:
         assert data["log_id"].startswith("LOG-")
         assert data["event_type"] == "session_started"
         return data["log_id"]
+
+    def test_create_audit_log(self):
+        """Test creating an audit log entry"""
+        log_id = self._create_audit_log()
+        assert log_id.startswith("LOG-")
     
     def test_query_audit_logs(self):
         """Test querying audit logs"""
         # Create a log first
-        self.test_create_audit_log()
+        self._create_audit_log()
         
         # Query logs
         response = client.get("/api/audit/logs")

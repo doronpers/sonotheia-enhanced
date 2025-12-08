@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict
 from datetime import datetime
+from contextlib import asynccontextmanager
 import sys
 from pathlib import Path
 import numpy as np
@@ -40,6 +41,12 @@ from observability.metrics import metrics_endpoint, update_module_metrics
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    update_module_metrics()
+    yield
+
 
 app = FastAPI(
     title="Sonotheia Enhanced API",
@@ -92,6 +99,7 @@ app = FastAPI(
     },
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
     openapi_tags=[
         {
             "name": "health",
@@ -240,14 +248,6 @@ async def get_metrics(request: Request):
     - sonotheia_module_enabled{name="<module>"} 0|1
     """
     return await metrics_endpoint(request)
-
-
-# Startup event to initialize metrics
-@app.on_event("startup")
-async def startup_event():
-    """Initialize metrics on application startup."""
-    update_module_metrics()
-    logger.info("Prometheus metrics initialized on startup")
 
 
 # Request models with enhanced validation and documentation

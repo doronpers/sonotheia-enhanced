@@ -32,18 +32,18 @@ app = FastAPI()
 
 @app.get("/test/default")
 @limit("5/minute")
-async def test_default_limit(request: Request):
+async def default_limit_endpoint(request: Request):
     return {"status": "ok"}
 
 
 @app.get("/test/ip-based")
 @limit_by_ip("3/minute")
-async def test_ip_limit(request: Request):
+async def ip_limit_endpoint(request: Request):
     return {"status": "ok"}
 
 
 @app.get("/test/unlimited")
-async def test_unlimited(request: Request):
+async def unlimited_endpoint(request: Request):
     return {"status": "ok"}
 
 
