@@ -111,8 +111,28 @@ class BreathSensor(BaseSensor):
             )
         
         # Use robust VAD to find speech segments (breath groups)
-        # The VAD module is now vectorized for performance
-        max_duration = self._vad.get_max_continuous_speech(audio_data, samplerate)
+        
+        # Autonomous Tuning: Calculate dynamic noise threshold
+        noise_floor_db = self._calculate_noise_floor(audio_data)
+        
+        # Default safety: default to configured hard threshold if noise floor is absurdly low (digital silence)
+        # or absurdly high (constant loud noise).
+        # Otherwise, adapt: silence = noise_floor + 10dB (10dB SNR assumption for speech onset)
+        tuned_threshold = self.silence_threshold_db
+        
+        if -80 < noise_floor_db < -30:
+            tuned_threshold = max(self.silence_threshold_db, noise_floor_db + 10.0)
+            
+        # Create a temporary VAD instance with the tuned threshold for this specific analysis
+        # (This is lightweight)
+        vad = VoiceActivityDetector(
+            speech_threshold=0.5,
+            min_speech_duration=0.1,
+            min_silence_duration=0.2,
+            silence_threshold_db=tuned_threshold
+        )
+        
+        max_duration = vad.get_max_continuous_speech(audio_data, samplerate)
         max_duration = round(float(max_duration), 2)
         
         # Respiration monitoring: detect "Infinite Lung Capacity" violations
@@ -155,6 +175,38 @@ class BreathSensor(BaseSensor):
         
         return result
     
+    def _calculate_noise_floor(self, audio_data: np.ndarray, frame_duration: float = 0.1) -> float:
+        """
+        Calculate the noise floor of the audio.
+        
+        Uses the 10th percentile of frame RMS energy as the noise floor estimate.
+        
+        Args:
+            audio_data: Audio signal
+            frame_duration: Duration of analysis frames in seconds
+            
+        Returns:
+            Noise floor in dB
+        """
+        # Quick RMS calculation on frames
+        frame_size = int(frame_duration * 16000)  # Assume 16k or adjust if needed
+        # Just use simple strided view for speed estimate (don't need perfect hop)
+        if len(audio_data) < frame_size:
+            rms = np.sqrt(np.mean(audio_data**2))
+            return 20 * np.log10(rms + 1e-9)
+            
+        # Reshape to roughly frame_size chunks (discard remainder for speed)
+        num_frames = len(audio_data) // frame_size
+        if num_frames == 0:
+            return -60.0 # Default
+            
+        frames = audio_data[:num_frames * frame_size].reshape(num_frames, frame_size)
+        rms_values = np.sqrt(np.mean(frames**2, axis=1))
+        db_values = 20 * np.log10(rms_values + 1e-9)
+        
+        # 10th percentile captures the quietest parts (background noise)
+        return np.percentile(db_values, 10)
+    
     def _monitor_respiration(
         self,
         audio: np.ndarray,
@@ -182,7 +234,21 @@ class BreathSensor(BaseSensor):
             Dictionary with respiration monitoring results
         """
         # Use VAD to find speech segments
-        segments = self._vad.detect_speech_segments(audio, sr)
+        
+        # Similar tuning logic (could refactor to shared method, but keeping localized for now)
+        noise_floor_db = self._calculate_noise_floor(audio)
+        tuned_threshold = self.silence_threshold_db
+        if -80 < noise_floor_db < -30:
+            tuned_threshold = max(self.silence_threshold_db, noise_floor_db + 10.0)
+            
+        vad = VoiceActivityDetector(
+            speech_threshold=0.5,
+            min_speech_duration=0.1,
+            min_silence_duration=0.2,
+            silence_threshold_db=tuned_threshold
+        )
+        
+        segments = vad.detect_speech_segments(audio, sr)
         
         if not segments:
             return {

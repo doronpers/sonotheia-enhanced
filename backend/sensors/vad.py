@@ -76,6 +76,7 @@ class VoiceActivityDetector:
         speech_threshold: float = SILERO_THRESHOLD,
         min_speech_duration: float = MIN_SPEECH_DURATION_SECONDS,
         min_silence_duration: float = MIN_SILENCE_DURATION_SECONDS,
+        silence_threshold_db: float = ENERGY_SILENCE_THRESHOLD_DB,
     ):
         """
         Initialize Voice Activity Detector.
@@ -85,10 +86,12 @@ class VoiceActivityDetector:
                              (Reserved for future ONNX model integration)
             min_speech_duration: Minimum duration in seconds for valid speech segment
             min_silence_duration: Minimum silence duration to split segments
+            silence_threshold_db: Energy threshold in dB for speech (default: -50)
         """
         self.speech_threshold = speech_threshold
         self.min_speech_duration = min_speech_duration
         self.min_silence_duration = min_silence_duration
+        self.silence_threshold_db = silence_threshold_db
     
     def detect_speech_segments(
         self,
@@ -162,7 +165,7 @@ class VoiceActivityDetector:
             rms = np.sqrt(np.mean(audio_data ** 2))
             if rms > 0:
                 db = 20 * np.log10(rms + 1e-9)
-                if db > ENERGY_SILENCE_THRESHOLD_DB:
+                if db > self.silence_threshold_db:
                     return [SpeechSegment(0.0, len(audio_data) / samplerate)]
             return []
         
@@ -204,12 +207,12 @@ class VoiceActivityDetector:
         # If signal has very low dynamic range (nearly constant), use fixed threshold
         # This handles edge cases like constant amplitude test signals
         if dynamic_range < 3.0:  # Less than 3dB variation = essentially constant
-            adaptive_threshold = ENERGY_SILENCE_THRESHOLD_DB
+            adaptive_threshold = self.silence_threshold_db
         else:
             # Adaptive threshold is 30% up from noise floor toward signal peak,
             # but never lower than the fixed silence threshold
             adaptive_threshold = max(
-                ENERGY_SILENCE_THRESHOLD_DB,
+                self.silence_threshold_db,
                 noise_floor + 0.3 * dynamic_range
             )
         
