@@ -197,17 +197,20 @@ In `Documentation/USAGE_GUIDE.md`, document:
 
 ## Milestone 3 — Multi-sensor Fusion & Calibration
 
-**Status:** 🔴 Not Started
+**Status:** 🟡 In Progress (Showcase Ready)
 **Timeline:** Medium term (3–6 weeks)
 
 ### Goals
 
 - Improve overall accuracy by combining sensor outputs instead of naive rules
 - Calibrate decisions for enterprise use cases
+- **✅ Achieve seamless integration with Incode biometric flows**
 
 ### Tasks
 
 #### Unified Scoring / Fusion Logic
+
+**Status**: ✅ Implemented in `MFAOrchestrator` and Incode Integration
 
 In `backend/main.py` or a new module (`backend/fusion.py`):
 - Introduce a function that takes `SensorResult` objects and returns a combined score / confidence

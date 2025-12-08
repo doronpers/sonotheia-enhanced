@@ -24,6 +24,17 @@ This document provides the current operational status of all platform modules. T
 
 <!-- MODULE_STATUS_TABLE_END -->
 
+## Integration Status (Incode)
+
+| Component | Status | Verified |
+|-----------|--------|----------|
+| **Session API** | ✅ Active | Complete lifecycle |
+| **Biometric Auth** | ✅ Active | Incode SDK wrapped |
+| **Voice Auth** | ✅ Active | Sonotheia SDK wrapped |
+| **Risk Fusion** | ✅ Active | Composite scoring |
+| **Escalation** | ✅ Active | Human-in-the-loop |
+| **Audit Logs** | ✅ Active | Compliance ready |
+
 ## Sensor Status (Patent Compliance)
 
 | Sensor | Status | Compliance Method | Weight |

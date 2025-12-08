@@ -2,9 +2,22 @@
 
 > Multi-factor voice authentication & SAR reporting system combining deepfake detection, MFA orchestration, and automated suspicious activity reporting
 
+[![Showcase Ready](https://img.shields.io/badge/status-showcase_ready-success)](IMPLEMENTATION_SUMMARY.md)
 [![Modules Enabled](https://img.shields.io/badge/modules-12%2F12-brightgreen)](./README_MODULE_CONTROL.md)
 [![Operability](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml/badge.svg)](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml)
 [![Patent Compliance](https://img.shields.io/badge/patent-safe-blue)](Documentation/PATENT_COMPLIANCE.md)
+
+## 🚀 Showcase Ready: Incode Integration
+
+**Sonotheia Enhanced is now fully integrated with Incode's biometric onboarding platform.**
+
+The platform is ready for demonstration with:
+- **Seamless Biometric + Voice Auth**: Combined risk scoring (~3s latency)
+- **Deepfake Detection**: Real-time analysis of voice samples
+- **Automated Escalation**: Human-in-the-loop workflows for high-risk cases
+- **Comprehensive Audit Trails**: SOC2/GDPR compliant logging
+
+📖 **[Read the Implementation Summary](IMPLEMENTATION_SUMMARY.md)** for details on the integration, test results, and showcase guide.
 
 ## Features
 
