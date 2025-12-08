@@ -6,8 +6,15 @@ Main entry point for Celery task queue application.
 from celery import Celery, signals
 from celery_config import get_celery_config
 import logging
+import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Ensure the app directory is in Python path
+app_dir = Path(__file__).parent
+if str(app_dir) not in sys.path:
+    sys.path.insert(0, str(app_dir))
 
 # Create Celery application
 app = Celery("sonotheia")
@@ -16,7 +23,21 @@ app = Celery("sonotheia")
 app.config_from_object(get_celery_config())
 
 # Auto-discover tasks from the tasks package
-app.autodiscover_tasks(["tasks"])
+# Use force=True to ensure discovery happens even if tasks module was already imported
+try:
+    app.autodiscover_tasks(["tasks"], force=True)
+except Exception as e:
+    logger.warning(f"Failed to autodiscover tasks: {e}. Trying explicit imports...")
+    # Fallback: explicitly import task modules
+    try:
+        import tasks.audio_tasks
+        import tasks.detection_tasks
+        import tasks.analysis_tasks
+        import tasks.sar_tasks
+        import tasks.transcription_tasks
+        logger.info("Tasks imported explicitly")
+    except Exception as import_error:
+        logger.error(f"Failed to import tasks explicitly: {import_error}")
 
 
 @app.task(bind=True)
