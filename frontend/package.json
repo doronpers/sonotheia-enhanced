@@ -13,22 +13,32 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.6",
-    "@mui/material": "^7.3.6",
-    "ajv": "^8.17.1",
-    "axios": "^1.13.2",
-    "plotly.js": "^3.3.0",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.14.0",
+    "@mui/material": "^5.14.0",
+    "ajv": "^8.12.0",
+    "axios": "^1.6.0",
+    "plotly.js": "^2.27.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-plotly.js": "^2.6.0",
-    "react-router-dom": "^7.10.1",
-    "wavesurfer.js": "^7.12.1"
+    "react-router-dom": "^6.20.0",
+    "wavesurfer.js": "^7.5.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

@@ -65,6 +65,13 @@ if command -v docker &> /dev/null && [ -n "$DOCKER_COMPOSE_CMD" ]; then
     echo ""
     echo -e "${YELLOW}To view logs:${NC} $DOCKER_COMPOSE_CMD logs -f"
     echo -e "${YELLOW}To stop:${NC} $DOCKER_COMPOSE_CMD down"
+
+    # Attempt to open browser automatically
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "http://localhost:3000" 2>/dev/null || true
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        xdg-open "http://localhost:3000" 2>/dev/null || true
+    fi
     
 else
     echo -e "${YELLOW}⚠ Docker not found - Using local setup${NC}"

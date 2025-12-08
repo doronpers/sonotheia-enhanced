@@ -4,6 +4,7 @@ This repository includes human and automated contributors; `AGENTS.md` is for AI
 
 TL;DR - What agents must follow
 - Follow existing patterns: Pydantic models, middleware, centralized validators in `backend/api/validation.py`, and `get_error_response` for errors.
+- **Frontend Dependencies**: Do NOT upgrade `react`, `react-dom`, `react-router-dom`, or `@mui/*` beyond the versions specified in `frontend/package.json` (React 18, Router 6, MUI 5). The build system (`react-scripts` v5) is incompatible with newer versions.
 - Demo mode is strictly for demonstration. Do not convert demo placeholders to production behavior unless accompanied by tests, configuration updates, and a design doc.
 - Do not log PII (audio bytes, SSNs, etc.). Redact or avoid logging sensitive content.
 - Add tests to `backend/tests/` and run `pytest` before submitting changes.
