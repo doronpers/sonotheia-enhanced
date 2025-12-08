@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from api.middleware import limiter, verify_api_key, get_error_response
 from api.validation import SensorResult
-from backend.sensors.utils import load_and_preprocess_audio
+from sensors.utils import load_and_preprocess_audio
 from detection import get_pipeline, convert_numpy_types
 
 logger = logging.getLogger(__name__)

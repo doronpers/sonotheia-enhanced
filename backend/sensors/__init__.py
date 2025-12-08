@@ -41,8 +41,15 @@ from .global_formants import GlobalFormantSensor
 from .coarticulation import CoarticulationSensor
 from .formant import FormantTrajectorySensor
 from .enf import ENFSensor
-from .hf_deepfake import HFDeepfakeSensor
 from .registry import SensorRegistry, get_default_sensors
+
+# HuggingFace-based sensors (optional - requires huggingface_hub)
+try:
+    from .hf_deepfake import HFDeepfakeSensor
+    HF_DEEPFAKE_AVAILABLE = True
+except ImportError:
+    HFDeepfakeSensor = None
+    HF_DEEPFAKE_AVAILABLE = False
 
 # HuggingFace-based sensors (optional - requires transformers)
 try:
@@ -72,8 +79,6 @@ __all__ = [
     "ENFSensor",
     "CoarticulationSensor",
     "DigitalSilenceSensor",
-    "HFDeepfakeSensor",
-    "HFEnsembleSensor",
     "ModelConfig",
     "ModelStatus",
     "SensorRegistry",
@@ -92,6 +97,11 @@ __all__ = [
     "HuggingFaceSpeakerEmbedding",
     "HUGGINGFACE_AVAILABLE",
     "HF_SUPPORTED_MODELS",
+    "HF_DEEPFAKE_AVAILABLE",
 ]
+
+# Conditionally add HFDeepfakeSensor to __all__ if available
+if HF_DEEPFAKE_AVAILABLE:
+    __all__.append("HFDeepfakeSensor")
 
 
