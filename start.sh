@@ -19,6 +19,18 @@ echo ""
 # Project name (matches .env COMPOSE_PROJECT_NAME)
 PROJECT_NAME="sonotheia-treehorn"
 
+# Detect Local IP for Network Access
+# Try en0 (WiFi on Mac) first, then fallback
+LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || true)
+if [ -z "$LOCAL_IP" ]; then
+    # Fallback to creating a dummy connection to 8.8.8.8 to find route
+    LOCAL_IP=$(dscacheutil -q host -a name $(hostname) 2>/dev/null | grep "ip_address" | head -n 1 | awk '{print $2}')
+fi
+
+if [ -z "$LOCAL_IP" ]; then
+    LOCAL_IP="localhost"
+fi
+
 # Check if Docker is available (try v2 first, then v1)
 DOCKER_COMPOSE_CMD=""
 if docker compose version &> /dev/null; then
@@ -44,7 +56,10 @@ if command -v docker &> /dev/null && [ -n "$DOCKER_COMPOSE_CMD" ]; then
     echo -e "${GREEN}✓ Services started successfully!${NC}"
     echo ""
     echo -e "${BLUE}Access the application:${NC}"
-    echo -e "  • Frontend Dashboard: ${GREEN}http://localhost:3000${NC}"
+    echo -e "  • Frontend (Local):   ${GREEN}http://localhost:3000${NC}"
+    if [ "$LOCAL_IP" != "localhost" ]; then
+        echo -e "  • Frontend (Network): ${GREEN}http://$LOCAL_IP:3000${NC}"
+    fi
     echo -e "  • Backend API:        ${GREEN}http://localhost:8000${NC}"
     echo -e "  • API Documentation:  ${GREEN}http://localhost:8000/docs${NC}"
     echo ""
@@ -86,6 +101,7 @@ else
     pip install -q -r requirements.txt
     
     echo "  Starting backend server..."
+    # Bind to 0.0.0.0 to allow network access
     uvicorn api.main:app --host 0.0.0.0 --port 8000 &
     BACKEND_PID=$!
     
@@ -101,6 +117,10 @@ else
     fi
     
     echo "  Starting frontend server..."
+    # Export IP for React to use in API calls
+    export REACT_APP_API_BASE="http://$LOCAL_IP:8000"
+    export HOST=0.0.0.0 
+    
     BROWSER=none PORT=3000 npm start &
     FRONTEND_PID=$!
     
@@ -114,7 +134,10 @@ else
     echo -e "${GREEN}✓ Services started successfully!${NC}"
     echo ""
     echo -e "${BLUE}Access the application:${NC}"
-    echo -e "  • Frontend Dashboard: ${GREEN}http://localhost:3000${NC}"
+    echo -e "  • Frontend (Local):   ${GREEN}http://localhost:3000${NC}"
+    if [ "$LOCAL_IP" != "localhost" ]; then
+        echo -e "  • Frontend (Network): ${GREEN}http://$LOCAL_IP:3000${NC}"
+    fi
     echo -e "  • Backend API:        ${GREEN}http://localhost:8000${NC}"
     echo -e "  • API Documentation:  ${GREEN}http://localhost:8000/docs${NC}"
     echo ""
