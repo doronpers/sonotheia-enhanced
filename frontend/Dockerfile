@@ -3,15 +3,14 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Install dependencies (use correct lockfile)
-COPY package.json yarn.lock ./
-# If you used npm, you would prefer package-lock.json
-# COPY package.json package-lock.json ./ 
-RUN yarn install --frozen-lockfile
+# Install dependencies (use npm)
+COPY package.json ./
+# Generate package-lock.json if missing and install dependencies
+RUN npm install
 
 # Copy source code and build
 COPY . .
-RUN yarn build
+RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine

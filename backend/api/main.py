@@ -529,56 +529,7 @@ async def generate_sar(
         )
 
 
-@app.get(
-    "/api/demo/waveform/{sample_id}",
-    tags=["demo"],
-    summary="Get Demo Waveform Data",
-    description="Return demo waveform data for visualization testing",
-    response_description="Waveform data with segments"
-)
-@limiter.limit("100/minute")
-async def get_demo_waveform(request: Request, sample_id: str):
-    """
-    Return demo waveform data for visualization.
-    
-    This endpoint provides sample waveform data for testing visualization
-    components and UI development.
-    
-    **Parameters**:
-    - `sample_id`: Identifier for the demo sample
-    
-    **Returns**:
-    - x/y coordinates for waveform plot
-    - Annotated segments (genuine vs synthetic)
-    - Confidence scores
-    """
-    # Generate demo waveform data
-    x = np.linspace(0, 4, 1000)
-    y = np.sin(2 * np.pi * x) * np.exp(-x/2)
-    
-    return {
-        "x": x.tolist(),
-        "y": y.tolist(),
-        "segments": [
-            {
-                "start": 0.0,
-                "end": 2.0,
-                "type": "genuine",
-                "label": "Genuine",
-                "confidence": 0.95
-            },
-            {
-                "start": 2.0,
-                "end": 4.0,
-                "type": "synthetic",
-                "label": "Synthetic",
-                "confidence": 0.88
-            }
-        ],
-        "sample_id": sample_id,
-        "sample_rate": 16000,
-        "duration_seconds": 4.0
-    }
+
 
 
 # Dashboard endpoints

@@ -6,7 +6,8 @@ import {
   Tabs,
   Tab,
   Box,
-  Typography
+  Typography,
+  Paper
 } from "@mui/material";
 
 function TabPanel({ children, value, index }) {
@@ -69,28 +70,64 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
               </Box>
 
               <Typography variant="h6" gutterBottom>
-                Top Contributing Sensors
+                Detailed Risk Breakdown
               </Typography>
-              {evidence.fusion_verdict.contributing_factors?.slice(0, 3).map((factor, idx) => (
-                <Box key={idx} sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                  <Typography variant="subtitle2">
-                    {idx + 1}. {factor.sensor_name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Weight: {(factor.weight * 100).toFixed(0)}% | Contribution: {(factor.contribution * 100).toFixed(1)}%
-                  </Typography>
-                  {factor.reason && (
-                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                      Finding: {factor.reason}
-                    </Typography>
-                  )}
-                  {factor.detail && (
-                    <Typography variant="caption" color="text.secondary">
-                      {factor.detail}
-                    </Typography>
-                  )}
-                </Box>
-              ))}
+              <Box sx={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "2px solid #ddd", textAlign: "left" }}>
+                      <th style={{ padding: "8px" }}>Sensor</th>
+                      <th style={{ padding: "8px" }}>Risk</th>
+                      <th style={{ padding: "8px" }}>Weight</th>
+                      <th style={{ padding: "8px" }}>Contribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evidence.fusion_verdict.contributing_factors?.map((factor, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
+                        <td style={{ padding: "8px" }}>
+                          <Typography variant="body2" fontWeight="bold">
+                            {factor.sensor_name}
+                          </Typography>
+                          {factor.reason && (
+                            <Typography variant="caption" color="text.secondary">
+                              {factor.reason}
+                            </Typography>
+                          )}
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          <Typography
+                            variant="body2"
+                            color={factor.risk_score > 0.5 ? "error.main" : "success.main"}
+                            fontWeight="bold"
+                          >
+                            {factor.risk_score.toFixed(1)}
+                          </Typography>
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          {(factor.weight * 100).toFixed(0)}%
+                        </td>
+                        <td style={{ padding: "8px", fontWeight: "bold" }}>
+                          {(factor.contribution * 100).toFixed(1)}%
+                        </td>
+                      </tr>
+                    ))}
+                    <tr style={{ borderTop: "2px solid #ddd", backgroundColor: "#f9f9f9" }}>
+                      <td style={{ padding: "8px", fontWeight: "bold" }}>Total</td>
+                      <td style={{ padding: "8px" }}>-</td>
+                      <td style={{ padding: "8px" }}>
+                        {(evidence.fusion_verdict.contributing_factors?.reduce((acc, curr) => acc + curr.weight, 0) * 100).toFixed(0)}%
+                      </td>
+                      <td style={{ padding: "8px", fontWeight: "bold" }}>
+                        {(evidence.fusion_verdict.global_risk_score * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, fontStyle: "italic" }}>
+                * Contribution = Risk Score × Weight. Total Risk Score is the sum of contributions divided by the total weight.
+              </Typography>
             </Box>
           ) : (
             <Typography>No fusion analysis available</Typography>

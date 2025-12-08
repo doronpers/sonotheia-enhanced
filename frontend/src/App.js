@@ -15,31 +15,14 @@ function HomePage() {
   const [authResult, setAuthResult] = useState(null);
   const [factorResults, setFactorResults] = useState([]);
 
-  const loadDemoData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-      const response = await fetch(`${apiBase}/api/demo/waveform/sample1`);
-      const data = await response.json();
-      setWaveformData(data);
-    } catch (err) {
-      console.error("Failed to load demo data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    // Fetch demo data from backend
-    loadDemoData();
-  }, [loadDemoData]);
 
   const handleAuthenticate = (result) => {
     setAuthResult(result);
-    
+
     // Convert API response to factor results format
     const factors = [];
-    
+
     if (result.factor_results?.voice) {
       const voice = result.factor_results.voice;
       factors.push({
@@ -48,7 +31,7 @@ function HomePage() {
         state: voice.deepfake_score < 0.3 ? "pass" : "fail",
         explanation: voice.explanation || `Deepfake score: ${voice.deepfake_score || 0}`
       });
-      
+
       if (voice.speaker_verification_score !== undefined) {
         factors.push({
           name: "Speaker Verification",
@@ -57,7 +40,7 @@ function HomePage() {
           explanation: voice.explanation || `Speaker verification score: ${voice.speaker_verification_score}`
         });
       }
-      
+
       if (voice.liveness_passed !== undefined) {
         factors.push({
           name: "Liveness",
@@ -67,7 +50,7 @@ function HomePage() {
         });
       }
     }
-    
+
     if (result.factor_results?.device) {
       const device = result.factor_results.device;
       factors.push({
@@ -77,11 +60,10 @@ function HomePage() {
         explanation: device.explanation || `Device trust score: ${device.trust_score || 0}`
       });
     }
-    
+
     setFactorResults(factors);
-    
-    // Update waveform data if available from demo endpoint
-    loadDemoData();
+
+
   };
 
   if (loading) {
@@ -107,9 +89,9 @@ function HomePage() {
 
       {authResult && (
         <Box sx={{ mb: 4 }}>
-          <RiskScoreBox 
-            score={authResult.risk_score || 0} 
-            level={authResult.risk_level || "LOW"} 
+          <RiskScoreBox
+            score={authResult.risk_score || 0}
+            level={authResult.risk_level || "LOW"}
             factors={authResult.transaction_risk?.risk_factors || [
               `Transaction amount: $${authResult.amount_usd || 0}`,
               `Decision: ${authResult.decision || "PENDING"}`
