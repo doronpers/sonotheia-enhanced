@@ -12,9 +12,16 @@ import io
 
 import numpy as np
 import scipy.io.wavfile
-from huggingface_hub import InferenceClient
 
 from .base import BaseSensor, SensorResult
+
+# Optional dependency - import conditionally
+try:
+    from huggingface_hub import InferenceClient
+    HAS_HUGGINGFACE = True
+except ImportError:
+    HAS_HUGGINGFACE = False
+    InferenceClient = None
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +48,19 @@ class HFDeepfakeSensor(BaseSensor):
 
     def __init__(self):
         super().__init__("AI Deepfake Model (Hugging Face)")
+        
+        # Check if huggingface_hub is available
+        if not HAS_HUGGINGFACE:
+            logger.warning(
+                "huggingface_hub library not installed. HFDeepfakeSensor will be disabled. "
+                "Install it with: pip install huggingface_hub"
+            )
+            self.token = None
+            self.model_id = None
+            self.ssl_verify = True
+            self.client = None
+            return
+        
         self.token = os.getenv("HUGGINGFACE_TOKEN")
         self.model_id = os.getenv("HF_MODEL_ID", self.DEFAULT_MODEL_ID)
 
@@ -122,6 +142,15 @@ class HFDeepfakeSensor(BaseSensor):
         Returns:
             SensorResult with deepfake detection findings
         """
+        if not HAS_HUGGINGFACE:
+            return SensorResult(
+                sensor_name=self.name,
+                passed=True,
+                value=0.0,
+                detail="Skipped: huggingface_hub library not installed",
+                threshold=0.5
+            )
+        
         if not self.token:
             return SensorResult(
                 sensor_name=self.name,
