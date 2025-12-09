@@ -23,9 +23,9 @@ echo "============================================================"
 
 # Python interpreter
 PYTHON="python3"
-if [ -d "backend/venv" ]; then
-    PYTHON="backend/venv/bin/python"
-    echo "Using virtual environment: backend/venv"
+if [ -d ".venv" ]; then
+    PYTHON=".venv/bin/python"
+    echo "Using virtual environment: .venv"
 fi
 
 # 1. Ingest LibriSpeech

@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--service", choices=["elevenlabs", "openai", "all"], default="all", help="TTS Service")
     parser.add_argument("--count", type=int, default=5, help="Number of files to generate per service")
     parser.add_argument("--augment", action="store_true", help="Generate telephony variants (Landline, Mobile, VoIP)")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate generation without API calls")
     
     args = parser.parse_args()
     
