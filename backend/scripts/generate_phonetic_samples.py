@@ -30,6 +30,42 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("phonetic_generator")
 
+# Check for required dependencies at startup
+def check_dependencies():
+    """Check if required dependencies are available and provide helpful error messages."""
+    missing = []
+    
+    try:
+        import requests
+    except ImportError:
+        missing.append("requests")
+    
+    try:
+        from openai import OpenAI
+    except ImportError:
+        missing.append("openai")
+    
+    if missing:
+        logger.warning("=" * 60)
+        logger.warning("Missing dependencies detected:")
+        for dep in missing:
+            logger.warning(f"  - {dep}")
+        logger.warning("")
+        logger.warning("To fix this:")
+        logger.warning("  1. Activate the virtual environment:")
+        logger.warning("     source backend/venv/bin/activate")
+        logger.warning("  2. Or install dependencies:")
+        logger.warning(f"     pip install {' '.join(missing)}")
+        logger.warning("=" * 60)
+        logger.warning("")
+        logger.warning("The script will continue but API calls will fail.")
+        logger.warning("")
+    
+    return len(missing) == 0
+
+# Run dependency check
+_deps_available = check_dependencies()
+
 # Phonetically diverse phrases designed to maximize sound combination coverage
 # Organized by phonetic features they emphasize
 
@@ -181,6 +217,10 @@ def generate_elevenlabs(text: str, filename: str, voice_id: str = "pNInz6obpgDQG
         
     try:
         import requests
+    except ImportError:
+        logger.error("'requests' module not found. Please install it: pip install requests")
+        logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
+        return False
         
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
         headers = {
@@ -221,6 +261,10 @@ def generate_openai(text: str, filename: str, voice: str = "alloy") -> bool:
         
     try:
         from openai import OpenAI
+    except ImportError:
+        logger.error("'openai' module not found. Please install it: pip install openai")
+        logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
+        return False
         client = OpenAI(api_key=api_key)
         
         response = client.audio.speech.create(
