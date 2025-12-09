@@ -19,16 +19,32 @@ import time
 from pathlib import Path
 from typing import List, Dict
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("phonetic_generator")
+
 # Try to load environment variables from .env file (optional)
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Load .env from project root (two levels up from scripts directory)
+    # Script is at: backend/scripts/generate_phonetic_samples.py
+    # .env is at: .env (project root)
+    script_dir = Path(__file__).parent  # backend/scripts/
+    project_root = script_dir.parent.parent  # project root
+    env_path = project_root / ".env"
+    
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+        logger.debug(f"Loaded .env from: {env_path}")
+    else:
+        # Fallback: try current directory and parent directories
+        load_dotenv()  # Will search current dir and parents automatically
+        logger.debug("Attempted to load .env from current directory or parents")
 except ImportError:
-    pass  # dotenv not installed, will use system environment variables
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("phonetic_generator")
+    logger.debug("python-dotenv not installed, using system environment variables only")
+except Exception as e:
+    # Log but don't fail if .env loading has issues
+    logger.debug(f"Could not load .env: {e}")
 
 # Check for required dependencies at startup
 def check_dependencies():
