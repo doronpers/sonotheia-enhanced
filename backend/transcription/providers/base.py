@@ -5,7 +5,7 @@ Abstract base class for all transcription providers.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Tuple
+from typing import Optional, List
 import numpy as np
 import logging
 

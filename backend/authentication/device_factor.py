@@ -3,7 +3,7 @@ Device Authentication Factor Module
 Handles device trust validation and fingerprinting
 """
 
-from typing import Dict, Optional
+from typing import Dict
 import logging
 
 logger = logging.getLogger(__name__)

@@ -4,11 +4,10 @@ Combines patterns from auth-guide with existing detection logic
 Created: 2025-11-23 by doronpers
 """
 
-import os
 import sys
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, Tuple
 from enum import Enum
 import logging
 import json

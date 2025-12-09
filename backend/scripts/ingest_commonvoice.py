@@ -69,7 +69,16 @@ def ingest_from_local(archive_path: Path, count: int):
             # Select random subset to extract
             selected_members = random.sample(members, min(count * 2, len(members)))
             
-            tar.extractall(path=extract_dir, members=selected_members)
+            # Safely extract selected members to prevent path traversal
+            def safe_extract(tar_obj, path, members):
+                """Safely extract given members, preventing path traversal attacks."""
+                for member in members:
+                    member_path = Path(path) / member.name
+                    if not str(member_path.resolve()).startswith(str(Path(path).resolve())):
+                        raise Exception("Path traversal attempt in tar file")
+                tar_obj.extractall(path=path, members=members)
+
+            safe_extract(tar, extract_dir, selected_members)
             
         # Find extracted files
         mp3_files = list(extract_dir.rglob("*.mp3"))
@@ -116,7 +125,7 @@ def ingest_from_huggingface(count: int, lang: str = "en"):
         for dataset_name in dataset_names:
             try:
                 logger.info(f"Trying dataset: {dataset_name}")
-                ds = load_dataset(dataset_name, lang, split=f"train[:{count}]", token=token, streaming=True)
+                ds = load_dataset(dataset_name, lang, split=f"train[:{count}]", token=token, streaming=True, revision="main")
                 logger.info(f"Successfully loaded {dataset_name}")
                 break
             except Exception as e:

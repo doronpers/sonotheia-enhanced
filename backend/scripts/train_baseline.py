@@ -127,7 +127,7 @@ def main():
 
     args = parser.parse_args()
 
-    logger.info(f"Training baseline spoof detector")
+    logger.info("Training baseline spoof detector")
     logger.info(f"Dataset: {args.dataset_dir}")
     logger.info(f"Codec: {args.codec}")
     logger.info(f"GMM components: {args.n_components}")

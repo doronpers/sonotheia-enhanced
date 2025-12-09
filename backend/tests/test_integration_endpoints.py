@@ -7,7 +7,6 @@ import pytest
 from fastapi.testclient import TestClient
 import sys
 from pathlib import Path
-from datetime import datetime
 
 # Add parent to path
 sys.path.append(str(Path(__file__).parent.parent))

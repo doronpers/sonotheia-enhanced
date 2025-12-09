@@ -22,6 +22,7 @@ from .stages import (
     RawNet3Stage,
     FusionEngine,
     ExplainabilityStage,
+    PhysicsAnalysisStage,
 )
 from .utils import load_audio, preprocess_audio, convert_numpy_types
 
@@ -138,6 +139,11 @@ class DetectionPipeline:
             stage_weights=cfg.fusion_engine.stage_weights,
             confidence_threshold=cfg.fusion_engine.confidence_threshold,
             decision_threshold=cfg.fusion_engine.decision_threshold,
+        )
+
+        # Stage 3b: Physics Analysis
+        self.physics_analysis = PhysicsAnalysisStage(
+            config=cfg.physics_analysis
         )
 
         # Stage 6: Explainability
@@ -324,6 +330,13 @@ class DetectionPipeline:
         job.progress = 0.4
         stage_results["artifact_detection"] = self.artifact_detection.process(audio)
         logger.debug("Stage 3 (Artifact Detection) complete")
+
+        # Stage 3b: Physics Analysis
+        job.current_stage = "physics_analysis"
+        # Adjusted progress markers to fit new stage
+        job.progress = 0.5
+        stage_results["physics_analysis"] = self.physics_analysis.process(audio)
+        logger.debug("Stage 3b (Physics Analysis) complete")
 
         # Stage 4: RawNet3 Neural
         job.current_stage = "rawnet3"

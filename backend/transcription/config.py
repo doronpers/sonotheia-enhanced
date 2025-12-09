@@ -6,7 +6,7 @@ Configuration settings for transcription providers and processing.
 
 import os
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)

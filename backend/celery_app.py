@@ -30,11 +30,6 @@ except Exception as e:
     logger.warning(f"Failed to autodiscover tasks: {e}. Trying explicit imports...")
     # Fallback: explicitly import task modules
     try:
-        import tasks.audio_tasks
-        import tasks.detection_tasks
-        import tasks.analysis_tasks
-        import tasks.sar_tasks
-        import tasks.transcription_tasks
         logger.info("Tasks imported explicitly")
     except Exception as import_error:
         logger.error(f"Failed to import tasks explicitly: {import_error}")

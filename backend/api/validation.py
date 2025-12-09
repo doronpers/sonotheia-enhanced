@@ -16,14 +16,11 @@ import struct
 sys.path.append(str(Path(__file__).parent.parent))
 from config.constants import (
     SAFE_ID_PATTERN,
-    SAFE_STRING_PATTERN,
     EMAIL_PATTERN,
     COUNTRY_CODE_PATTERN,
     VALID_CHANNELS,
     MAX_AUDIO_SIZE_BYTES,
-    MAX_ID_LENGTH,
-    MAX_STRING_LENGTH,
-    MAX_TEXT_LENGTH
+    MAX_ID_LENGTH
 )
 
 logger = logging.getLogger(__name__)

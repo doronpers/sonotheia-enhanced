@@ -9,9 +9,6 @@ import requests
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import json
-from pathlib import Path
-import io
 
 # Configure page
 st.set_page_config(

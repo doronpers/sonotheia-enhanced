@@ -108,8 +108,12 @@ else
     pip install -q -r requirements.txt
     
     echo "  Starting backend server..."
-    # Bind to 0.0.0.0 to allow network access
-    uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+    # Start Backend (in background)
+    echo "Starting Backend..."
+    # WARNING: Binding to 0.0.0.0 exposes the service to the local network.
+    # This is intended for the Showcase demonstration but should be restricted
+    # to 127.0.0.1 for production use if not behind a secure gateway.
+    uvicorn main:app --host 0.0.0.0 --port 8000 &
     BACKEND_PID=$!
     
     cd ..

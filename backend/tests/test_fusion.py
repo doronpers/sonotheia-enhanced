@@ -13,7 +13,6 @@ from sensors.fusion import (
     calculate_confidence,
     get_top_contributors,
     format_technical_evidence,
-    DEFAULT_WEIGHTS,
 )
 
 

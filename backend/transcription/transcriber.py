@@ -5,7 +5,6 @@ High-level transcription interface that combines providers and diarization.
 Handles audio loading, chunking, and provider abstraction.
 """
 
-import asyncio
 import base64
 import io
 import logging

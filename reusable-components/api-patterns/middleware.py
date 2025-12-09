@@ -6,9 +6,9 @@ Provides cross-cutting concerns like metrics collection, logging, and error hand
 
 import logging
 import time
-from typing import Callable, Dict, Any, Optional
+from typing import Dict, Any, Optional
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 import threading
 

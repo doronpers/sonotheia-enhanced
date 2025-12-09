@@ -10,6 +10,7 @@ from .artifact_detection import ArtifactDetectionStage
 from .rawnet3_neural import RawNet3Stage
 from .fusion_engine import FusionEngine
 from .explainability import ExplainabilityStage
+from .physics_analysis import PhysicsAnalysisStage
 
 __all__ = [
     "FeatureExtractionStage",
@@ -18,4 +19,5 @@ __all__ = [
     "RawNet3Stage",
     "FusionEngine",
     "ExplainabilityStage",
+    "PhysicsAnalysisStage",
 ]

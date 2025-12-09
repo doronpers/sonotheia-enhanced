@@ -521,7 +521,6 @@ async def diarize_audio(
     
     try:
         from transcription.diarization import SpeakerDiarizer
-        import numpy as np
         
         config = get_transcription_config()
         

@@ -3,7 +3,7 @@ Voice Authentication Factor Module
 Handles voice deepfake detection, liveness checks, and speaker verification
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, List
 import logging
 from pathlib import Path
 import numpy as np

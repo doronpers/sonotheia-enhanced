@@ -7,7 +7,6 @@ Implements CQCC, LFCC, and log-spectrogram features for audio deepfake detection
 import numpy as np
 import librosa
 from scipy.fftpack import dct
-from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)

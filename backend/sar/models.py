@@ -14,7 +14,6 @@ import re
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 from config.constants import (
-    SAFE_ID_PATTERN, 
     VALID_CHANNELS, 
     MAX_AUDIO_SIZE_BYTES,
     MAX_STRING_LENGTH,

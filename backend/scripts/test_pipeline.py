@@ -12,11 +12,10 @@ import sys
 # Add parent to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from data_ingest.loader import AudioLoader
 from telephony.pipeline import TelephonyPipeline
 from features.extraction import FeatureExtractor
 from models.baseline import GMMSpoofDetector
-from risk_engine.factors import RiskEngine, FactorScore
+from risk_engine.factors import RiskEngine
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -216,8 +215,8 @@ def test_end_to_end_pipeline():
     logger.info("\n" + "="*60)
     logger.info("END-TO-END PIPELINE SUMMARY")
     logger.info("="*60)
-    logger.info(f"Audio duration: 3.0s")
-    logger.info(f"Codec: landline")
+    logger.info("Audio duration: 3.0s")
+    logger.info("Codec: landline")
     logger.info(f"Features: {features.shape[0]} frames x {features.shape[1]} dims")
     logger.info(f"Spoof score: {spoof_score:.3f}")
     logger.info(f"Overall risk: {risk_result.overall_score:.3f}")

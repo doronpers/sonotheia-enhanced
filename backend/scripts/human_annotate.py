@@ -13,7 +13,6 @@ Usage:
     python human_annotate.py --audio-file sample.wav --interactive
 """
 
-import os
 import sys
 import json
 import argparse
@@ -427,7 +426,7 @@ Examples:
     print(f"{'=' * 60}")
     print(f"Annotations saved to: {args.output}")
     print(f"Calibration dataset: {args.calibration_dir}")
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"  1. Review annotations: cat {args.output} | jq .")
     print(f"  2. Run threshold optimizer: python calibration/optimizer.py --dataset {args.calibration_dir}")
     print(f"  3. Evaluate new thresholds: python scripts/eval_liveness.py --dataset-dir {args.calibration_dir}")

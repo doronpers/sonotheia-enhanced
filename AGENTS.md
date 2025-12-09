@@ -101,8 +101,7 @@ Consolidated Documentation Improvements
 - Add or update `Documentation/API.md` to include any new endpoints and examples.
 
 Additions & Next steps
-- If accepted, add `.github/snippets/*` with endpoint, validation, and test templates to help agents scaffold PRs.
-  - This repo already includes `.github/snippets/` with endpoint, model, and test templates (copy-paste ready). Use these when scaffolding PRs.
+- This repo already includes `.github/snippets/` with endpoint, model, and test templates (copy-paste ready). Use these when scaffolding PRs.
 - Optionally add a CI check to fail PRs if `DEMO_MODE` is disabled without tests/justification.
 
 Thank you — use this guide as the canonical agent runbook. If you'd like, I can now produce a `./.github/snippets` set for `MFA`, `SAR`, and a `FastAPI endpoint + tests` template.

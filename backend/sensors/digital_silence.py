@@ -15,7 +15,7 @@ analysis) to detect perfect mathematical silence and instant texture changes.
 """
 
 import numpy as np
-from typing import Dict, List
+from typing import Dict
 from scipy import signal
 try:
     import librosa

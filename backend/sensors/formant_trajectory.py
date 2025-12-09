@@ -16,7 +16,7 @@ movement speeds (e.g., F1 moving >300 Hz in 10ms).
 import numpy as np
 import librosa
 from scipy.signal import find_peaks
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Optional, Tuple
 import logging
 
 from backend.sensors.base import BaseSensor, SensorResult

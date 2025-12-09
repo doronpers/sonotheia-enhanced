@@ -3,7 +3,7 @@ Threshold optimization logic.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Any
+from typing import List, Tuple
 import numpy as np
 import logging
 

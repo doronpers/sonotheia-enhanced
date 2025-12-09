@@ -1,7 +1,6 @@
 import os
 import requests
 import logging
-import asyncio
 import numpy as np
 from typing import Dict, Any, Optional
 

@@ -7,8 +7,6 @@ Falls back to demo mode if Whisper is not installed.
 
 import asyncio
 import logging
-import os
-import tempfile
 from typing import Optional
 import numpy as np
 
@@ -61,7 +59,7 @@ class WhisperLocalProvider(TranscriptionProvider):
             import whisper
             logger.info(f"Loading Whisper model: {self._model_name} on {self._device}")
             self._model = whisper.load_model(self._model_name, device=self._device)
-            logger.info(f"Whisper model loaded successfully")
+            logger.info("Whisper model loaded successfully")
             return self._model
         except Exception as e:
             raise TranscriptionError(

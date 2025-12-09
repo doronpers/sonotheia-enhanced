@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress, Button, AppBar, Toolbar, Tabs, Tab } from "@mui/material";
 import WaveformDashboard from "./components/WaveformDashboard";
@@ -6,6 +6,7 @@ import EvidenceModal from "./components/EvidenceModal";
 import RiskScoreBox from "./components/RiskScoreBox";
 import Dashboard from "./components/Dashboard";
 import AuthenticationForm from "./components/AuthenticationForm";
+import Laboratory from "./components/Laboratory";
 
 function HomePage() {
   const [loading, setLoading] = useState(false);
@@ -146,12 +147,16 @@ function HomePage() {
 function NavTabs() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const tabValue = currentPath === '/dashboard' ? 1 : 0;
+
+  let tabValue = 0;
+  if (currentPath === '/dashboard') tabValue = 1;
+  if (currentPath === '/lab') tabValue = 2;
 
   return (
     <Tabs value={tabValue} textColor="inherit" indicatorColor="secondary">
       <Tab label="Authentication" component={Link} to="/" />
       <Tab label="Dashboard" component={Link} to="/dashboard" />
+      <Tab label="Lab" component={Link} to="/lab" />
     </Tabs>
   );
 }
@@ -172,6 +177,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/lab" element={<Laboratory />} />
         </Routes>
       </Box>
     </Router>

@@ -4,7 +4,6 @@ Tests for the main RateLimiter class
 """
 
 import pytest
-import time
 import sys
 from pathlib import Path
 

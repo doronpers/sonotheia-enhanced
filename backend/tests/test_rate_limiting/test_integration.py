@@ -4,7 +4,6 @@ Tests for FastAPI decorators and endpoint integration
 """
 
 import pytest
-import time
 import sys
 from pathlib import Path
 
@@ -17,8 +16,6 @@ from fastapi.testclient import TestClient
 from rate_limiting import (
     limit,
     limit_by_ip,
-    limit_by_user,
-    get_limiter,
     reset_limiter,
     RateLimitMiddleware,
 )

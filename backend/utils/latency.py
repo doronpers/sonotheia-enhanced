@@ -10,7 +10,6 @@ import logging
 from contextlib import contextmanager
 from typing import Dict, Optional, List
 from dataclasses import dataclass, field
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ Patent Safety:
 
 import numpy as np
 from scipy import signal, stats
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 from .base import BaseSensor, SensorResult
 
 try:

@@ -6,7 +6,6 @@ Simulates various telephony codecs and channel effects for robust deepfake detec
 
 import numpy as np
 from scipy import signal
-from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)

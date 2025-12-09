@@ -108,6 +108,12 @@ class ExplainabilityConfig:
 
 
 @dataclass
+class PhysicsAnalysisConfig:
+    """Configuration for Stage 3b: Physics Analysis"""
+    enabled: bool = True
+
+
+@dataclass
 class DetectionConfig:
     """Main detection pipeline configuration."""
 
@@ -126,6 +132,8 @@ class DetectionConfig:
     )
     rawnet3: RawNet3Config = field(default_factory=RawNet3Config)
     fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
+    fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
+    physics_analysis: PhysicsAnalysisConfig = field(default_factory=PhysicsAnalysisConfig)
     explainability: ExplainabilityConfig = field(default_factory=ExplainabilityConfig)
 
     # Pipeline settings
@@ -187,6 +195,11 @@ class DetectionConfig:
             for key, value in data["explainability"].items():
                 if hasattr(config.explainability, key):
                     setattr(config.explainability, key, value)
+
+        if "physics_analysis" in data:
+            for key, value in data["physics_analysis"].items():
+                if hasattr(config.physics_analysis, key):
+                    setattr(config.physics_analysis, key, value)
 
         for key in ["enable_caching", "max_audio_duration", "min_audio_duration", "timeout_seconds"]:
             if key in data:

@@ -11,14 +11,12 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime
-import time
 
 import numpy as np
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from detection import DetectionPipeline
 from detection.stages import RawNet3Stage
 from detection.config import RawNet3Config
 from detection.utils import convert_numpy_types, load_audio
@@ -193,7 +191,7 @@ def main():
 
     if "metrics" in results:
         metrics = results["metrics"]
-        print(f"\nMetrics:")
+        print("\nMetrics:")
         print(f"  AUC:       {metrics['auc']:.4f}")
         print(f"  Accuracy:  {metrics['accuracy']:.4f}")
         print(f"  Precision: {metrics['precision']:.4f}")

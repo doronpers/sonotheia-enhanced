@@ -7,7 +7,6 @@ a unified risk assessment with explainable contributing factors.
 
 import logging
 from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
 
 from .base import SensorResult
 

@@ -1,13 +1,12 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, status
+from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 from datetime import datetime
 from contextlib import asynccontextmanager
 import sys
 from pathlib import Path
-import numpy as np
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 import logging
@@ -17,7 +16,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from authentication.unified_orchestrator import UnifiedOrchestrator, UnifiedContext
 from authentication.mfa_orchestrator import MFAOrchestrator, TransactionContext, AuthenticationFactors
-from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext, SARReport, FilingStatus
+from sar.models import AuthenticationRequest, AuthenticationResponse, SARContext
 from sar.generator import SARGenerator
 from api.middleware import (
     limiter,
@@ -27,15 +26,14 @@ from api.middleware import (
     add_security_headers_middleware,
     get_error_response
 )
-from api.validation import SensorResult
 from api import session_management, escalation, audit_logging
 from api.analyze_call import router as analyze_call_router
 from api.detection_router import router as detection_router
 from api.routes.admin_modules import router as admin_modules_router
 from api.routes.badge import router as badge_router
-from core.module_registry import get_registry, is_module_enabled
-from api.jobs import router as jobs_router
 from api.transcription_router import router as transcription_router
+from api.library_router import router as library_router
+from api.jobs import router as jobs_router
 from observability.metrics import metrics_endpoint, update_module_metrics
 
 # Configure logging
@@ -231,6 +229,7 @@ app.include_router(admin_modules_router)
 app.include_router(badge_router)
 app.include_router(jobs_router)
 app.include_router(transcription_router)
+app.include_router(library_router)
 
 
 # Prometheus metrics endpoint
@@ -809,7 +808,6 @@ async def run_system_tests(request: Request):
         })
         
     try:
-        from core.module_registry import get_registry
         from sensors.registry import SensorRegistry
         import time
         import numpy as np
@@ -852,7 +850,7 @@ async def run_system_tests(request: Request):
             # Sine wave = perfect phase = synthetic = passed: False
             verification_status = "pass" if (res.passed is False) else "fail"
             add_result("Phase Coherence Logic", "physics", verification_status, res.value,
-                       f"Correctly flagged pure sine wave", time.time() - start)
+                       "Correctly flagged pure sine wave", time.time() - start)
                        
         # 3. Fallback/Static tests for others
         # (Merging with some static results for full dashboard appearance)

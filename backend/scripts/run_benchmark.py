@@ -96,7 +96,7 @@ class BenchmarkRunner:
         labels = df['label'].tolist()
 
         logger.info(f"Loaded dataset: {len(audio_paths)} files")
-        logger.info(f"Genuine: {sum(l == 0 for l in labels)}, Spoof: {sum(l == 1 for l in labels)}")
+        logger.info(f"Genuine: {sum(label == 0 for label in labels)}, Spoof: {sum(label == 1 for label in labels)}")
 
         return audio_paths, labels
 
@@ -184,7 +184,7 @@ class BenchmarkRunner:
         # Compute metrics
         metrics = compute_all_metrics(labels, scores, threshold=0.5)
 
-        logger.info(f"Evaluation Metrics:")
+        logger.info("Evaluation Metrics:")
         for key, value in metrics.items():
             logger.info(f"  {key}: {value}")
 

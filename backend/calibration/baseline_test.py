@@ -233,17 +233,17 @@ class CalibrationTool:
         print(f"{'='*60}\n")
         
         print(f"Overall Accuracy: {accuracy*100:.1f}% ({correct}/{total})")
-        print(f"\nBy Scenario:")
+        print("\nBy Scenario:")
         print(f"  Legitimate Users: {legitimate_correct}/{legitimate_total} " +
               f"({legitimate_correct/legitimate_total*100:.1f}% accuracy)")
         print(f"  Deepfake Detection: {deepfake_correct}/{deepfake_total} " +
               f"({deepfake_correct/deepfake_total*100:.1f}% accuracy)")
         
-        print(f"\nDecision Distribution:")
+        print("\nDecision Distribution:")
         print(f"  APPROVE: {approvals} ({approvals/total*100:.1f}%)")
         print(f"  ESCALATE: {escalations} ({escalations/total*100:.1f}%)")
         
-        print(f"\nRisk Score Statistics:")
+        print("\nRisk Score Statistics:")
         print(f"  Average: {avg_risk:.3f}")
         print(f"  Min: {min_risk:.3f}")
         print(f"  Max: {max_risk:.3f}")

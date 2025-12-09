@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import soundfile as sf
 import librosa
-from typing import Tuple, Optional
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 

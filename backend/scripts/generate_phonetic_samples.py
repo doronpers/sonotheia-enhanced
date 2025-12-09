@@ -17,13 +17,13 @@ import json
 import time
 from pathlib import Path
 from typing import List, Dict
-
+from tts_utils import load_env_file, check_tts_dependencies, generate_elevenlabs, generate_openai
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("phonetic_generator")
 
 # Import shared TTS utilities
-from tts_utils import load_env_file, check_tts_dependencies, generate_elevenlabs, generate_openai
+
 
 # Load environment variables from project root
 load_env_file(Path(__file__))
@@ -291,7 +291,7 @@ Examples:
     
     # Analyze coverage
     coverage_info = get_phonetic_coverage(phrases)
-    logger.info(f"Phonetic Coverage Analysis:")
+    logger.info("Phonetic Coverage Analysis:")
     logger.info(f"  Total phrases: {coverage_info['total_phrases']}")
     logger.info(f"  Unique characters: {coverage_info['unique_characters']}")
     logger.info(f"  Consonant clusters found: {coverage_info['consonant_clusters_found']}")
@@ -363,7 +363,7 @@ Examples:
     logger.info(f"Total generated: {total_generated}")
     logger.info(f"Total failed: {total_failed}")
     logger.info(f"Output directory: {output_dir}")
-    logger.info(f"\nMetadata files (.json) saved alongside audio files.")
+    logger.info("\nMetadata files (.json) saved alongside audio files.")
 
 
 if __name__ == "__main__":

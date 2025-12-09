@@ -11,7 +11,7 @@ rather than just file duration, providing more accurate phonation analysis.
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List
 
 import numpy as np
 from scipy.signal import medfilt

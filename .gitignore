@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+backend/venv/
 ENV/
 .env
 
@@ -31,6 +32,13 @@ models/weights/
 *.h5
 *.pkl
 *.pth
+
+# Large data directories (should not be committed)
+backend/data/temp_librispeech/
+backend/data/library/
+backend/data/keys/
+backend/data/DF-keys-full.tar.gz
+backend/sonotheia_core.egg-info/
 
 # Secrets
 config/secrets.yaml

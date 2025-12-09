@@ -6,13 +6,11 @@ Common metrics for spoof detection evaluation.
 
 import numpy as np
 from sklearn.metrics import (
-    roc_auc_score, roc_curve, precision_recall_curve,
-    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix
 )
-from typing import Dict, Tuple
+from typing import Dict
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 
 def compute_all_metrics(y_true: np.ndarray, y_scores: np.ndarray, threshold: float = 0.5) -> Dict[str, float]:

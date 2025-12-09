@@ -12,7 +12,7 @@ Key Detection Methods:
 
 import numpy as np
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Tuple
 from scipy import signal
 
 from .base import BaseSensor, SensorResult

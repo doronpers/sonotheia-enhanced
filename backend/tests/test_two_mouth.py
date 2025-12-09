@@ -3,7 +3,6 @@ Tests for Two-Mouth Sensor (Anatomical State Conflicts).
 """
 
 import numpy as np
-import pytest
 from backend.sensors.two_mouth import TwoMouthSensor
 
 class TestTwoMouthSensor:

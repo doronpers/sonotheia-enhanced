@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 import numpy as np
 
-from .base import TranscriptionProvider, TranscriptionError
+from .base import TranscriptionProvider
 from ..models import Transcript
 
 logger = logging.getLogger(__name__)

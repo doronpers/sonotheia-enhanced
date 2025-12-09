@@ -19,7 +19,6 @@ Output: Breathing regularity score (0-1)
 
 import numpy as np
 import librosa
-from typing import Tuple, List, Optional
 from .base import BaseSensor, SensorResult
 from utils.config import get_threshold
 

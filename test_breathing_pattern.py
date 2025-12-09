@@ -18,7 +18,6 @@ The sensor returns:
 """
 
 import sys
-import os
 import numpy as np
 import librosa
 import soundfile as sf
@@ -89,7 +88,7 @@ def analyze_audio_file(audio_path: str):
 
     try:
         # Load audio
-        print(f"📂 Loading audio file...")
+        print("📂 Loading audio file...")
         audio_data, sample_rate = load_audio(audio_path, target_sr=16000)
         duration = len(audio_data) / sample_rate
         print(f"   ✓ Loaded: {duration:.2f}s @ {sample_rate}Hz")
@@ -98,12 +97,12 @@ def analyze_audio_file(audio_path: str):
         sensor = BreathingPatternSensor()
 
         # Analyze
-        print(f"\n🔍 Analyzing breathing patterns...")
+        print("\n🔍 Analyzing breathing patterns...")
         result = sensor.analyze(audio_data, sample_rate)
 
         # Display results
         print(f"\n{'─'*70}")
-        print(f"RESULTS")
+        print("RESULTS")
         print(f"{'─'*70}\n")
 
         print(f"Sensor: {result.sensor_name}")
@@ -111,7 +110,7 @@ def analyze_audio_file(audio_path: str):
         print(f"Passed: {result.passed}")
 
         if result.metadata:
-            print(f"\nMetadata:")
+            print("\nMetadata:")
             for key, value in result.metadata.items():
                 if isinstance(value, float):
                     print(f"  - {key}: {value:.3f}")
@@ -125,7 +124,7 @@ def analyze_audio_file(audio_path: str):
 
         # Interpretation
         print(f"\n{'─'*70}")
-        print(f"INTERPRETATION")
+        print("INTERPRETATION")
         print(f"{'─'*70}\n")
 
         if result.metadata and result.metadata.get("rejected"):

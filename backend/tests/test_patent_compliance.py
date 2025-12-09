@@ -9,7 +9,6 @@ Source-Filter Model patents by verifying:
 4. Compliance documentation exists
 """
 
-import os
 import re
 import pytest
 from pathlib import Path
@@ -54,7 +53,7 @@ class TestPatentCompliance:
         """Verify phase_coherence.py does not use LPC."""
         sensor_file = self.SENSORS_DIR / "phase_coherence.py"
         
-        assert sensor_file.exists(), f"phase_coherence.py not found"
+        assert sensor_file.exists(), "phase_coherence.py not found"
         
         with open(sensor_file, 'r') as f:
             content = f.read()
@@ -69,7 +68,7 @@ class TestPatentCompliance:
         """Verify coarticulation.py does not use LPC."""
         sensor_file = self.SENSORS_DIR / "coarticulation.py"
         
-        assert sensor_file.exists(), f"coarticulation.py not found"
+        assert sensor_file.exists(), "coarticulation.py not found"
         
         with open(sensor_file, 'r') as f:
             content = f.read()

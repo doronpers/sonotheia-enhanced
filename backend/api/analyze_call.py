@@ -13,12 +13,9 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 import numpy as np
-import tempfile
 import logging
 from pathlib import Path
 import sys
-import io
-import base64
 import yaml
 
 # Add parent to path
