@@ -541,6 +541,12 @@ Provide your analysis in this JSON format (no markdown):
             return json.loads(cleaned)
 
         except Exception as e:
-            logger.warning(f"LLM Query failed: {e}")
+            error_type = type(e).__name__
+            error_msg = str(e) if e else "Unknown error"
+            # Log full exception details for debugging
+            logger.warning(
+                f"LLM Query failed: {error_type}: {error_msg}",
+                exc_info=True  # Include full traceback for debugging
+            )
             return None
 

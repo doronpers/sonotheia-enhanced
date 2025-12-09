@@ -71,7 +71,11 @@ def analyze_directory(label: str, force: bool = False):
                 json.dump(convert_numpy_types(result), f, indent=2)
                 
         except Exception as e:
-            logger.error(f"Failed to analyze {file_path.name}: {e}")
+            error_type = type(e).__name__
+            error_msg = str(e) if e else "Unknown error"
+            logger.error(f"Failed to analyze {file_path.name}: {error_type}: {error_msg}")
+            # Continue processing other files even if one fails
+            continue
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze audio library.")
