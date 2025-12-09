@@ -34,11 +34,11 @@ try:
     env_path = project_root / ".env"
     
     if env_path.exists():
-        load_dotenv(dotenv_path=env_path)
+        load_dotenv(dotenv_path=env_path, override=True)  # override=True ensures .env values take precedence
         logger.debug(f"Loaded .env from: {env_path}")
     else:
         # Fallback: try current directory and parent directories
-        load_dotenv()  # Will search current dir and parents automatically
+        load_dotenv(override=True)  # Will search current dir and parents automatically
         logger.debug("Attempted to load .env from current directory or parents")
 except ImportError:
     logger.debug("python-dotenv not installed, using system environment variables only")
