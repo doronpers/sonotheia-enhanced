@@ -12,6 +12,8 @@ from typing import Dict, Any, List, Optional
 import numpy as np
 from huggingface_hub import InferenceClient
 
+from backend.utils.serialization import convert_numpy_types
+
 logger = logging.getLogger(__name__)
 
 
@@ -489,6 +491,9 @@ class ExplainabilityStage:
                     "score": rn.get("score"),
                     "is_demo": rn.get("demo_mode", False)
                 }
+
+            # Ensure context is JSON serializable (convert numpy float32 to float)
+            context = convert_numpy_types(context)
 
             # Use chat completion for robust template handling
             messages = [
