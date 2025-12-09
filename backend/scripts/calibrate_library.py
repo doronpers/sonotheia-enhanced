@@ -330,9 +330,27 @@ def main():
             print("Update your backend/config/settings.yaml with these new thresholds.")
             print("Run with --update-config to apply automatically.")
         
-        # Save to file
+        # Save to file (Current State)
         df.to_csv(LIBRARY_DIR / "calibration_report.csv", index=False)
         print(f"Saved detailed report to {LIBRARY_DIR}/calibration_report.csv")
+
+        # Append to History (Historical Record)
+        try:
+            from datetime import datetime
+            history_path = LIBRARY_DIR / "calibration_history.csv"
+            
+            # Prepare history dataframe
+            df_history = df.copy()
+            # Insert Timestamp as first column
+            df_history.insert(0, "Timestamp", datetime.now().isoformat())
+            
+            # Append to file (header only if file doesn't exist)
+            file_exists = history_path.exists()
+            df_history.to_csv(history_path, mode='a', header=not file_exists, index=False)
+            print(f"Appended results to history log: {history_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to append to history log: {e}")
     else:
         print("No valid sensors found for calibration.")
 

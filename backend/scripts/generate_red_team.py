@@ -20,6 +20,12 @@ from typing import List
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("red_team_generator")
 
+# Ensure project root is in sys.path for 'backend' imports
+import sys
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 # Import shared TTS utilities
 from tts_utils import load_env_file, generate_elevenlabs, generate_openai
 

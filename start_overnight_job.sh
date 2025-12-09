@@ -34,10 +34,10 @@ echo "[1/5] Ingesting LibriSpeech ($LIBRISPEECH_COUNT samples)..."
 $PYTHON backend/scripts/ingest_librispeech.py --count $LIBRISPEECH_COUNT || echo "LibriSpeech ingestion warning (check logs)"
 
 # 2. Ingest Common Voice
-echo ""
-echo "[2/5] Ingesting Common Voice ($COMMONVOICE_COUNT samples)..."
-export HUGGINGFACE_TOKEN=$(grep HUGGINGFACE_TOKEN .env | cut -d '=' -f2)
-$PYTHON backend/scripts/ingest_commonvoice.py --count $COMMONVOICE_COUNT || echo "CommonVoice ingestion skipped or failed (check token)"
+# echo ""
+# echo "[2/5] Ingesting Common Voice ($COMMONVOICE_COUNT samples)..."
+# export HUGGINGFACE_TOKEN=$(grep HUGGINGFACE_TOKEN .env | cut -d '=' -f2)
+# $PYTHON backend/scripts/ingest_commonvoice.py --count $COMMONVOICE_COUNT || echo "CommonVoice ingestion skipped or failed (check token)"
 
 # 3. Generate Synthetics
 echo ""

@@ -122,6 +122,7 @@ def ingest_from_huggingface(count: int, lang: str = "en"):
             "mozilla-foundation/common_voice_10_0"
         ]
         ds = None
+        last_error = None
         for dataset_name in dataset_names:
             try:
                 logger.info(f"Trying dataset: {dataset_name}")
@@ -129,11 +130,12 @@ def ingest_from_huggingface(count: int, lang: str = "en"):
                 logger.info(f"Successfully loaded {dataset_name}")
                 break
             except Exception as e:
-                logger.debug(f"Failed to load {dataset_name}: {e}")
+                logger.warning(f"Failed to load {dataset_name}: {e}") # Changed to warning to be visible
+                last_error = e
                 continue
         
         if ds is None:
-            raise Exception("Could not load any Common Voice dataset version")
+            raise Exception(f"Could not load any Common Voice dataset version. Last error: {last_error}")
         
         success_count = 0
         for i, item in enumerate(tqdm(ds.take(count), total=count, desc="Downloading streams")):
