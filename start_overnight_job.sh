@@ -8,6 +8,7 @@ set -e
 LIBRISPEECH_COUNT=${LIBRISPEECH_COUNT:-2000}  # Increased for overnight load
 COMMONVOICE_COUNT=${COMMONVOICE_COUNT:-500}   # Increased for overnight load
 SYNTHETIC_COUNT=50
+export PYTHONPATH=$PYTHONPATH:.
 
 echo "============================================================"
 echo "   SONOTHEIA ENHANCED - OVERNIGHT PROCESSING JOB"

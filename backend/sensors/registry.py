@@ -54,17 +54,17 @@ def get_default_sensors() -> List[BaseSensor]:
 
     
     return [
-        BreathSensor(),
-        DynamicRangeSensor(),
-        BandwidthSensor(),
-        PitchVelocitySensor(),
-        GlottalInertiaSensor(),
-        DigitalSilenceSensor(),
-        GlobalFormantSensor(),
-        CoarticulationSensor(),
+        BreathSensor(category="defense"),           # Trust (Chaotic Noise)
+        DynamicRangeSensor(category="defense"),     # Trust (Natural Dynamics)
+        BandwidthSensor(category="defense"),        # Trust (Context/Quality)
+        PitchVelocitySensor(category="prosecution"),# Risk (Impossible Motion)
+        GlottalInertiaSensor(category="prosecution"),# Risk (Impossible Physics)
+        DigitalSilenceSensor(category="prosecution"),# Risk (Impossible Silence)
+        GlobalFormantSensor(category="defense"),    # Trust (Resonance)
+        CoarticulationSensor(category="defense"),   # Trust (Spectral Continuity)
 
-        FormantTrajectorySensor(),
-        TwoMouthSensor(),
+        FormantTrajectorySensor(category="defense"),# Trust (Fluid Motion)
+        TwoMouthSensor(category="prosecution"),     # Risk (Impossible Overlap)
 
     ]
 

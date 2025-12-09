@@ -52,8 +52,8 @@ class GlottalInertiaSensor(BaseSensor):
     SILENCE_THRESHOLD_DB = -60.0
     SPEECH_THRESHOLD_DB = -20.0
     
-    def __init__(self, config: Optional[GlottalInertiaConfig] = None):
-        super().__init__("Glottal Inertia Sensor")
+    def __init__(self, config: Optional[GlottalInertiaConfig] = None, category: str = "prosecution"):
+        super().__init__("Glottal Inertia Sensor", category=category)
         self.config = config or GlottalInertiaConfig()
         
     def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:

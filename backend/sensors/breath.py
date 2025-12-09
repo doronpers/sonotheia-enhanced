@@ -52,7 +52,8 @@ class BreathSensor(BaseSensor):
         self,
         max_phonation_seconds: float = MAX_PHONATION_SECONDS,
         silence_threshold_db: float = SILENCE_THRESHOLD_DB,
-        frame_size_seconds: float = FRAME_SIZE_SECONDS
+        frame_size_seconds: float = FRAME_SIZE_SECONDS,
+        category: str = "defense"
     ):
         """
         Initialize breath sensor.
@@ -63,8 +64,9 @@ class BreathSensor(BaseSensor):
                                   Note: The VAD module uses adaptive thresholding for
                                   more robust detection.
             frame_size_seconds: Frame size for analysis (default: 0.02s)
+            category: "prosecution" or "defense"
         """
-        super().__init__("Breath Sensor (Max Phonation)")
+        super().__init__("Breath Sensor (Max Phonation)", category=category)
         self.max_phonation_seconds = max_phonation_seconds
         self.silence_threshold_db = silence_threshold_db
         self.frame_size_seconds = frame_size_seconds

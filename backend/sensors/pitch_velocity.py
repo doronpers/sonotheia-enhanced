@@ -39,8 +39,8 @@ class PitchVelocitySensor(BaseSensor):
     this biological limit indicate synthetic generation.
     """
     
-    def __init__(self, config: Optional[PitchVelocityConfig] = None):
-        super().__init__("Pitch Velocity Sensor (Larynx Analysis)")
+    def __init__(self, config: Optional[PitchVelocityConfig] = None, category: str = "prosecution"):
+        super().__init__("Pitch Velocity Sensor (Larynx Analysis)", category=category)
         self.config = config or PitchVelocityConfig()
 
     def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:

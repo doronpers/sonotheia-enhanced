@@ -26,8 +26,10 @@ class FusionEngine:
         self,
         fusion_method: str = "weighted_average",
         stage_weights: Optional[Dict[str, float]] = None,
+        stage_weights: Optional[Dict[str, float]] = None,
         confidence_threshold: float = 0.5,
         decision_threshold: float = 0.5,
+        **kwargs
     ):
         """
         Initialize fusion engine.
@@ -66,73 +68,99 @@ class FusionEngine:
             return self._empty_result("No stage results to fuse")
 
         try:
-            # Extract scores from each stage
+             # Extract scores from each stage
             scores = self._extract_scores(stage_results)
             
-            # --- CONTEXT-AWARE PROFILE SWITCHING ---
-            # Check Bandwidth Context to switch profiles
-            context = "WIDEBAND"
-            physics = stage_results.get("physics_analysis", {})
-            if physics.get("success", False):
-                sensor_results = physics.get("sensor_results", {})
-                bw_result = sensor_results.get("Bandwidth Sensor (Rolloff Frequency)", {})
-                # Check metadata for context tag
-                ctx = bw_result.get("metadata", {}).get("context")
-                if ctx == "NARROWBAND":
-                    context = "NARROWBAND"
+            # --- DUAL-FACTOR VERIFICATION (PROSECUTOR vs DEFENSE) ---
+            # Architecture:
+            # 1. Prosecution (Risk): Violation of Physics -> High Confidence FAKE
+            # 2. Defense (Trust): Presence of Life Signs -> Confidence Boost for REAL
             
-            # Load specific profile weights if available in config
-            # (In a real implementation, FusionEngine would have access to full config app_state)
-            # For now, we assume self.profiles is populated if passed in __init__
-            current_profile = "default"
-            if hasattr(self, 'profiles') and self.profiles:
-                if context == "NARROWBAND" and "narrowband" in self.profiles:
-                    current_profile = "narrowband"
-                    self.stage_weights = self.profiles["narrowband"].get("weights", self.stage_weights)
-                    self.decision_threshold = self.profiles["narrowband"].get("thresholds", {}).get("synthetic", self.decision_threshold)
-                    logger.info("Context Switch: ACTIVE -> NARROWBAND PROFILE (Phone Mode)")
+            physics = stage_results.get("physics_analysis", {})
+            sensor_results = physics.get("sensor_results", {}) if physics.get("success") else {}
+            
+            risk_scores = []
+            trust_scores = []
+            
+            for name, res in sensor_results.items():
+                # Extract score/value
+                val = res.get("value", 0.0)
+                # Determine category (default to defense if not found, but we tagged them)
+                # Note: We need access to the sensor instance or metadata to know category.
+                # Since we don't have the instance here, we rely on mapped names or metadata.
+                # Ideally, metadata['category'] should be passed in result.
+                # WORKAROUND: Map known names until pipeline passes category in result.metadata
+                category = "defense"
+                lower_name = name.lower()
+                if "glottal" in lower_name or "pitch velocity" in lower_name or "silence" in lower_name or "two-mouth" in lower_name:
+                    category = "prosecution"
+                
+                # Check optional metadata override
+                if res.get("metadata", {}).get("category"):
+                     category = res.get("metadata", {}).get("category")
+
+                if category == "prosecution":
+                    risk_scores.append(val)
                 else:
-                    current_profile = "default"
-                    self.stage_weights = self.profiles["default"].get("weights", self.stage_weights)
-                    self.decision_threshold = self.profiles["default"].get("thresholds", {}).get("synthetic", self.decision_threshold)
+                    trust_scores.append(val)
+
+            # 1. Calculate Risk (Max of Prosecution)
+            # If any prosecutor finds a violation, Risk is high.
+            risk_score = max(risk_scores) if risk_scores else 0.0
+            
+            # 2. Calculate Trust (Avg of Defense)
+            # consistently good defense signs build trust.
+            trust_score = sum(trust_scores) / len(trust_scores) if trust_scores else 0.5
+            
+            # 3. The Verdict Matrix
+            # Default to weighted average of all stages
+            base_score = self._weighted_average_fusion(scores)
+            
+            final_score = base_score
+            decision_logic = "Weighted Average"
+            
+            # Logic: High Risk trumps everything (Veto)
+            if risk_score > 0.8:
+                final_score = max(final_score, risk_score)
+                decision_logic = "Prosecution Veto (High Risk)"
+            
+            # Logic: Low Risk + High Trust = Boost Real
+            elif risk_score < 0.3 and trust_score < 0.3: # Trust sensors return low score for Real (0.0=Real)
+                 # If Trust is high (meaning scores are low/passed), we pull the score down
+                 final_score = min(final_score, 0.2)
+                 decision_logic = "Defense Validation (High Trust)"
+
             # ---------------------------------------
 
             if not scores:
                 return self._empty_result("No valid scores to fuse")
 
-            # Apply fusion method
-            if self.fusion_method == "weighted_average":
-                fused_score = self._weighted_average_fusion(scores)
-            elif self.fusion_method == "max":
-                fused_score = self._max_fusion(scores)
-            elif self.fusion_method == "learned":
-                fused_score = self._learned_fusion(scores)
-            else:
-                fused_score = self._weighted_average_fusion(scores)
-
             # Compute overall confidence
             confidence = self._compute_confidence(stage_results, scores)
 
             # Make decision
-            is_spoof = fused_score > self.decision_threshold
-            decision = self._make_decision(fused_score, confidence)
+            is_spoof = final_score > self.decision_threshold
+            decision = self._make_decision(final_score, confidence)
 
             # Apply Rule-Based Arbiter (Veto/Override Logic)
-            arbiter_result = self._apply_arbiter_rules(stage_results, fused_score, decision)
+            # (Kept as safety net, though Prosecution logic covers most)
+            arbiter_result = self._apply_arbiter_rules(stage_results, final_score, decision)
             
             # Use Arbiter's overrides if any
-            final_score = arbiter_result.get("fused_score", fused_score)
+            final_score = arbiter_result.get("fused_score", final_score)
             final_decision = arbiter_result.get("decision", decision)
             arbiter_explanation = arbiter_result.get("explanation", "")
 
             return {
                 "success": True,
                 "fused_score": float(final_score),
+                "risk_score": float(risk_scores[0] if risk_scores else 0.0), # Example for UI
+                "trust_score": float(trust_scores[0] if trust_scores else 0.0), # Example for UI
                 "confidence": float(confidence),
                 "is_spoof": final_score > self.decision_threshold,
                 "decision": final_decision,
                 "stage_scores": scores,
-                "fusion_method": self.fusion_method,
+                "fusion_method": decision_logic, # Return logic used
                 "stage_contributions": self._compute_contributions(scores, final_score),
                 "arbiter_override": arbiter_result.get("override_applied", False),
                 "arbiter_details": arbiter_explanation
