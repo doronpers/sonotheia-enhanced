@@ -202,6 +202,11 @@ class RawNet3BatchProcessor:
         max_score = float(max(scores))
         avg_confidence = float(np.mean(confidences))
 
+        # Get demo_mode from first result if available, default to True
+        demo_mode = True
+        if results and len(results) > 0:
+            demo_mode = results[0].get("demo_mode", True)
+        
         return {
             "success": True,
             "score": max_score,
@@ -210,5 +215,5 @@ class RawNet3BatchProcessor:
             "is_spoof": max_score > 0.5,
             "num_chunks": len(results),
             "chunk_scores": scores,
-            "demo_mode": results[0].get("demo_mode", True),
+            "demo_mode": demo_mode,
         }

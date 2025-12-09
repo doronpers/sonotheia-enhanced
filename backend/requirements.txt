@@ -8,8 +8,8 @@
 # -----------------------------------------------------------------------------
 # Core API Framework
 # -----------------------------------------------------------------------------
-fastapi>=0.109.0,<0.110.0
-uvicorn[standard]>=0.27.0,<0.28.0
+fastapi>=0.109.0,<0.125.0  # Updated: Allow security patches (was <0.110.0)
+uvicorn[standard]>=0.27.0,<0.31.0  # Updated: Allow security patches (was <0.28.0)
 pydantic~=2.5.0
 python-multipart>=0.0.9,<1.0.0
 slowapi>=0.1.9,<0.2.0

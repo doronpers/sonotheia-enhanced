@@ -529,6 +529,11 @@ Provide your analysis in this JSON format (no markdown):
             )
             
             # Extract content from chat completion message
+            # Safety: Check if choices exist and have at least one item
+            if not hasattr(response, 'choices') or not response.choices:
+                raise ValueError("LLM response has no choices")
+            if not hasattr(response.choices[0], 'message') or not hasattr(response.choices[0].message, 'content'):
+                raise ValueError("LLM response choice missing message or content")
             content = response.choices[0].message.content
             
             # Simple cleanup to ensure valid JSON

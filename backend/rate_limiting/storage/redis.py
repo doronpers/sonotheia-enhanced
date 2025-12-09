@@ -178,6 +178,9 @@ class RedisStorage(BaseStorage):
                 pipe.expire(prefixed, ttl, nx=True)  # Only set expire if not already set
             results = pipe.execute()
 
+            # Safety: Check that pipeline returned results
+            if not results or len(results) == 0:
+                raise RuntimeError("Redis pipeline returned no results")
             return results[0]  # Return the incremented value
         except Exception as e:
             logger.error(f"Redis increment error: {e}")
