@@ -134,7 +134,7 @@ class DetectionConfig:
     )
     rawnet3: RawNet3Config = field(default_factory=RawNet3Config)
     fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
-    fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
+
     physics_analysis: PhysicsAnalysisConfig = field(default_factory=PhysicsAnalysisConfig)
     explainability: ExplainabilityConfig = field(default_factory=ExplainabilityConfig)
 

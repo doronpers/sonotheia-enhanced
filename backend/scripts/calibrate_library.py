@@ -11,8 +11,10 @@ import sys
 import json
 import logging
 import pandas as pd
+import argparse
+import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 # Add parent dir to path to import backend modules
 sys.path.append(str(Path(__file__).parent.parent))
@@ -23,7 +25,9 @@ from calibration.optimizer import ThresholdOptimizer
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger("calibrate_library")
 
-LIBRARY_DIR = Path("backend/data/library")
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+LIBRARY_DIR = BACKEND_DIR / "data" / "library"
+SETTINGS_PATH = BACKEND_DIR / "config" / "settings.yaml"
 
 def load_scores() -> Dict[str, Dict[str, List[float]]]:
     """
@@ -108,7 +112,141 @@ def load_scores() -> Dict[str, Dict[str, List[float]]]:
             
     return data
 
+def update_config_file(updates: Dict[str, Dict[str, float]]) -> bool:
+    """
+    Update settings.yaml with new thresholds using regex to preserve comments.
+    
+    Args:
+        updates: Dict identifying sensor->threshold->value
+                 e.g. {"breath": {"max_phonation_seconds": 15.2}}
+                 
+    Returns:
+        True if successful
+    """
+    if not SETTINGS_PATH.exists():
+        logger.error(f"Settings file not found at {SETTINGS_PATH}")
+        return False
+        
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            content = f.read()
+            
+        original_content = content
+        changes_count = 0
+        
+        for sensor, thresholds in updates.items():
+            for result_key, new_value in thresholds.items():
+                if new_value is None:
+                    continue
+                    
+                # Regex logic:
+                # 1. Find sensor section (lines indented or not)
+                # 2. Within that, find the specific key
+                # This is complex with single regex. simpler approach:
+                # Iterate lines, find sensor block, then find key inside block.
+                
+                lines = content.splitlines()
+                new_lines = []
+                in_sensor_block = False
+                sensor_indent = -1
+                updated_this_key = False
+                
+                # Assume structure from settings.yaml:
+                # sensors:
+                #   sensor_name:
+                #     key: value
+                
+                for line in lines:
+                    stripped = line.strip()
+                    lstripped = line.lstrip()
+                    current_indent = len(line) - len(lstripped)
+                    
+                    if stripped.startswith(f"{sensor}:"):
+                        # Found sensor block? Check context if necessary (under 'sensors:')
+                        # But simpler heuristic: assume unique sensor names at 2 or 4 indent
+                        in_sensor_block = True
+                        sensor_indent = current_indent
+                        new_lines.append(line)
+                        continue
+                        
+                    if in_sensor_block:
+                        # Check if we left the block (same indent or less as sensor line)
+                        if stripped and not stripped.startswith("#") and current_indent <= sensor_indent:
+                            in_sensor_block = False
+                        
+                        # Use loose matching for keys
+                        elif stripped.startswith(result_key + ":"):
+                            # Replace value part
+                            # Format: key: value # comment
+                            parts = line.split(":", 1)
+                            key_part = parts[0]
+                            rest = parts[1]
+                            
+                            # Preserve comment
+                            comment = ""
+                            if "#" in rest:
+                                val_comment_split = rest.split("#", 1)
+                                comment = " #" + val_comment_split[1]
+                                
+                            # Format new line
+                            new_line = f"{key_part}: {new_value:.4f}{comment}"
+                            new_lines.append(new_line)
+                            updated_this_key = True
+                            changes_count += 1
+                            continue
+                    
+                    new_lines.append(line)
+                
+                content = "\n".join(new_lines)
+                if content.endswith("\n") != original_content.endswith("\n"):
+                    # restore newline at end if meaningful
+                     pass 
+
+        if changes_count > 0:
+            with open(SETTINGS_PATH, "w") as f:
+                f.write(content)
+            logger.info(f"Updated {changes_count} thresholds in {SETTINGS_PATH}")
+            return True
+        else:
+            logger.warning("No matching keys found to update in settings.yaml")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Failed to update config: {e}")
+        return False
+
+def map_sensor_to_config(sensor_name: str, result_key: str) -> Optional[Tuple[str, str]]:
+    """Map display name to yaml key."""
+    name_lower = sensor_name.lower()
+    
+    if "breath" in name_lower:
+        return ("breath", "max_phonation_seconds")
+    if "two mouth" in name_lower:
+        return ("two_mouth", "combined_threshold")
+    if "formant trajectory" in name_lower:
+        return ("formant_trajectory", "consistency_threshold")
+    if "glottal inertia" in name_lower:
+        return ("glottal_inertia", "phase_entropy_threshold") # Guess based on importance
+    if "coarticulation" in name_lower:
+        return ("coarticulation", "anomaly_threshold")
+    if "global formant" in name_lower:
+        return ("global_formants", "outlier_threshold")
+    if "dynamic range" in name_lower:
+        return ("dynamic_range", "min_crest_factor")
+    if "bandwidth" in name_lower:
+        return ("bandwidth", "min_rolloff_hz")
+    if "phase coherence" in name_lower:
+        return ("phase_coherence", "suspicion_threshold")
+    if "digital silence" in name_lower:
+        return ("digital_silence", "silence_threshold") # Assumed key, need to verify
+        
+    return None
+
 def main():
+    parser = argparse.ArgumentParser(description="Calibrate library thresholds")
+    parser.add_argument("--update-config", action="store_true", help="Update backend/config/settings.yaml with new thresholds")
+    args = parser.parse_args()
+
     logger.info("=" * 60)
     logger.info("  AUDIO LABORATORY CALIBRATION UTILITY")
     logger.info("=" * 60)
@@ -151,10 +289,12 @@ def main():
             "Accuracy": 1.0 - res.eer
         })
         
-    print("\n" + "=" * 60)
+    print("=" * 60)
     print("CALIBRATION REPORT")
     print("=" * 60)
     
+    updates_to_apply = {}
+
     if results:
         df = pd.DataFrame(results)
         # Reorder columns
@@ -166,8 +306,29 @@ def main():
         }))
         
         print("\n" + "-" * 60)
-        print("RECOMMENDATION:")
-        print("Update your backend/config.py with these new thresholds.")
+        
+        if args.update_config:
+            print("Applying updates to configuration...")
+            for res in results:
+                mapping = map_sensor_to_config(res["Sensor"], "threshold")
+                if mapping:
+                    sensor_key, config_key = mapping
+                    if sensor_key not in updates_to_apply:
+                        updates_to_apply[sensor_key] = {}
+                    updates_to_apply[sensor_key][config_key] = res["Optimal Threshold"]
+                    
+            if updates_to_apply:
+                if update_config_file(updates_to_apply):
+                    print("✅ Configuration updated successfully.")
+                else:
+                    print("❌ Failed to update configuration.")
+            else:
+                print("⚠️ No mappable sensors found to update.")
+                
+        else:
+            print("RECOMMENDATION:")
+            print("Update your backend/config/settings.yaml with these new thresholds.")
+            print("Run with --update-config to apply automatically.")
         
         # Save to file
         df.to_csv(LIBRARY_DIR / "calibration_report.csv", index=False)

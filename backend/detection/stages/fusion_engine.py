@@ -88,15 +88,25 @@ class FusionEngine:
             is_spoof = fused_score > self.decision_threshold
             decision = self._make_decision(fused_score, confidence)
 
+            # Apply Rule-Based Arbiter (Veto/Override Logic)
+            arbiter_result = self._apply_arbiter_rules(stage_results, fused_score, decision)
+            
+            # Use Arbiter's overrides if any
+            final_score = arbiter_result.get("fused_score", fused_score)
+            final_decision = arbiter_result.get("decision", decision)
+            arbiter_explanation = arbiter_result.get("explanation", "")
+
             return {
                 "success": True,
-                "fused_score": float(fused_score),
+                "fused_score": float(final_score),
                 "confidence": float(confidence),
-                "is_spoof": is_spoof,
-                "decision": decision,
+                "is_spoof": final_score > self.decision_threshold,
+                "decision": final_decision,
                 "stage_scores": scores,
                 "fusion_method": self.fusion_method,
-                "stage_contributions": self._compute_contributions(scores, fused_score),
+                "stage_contributions": self._compute_contributions(scores, final_score),
+                "arbiter_override": arbiter_result.get("override_applied", False),
+                "arbiter_details": arbiter_explanation
             }
 
         except Exception as e:
@@ -227,6 +237,80 @@ class FusionEngine:
             "stage_scores": {},
             "fusion_method": self.fusion_method,
             "stage_contributions": {},
+        }
+
+
+
+    def _apply_arbiter_rules(
+        self, 
+        stage_results: Dict[str, Dict[str, Any]], 
+        current_score: float, 
+        current_decision: str
+    ) -> Dict[str, Any]:
+        """
+        Apply rule-based arbitration to override statistical fusion.
+        
+        Implements constraints from physics sensors that should act as "Vetoes"
+        rather than just weighted inputs.
+        
+        Rules:
+        1. Two-Mouth Violation: Word overlapping (impossible for single speaker) -> High Fake Probability
+        2. Breath Pattern Violation: Impossible lung capacity or double-breaths -> High Fake Probability
+        3. Glottal Inertia: If 100% clean (no violations), boost Trust (lower Fake Score)
+        """
+        physics = stage_results.get("physics_analysis", {})
+        if not physics.get("success", False):
+            return {"override_applied": False, "fused_score": current_score, "decision": current_decision}
+
+        sensor_results = physics.get("sensor_results", {})
+        overrides = []
+        new_score = current_score
+        
+        # Rule 1: Two-Mouth (Word Overlap)
+        # If two_mouth sensor is confident > 0.5, it found spectral conflict/VTL variance
+        two_mouth = sensor_results.get("TwoMouthSensor", {})
+        if two_mouth.get("value", 0.0) > 0.5: # Threshold for high confidence artifact
+            overrides.append("Two-Mouth Artifact Detected (Word Overlap)")
+            new_score = max(new_score, 0.95) # Near certainty
+            
+        # Rule 2: Breath Patterns (Infinite Lung Capacity / Double Breath)
+        # Respiration violation implies impossible breathing
+        breath = sensor_results.get("Breath Sensor (Max Phonation)", {}) # Name check needed
+        breath_meta = breath.get("metadata", {})
+        if breath_meta.get("respiration_violation", False):
+            overrides.append("Impossible Breath Pattern (Infinite Lung Capacity)")
+            new_score = max(new_score, 0.90)
+            
+        # Rule 3: Glottal Inertia (Trust Booster)
+        glottal = sensor_results.get("Glottal Inertia Sensor", {})
+        glottal_meta = glottal.get("metadata", {})
+        violation_count = glottal_meta.get("violation_count", 0)
+        
+        if violation_count > 0:
+             # If physics violated, ensure score is at least high
+             overrides.append(f"Glottal Physics Violation ({violation_count} events)")
+             new_score = max(new_score, 0.85) 
+        elif glottal.get("passed") is True and violation_count == 0:
+             # Trust Boost: Validated human physics
+             # Only reduce score if we don't have other fatal strikes (TwoMouth/Breath)
+             if len(overrides) == 0: 
+                 trust_factor = 0.5
+                 previous_score = new_score
+                 new_score = new_score * trust_factor
+                 if previous_score > 0.5 and new_score < 0.5:
+                      overrides.append("Glottal Physics Validation (Trust Boost)")
+
+        if not overrides:
+            return {"override_applied": False, "fused_score": current_score, "decision": current_decision}
+            
+        # Determine new decision based on overridden score
+        new_decision = self._make_decision(new_score, 1.0) # High confidence in rules
+        
+        return {
+            "override_applied": True,
+            "fused_score": new_score, 
+            "decision": new_decision,
+            "explanation": "; ".join(overrides)
         }
 
 

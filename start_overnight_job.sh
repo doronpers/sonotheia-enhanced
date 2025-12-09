@@ -56,7 +56,7 @@ $PYTHON backend/scripts/analyze_library.py --force --label all || echo "Analysis
 # 5. Calibrate
 echo ""
 echo "[5/5] Calibrating Sensors..."
-$PYTHON backend/scripts/calibrate_library.py || echo "Calibration failed"
+$PYTHON backend/scripts/calibrate_library.py --update-config || echo "Calibration failed"
 
 echo ""
 echo "============================================================"

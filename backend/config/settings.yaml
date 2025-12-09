@@ -61,7 +61,7 @@ sensors:
     combined_threshold: 0.4033    # Overall pass/fail threshold (Calibration 2025-12-09)
 
   formant_trajectory:
-    consistency_threshold: 0.7388 # Calibration 2025-12-09
+    consistency_threshold: 0.7068 # Calibration 2025-12-09
 
   global_formants:
     outlier_threshold: 0.4017     # Calibration 2025-12-09
@@ -73,15 +73,21 @@ sensors:
     confidence_threshold: 0.70    # Calibration suggests 0.00, keeping safe default or use 0.0 only if strictly required
 
   breath:
-    max_phonation_seconds: 14.0   # Human lung capacity limit
+    max_phonation_seconds: 14.0   # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
     silence_threshold_db: -60     # Silence detection
     frame_size_seconds: 0.02      # Analysis window
 
   dynamic_range:
-    min_crest_factor: 12.0        # Minimum peak/RMS ratio for natural speech
+    min_crest_factor: 6.5013      # Calibration 2025-12-09
 
   bandwidth:
-    min_rolloff_hz: 4000          # Narrowband cutoff detection
+    min_rolloff_hz: 4476.789      # Calibration 2025-12-09
+
+  phase_coherence:
+    suspicion_threshold: 0.3011   # Calibration 2025-12-09
+
+  digital_silence:
+    silence_threshold: 0.3056     # Calibration 2025-12-09
 
 # Fusion weights (override defaults in fusion.py)
 fusion:
