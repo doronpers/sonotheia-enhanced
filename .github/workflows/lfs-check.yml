@@ -18,6 +18,11 @@ jobs:
       run: |
         echo "Checking for files larger than 100MB..."
         
+        # Function to get file size (cross-platform)
+        get_file_size() {
+          stat -f%z "$1" 2>/dev/null || stat -c%s "$1" 2>/dev/null || echo 0
+        }
+        
         # Get the base branch
         BASE_BRANCH="${{ github.base_ref }}"
         
@@ -28,7 +33,7 @@ jobs:
         LARGE_FILES=0
         while IFS= read -r file; do
           if [ -f "$file" ]; then
-            SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+            SIZE=$(get_file_size "$file")
             SIZE_MB=$((SIZE / 1048576))
             if [ $SIZE_MB -gt 100 ]; then
               echo "❌ Large file detected: $file (${SIZE_MB}MB)"
@@ -55,6 +60,11 @@ jobs:
       run: |
         echo "Checking for audio files that should be tracked by Git LFS..."
         
+        # Function to get file size (cross-platform)
+        get_file_size() {
+          stat -f%z "$1" 2>/dev/null || stat -c%s "$1" 2>/dev/null || echo 0
+        }
+        
         # Get the base branch
         BASE_BRANCH="${{ github.base_ref }}"
         
@@ -72,7 +82,7 @@ jobs:
             if [ -f "$file" ]; then
               # Check if file is tracked by LFS
               if ! git lfs ls-files | grep -q "$file"; then
-                SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+                SIZE=$(get_file_size "$file")
                 SIZE_KB=$((SIZE / 1024))
                 if [ $SIZE_KB -gt 1024 ]; then
                   echo "⚠️  Audio file not tracked by LFS: $file (${SIZE_KB}KB)"
