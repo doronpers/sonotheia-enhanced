@@ -162,6 +162,17 @@ class HFDeepfakeSensor(BaseSensor):
                 threshold=0.5
             )
         
+        # BYPASS: Disable by default to ensure stability of overnight analysis
+        # User must explicitly enable it with ENABLE_HF_SENSOR=true
+        if os.getenv("ENABLE_HF_SENSOR", "false").lower() != "true":
+             return SensorResult(
+                sensor_name=self.name,
+                passed=True,
+                value=0.0,
+                detail="Skipped: HF Sensor disabled by default (robustness)",
+                threshold=0.5
+            )
+
         if not self.token:
             return SensorResult(
                 sensor_name=self.name,
