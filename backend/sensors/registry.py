@@ -50,7 +50,7 @@ def get_default_sensors() -> List[BaseSensor]:
     from .coarticulation import CoarticulationSensor
     from .formant import FormantTrajectorySensor
     from .two_mouth import TwoMouthSensor
-    from .hf_deepfake import HFDeepfakeSensor
+
     
     return [
         BreathSensor(),
@@ -64,7 +64,7 @@ def get_default_sensors() -> List[BaseSensor]:
 
         FormantTrajectorySensor(),
         TwoMouthSensor(),
-        HFDeepfakeSensor(),  # AI model sensor - after PhaseCoherenceSensor for tie-breaking
+
     ]
 
 

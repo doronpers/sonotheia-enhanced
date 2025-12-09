@@ -28,7 +28,7 @@ DEFAULT_WEIGHTS = {
     # Patent-guarded/deprecated kept at zero
     "BreathSensor": 0,               # Deprecated (fallback map handles weighting)
     "BandwidthSensor": 0,            # Legacy (fallback map handles weighting)
-    "HFDeepfakeSensor": 0.05,        # Tie-breaker only (if enabled)
+
 
     # Fallback weight for unknown sensors
     "_default": 0.05,

@@ -21,8 +21,19 @@ from backend.detection import get_pipeline, convert_numpy_types
 from backend.sensors.utils import load_and_preprocess_audio
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger("analyze_library")
+
+import warnings
+# Suppress librosa/scipy UserWarnings that spam the console
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 LIBRARY_DIR = Path("backend/data/library")
 
