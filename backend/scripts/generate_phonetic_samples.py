@@ -63,9 +63,6 @@ def check_dependencies():
     
     return len(missing) == 0
 
-# Run dependency check
-_deps_available = check_dependencies()
-
 # Phonetically diverse phrases designed to maximize sound combination coverage
 # Organized by phonetic features they emphasize
 
@@ -221,7 +218,8 @@ def generate_elevenlabs(text: str, filename: str, voice_id: str = "pNInz6obpgDQG
         logger.error("'requests' module not found. Please install it: pip install requests")
         logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
         return False
-        
+    
+    try:
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
         headers = {
             "Accept": "audio/mpeg",
@@ -362,6 +360,11 @@ Examples:
     )
     
     args = parser.parse_args()
+    
+    # Check dependencies at startup (after logging is configured)
+    deps_available = check_dependencies()
+    if not deps_available and not args.dry_run:
+        logger.warning("Continuing despite missing dependencies (will fail on API calls)")
     
     # Select phrase set
     phrases = PHONETIC_PHRASES + (EXTENDED_PHRASES if args.extended else [])
