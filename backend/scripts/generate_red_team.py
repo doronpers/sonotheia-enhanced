@@ -75,28 +75,54 @@ def main():
     else:
         services = [args.service]
         
+    # Voice IDs (Public ElevenLabs voices)
+    eleven_voices = [
+        "pNInz6obpgDQGcFmaJgB", # Adam
+        "ErXwobaYiN019PkySvjV", # Antoni
+        "VR6AewLTigWg4xSOukaG", # Arnold
+        "EXAVITQu4vr4xnSDxMaL", # Bella
+        "AZnzlk1XvdvUeBnXmlld", # Domi
+        "MF3mGyEYCl7XYWbV9V6O", # Elli
+        "TxGEqnHWrfWFTfGW9XjX", # Josh
+        "21m00Tcm4TlvDq8ikWAM", # Rachel
+        "yoZ06aMxZJJ28mfd3POQ"  # Sam
+    ]
+    
+    # OpenAI voices
+    openai_voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+
     for service in services:
         logger.info(f"Generating {args.count} samples using {service}...")
         
         for i in range(args.count):
             prompt = random.choice(prompts)
             timestamp = int(time.time())
-            base_filename = DEST_DIR / f"{service}_{timestamp}_{i}"
-            filename = base_filename.with_suffix(".mp3")
             
-            logger.info(f"[{i+1}/{args.count}] Generating: '{prompt[:30]}...' -> {filename.name}")
+            # Add voice info to filename for provenance
+            voice_name = "random"
             
             if args.dry_run:
                 # Create dummy file
+                base_filename = DEST_DIR / f"{service}_{timestamp}_{i}"
+                filename = base_filename.with_suffix(".mp3")
+                logger.info(f"[{i+1}/{args.count}] Generating (DRY): '{prompt[:30]}...' -> {filename.name}")
                 with open(filename, "w") as f:
                     f.write("dummy content")
                 continue
                 
             success = False
             if service == "elevenlabs":
-                success = generate_elevenlabs(prompt, str(filename))
+                voice_id = random.choice(eleven_voices)
+                base_filename = DEST_DIR / f"{service}_{voice_id[:4]}_{timestamp}_{i}"
+                filename = base_filename.with_suffix(".mp3")
+                logger.info(f"[{i+1}/{args.count}] Generating ({voice_id}): '{prompt[:30]}...' -> {filename.name}")
+                success = generate_elevenlabs(prompt, str(filename), voice_id=voice_id)
             elif service == "openai":
-                success = generate_openai(prompt, str(filename))
+                voice = random.choice(openai_voices)
+                base_filename = DEST_DIR / f"{service}_{voice}_{timestamp}_{i}"
+                filename = base_filename.with_suffix(".mp3")
+                logger.info(f"[{i+1}/{args.count}] Generating ({voice}): '{prompt[:30]}...' -> {filename.name}")
+                success = generate_openai(prompt, str(filename), voice=voice)
                 
             if success:
                 logger.info("Success.")
