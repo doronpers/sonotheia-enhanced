@@ -44,6 +44,48 @@ high_risk_countries:
   - "SY"
   - "AF"
 
+# Sensor-specific thresholds (for human calibration)
+sensors:
+  glottal_inertia:
+    min_rise_time_ms: 10.0        # Tissue inertia minimum
+    silence_threshold_db: -60.0   # Below this = silence
+    speech_threshold_db: -20.0    # Above this = speech
+    min_decay_time_ms: 10.0       # Hard cut detection threshold
+    phase_entropy_threshold: 2.5  # Natural onset chaos threshold
+
+  two_mouth:
+    vtl_variance_threshold: 0.5   # VTL variance score threshold
+    vtl_cv_low: 0.10              # Coefficient of variation: normal start
+    vtl_cv_high: 0.20             # Coefficient of variation: suspicious end
+    spectral_conflict_rate: 0.05  # Max % of frames with both-band conflict
+    combined_threshold: 0.5       # Overall pass/fail threshold
+
+  breath:
+    max_phonation_seconds: 14.0   # Human lung capacity limit
+    silence_threshold_db: -60     # Silence detection
+    frame_size_seconds: 0.02      # Analysis window
+
+  dynamic_range:
+    min_crest_factor: 12.0        # Minimum peak/RMS ratio for natural speech
+
+  bandwidth:
+    min_rolloff_hz: 4000          # Narrowband cutoff detection
+
+# Fusion weights (override defaults in fusion.py)
+fusion:
+  weights:
+    GlottalInertiaSensor: 0.20
+    TwoMouthSensor: 0.15
+    FormantTrajectorySensor: 0.20
+    PhaseCoherenceSensor: 0.10
+    DigitalSilenceSensor: 0.15
+    GlobalFormantSensor: 0.10
+    CoarticulationSensor: 0.05
+    HFDeepfakeSensor: 0.05
+  thresholds:
+    synthetic: 0.7    # Score > this = SYNTHETIC
+    real: 0.3         # Score < this = REAL
+
 sar_detection_rules:
   structuring:
     enabled: true
