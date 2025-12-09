@@ -58,7 +58,19 @@ sensors:
     vtl_cv_low: 0.10              # Coefficient of variation: normal start
     vtl_cv_high: 0.20             # Coefficient of variation: suspicious end
     spectral_conflict_rate: 0.05  # Max % of frames with both-band conflict
-    combined_threshold: 0.5       # Overall pass/fail threshold
+    combined_threshold: 0.4033    # Overall pass/fail threshold (Calibration 2025-12-09)
+
+  formant_trajectory:
+    consistency_threshold: 0.7388 # Calibration 2025-12-09
+
+  global_formants:
+    outlier_threshold: 0.4017     # Calibration 2025-12-09
+
+  coarticulation:
+    anomaly_threshold: 0.5228     # Calibration 2025-12-09
+    
+  hf_deepfake:
+    confidence_threshold: 0.70    # Calibration suggests 0.00, keeping safe default or use 0.0 only if strictly required
 
   breath:
     max_phonation_seconds: 14.0   # Human lung capacity limit
