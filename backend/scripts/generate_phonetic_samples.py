@@ -279,6 +279,8 @@ def generate_openai(text: str, filename: str, voice: str = "alloy") -> bool:
         logger.error("'openai' module not found. Please install it: pip install openai")
         logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
         return False
+    
+    try:
         client = OpenAI(api_key=api_key)
         
         response = client.audio.speech.create(
