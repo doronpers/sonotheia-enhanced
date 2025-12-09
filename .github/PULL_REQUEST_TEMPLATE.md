@@ -1,5 +1,11 @@
+# .github/PULL_REQUEST_TEMPLATE.md
+
 ## Description
 <!-- Provide a clear and concise description of the changes in this PR -->
+
+## Related Issue
+<!-- Link to the issue this PR addresses, if applicable -->
+Closes #
 
 ## Type of Change
 <!-- Mark the relevant option with an 'x' -->
@@ -7,57 +13,23 @@
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
-- [ ] Infrastructure/DevOps change
+- [ ] Infrastructure/CI change
+- [ ] Performance improvement
+- [ ] Code refactoring
 
-## Related Issues
-<!-- Link to related issues: Fixes #123, Resolves #456 -->
+## Checklist
 
-## Testing
-<!-- Describe the tests you ran to verify your changes -->
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing performed
-- [ ] All existing tests pass
+### Testing
+- [ ] All existing tests pass locally
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] I have performed manual testing of the changes
+- [ ] Testing instructions are included below (if applicable)
 
-### Testing Instructions
-<!-- Provide step-by-step instructions for reviewers to test your changes -->
-1.
-2.
-3.
-
-## Code Quality
-- [ ] Code follows the project's style guidelines
-- [ ] Self-review of code completed
-- [ ] Comments added for complex or non-obvious code
-- [ ] No new warnings generated
-- [ ] Documentation updated (if applicable)
-
-## CI and Deployment
-- [ ] All CI checks pass (lint, test)
-- [ ] No merge conflicts with base branch
-- [ ] Code owner review requested
-- [ ] Branch is up to date with base branch
-
-## Large Files and Assets
-- [ ] No large audio files added directly (use Git LFS for *.wav, *.flac, *.mp3 > 1MB)
-- [ ] If adding audio samples, Git LFS is configured and tracking the files
-- [ ] New audio files are listed in `.gitattributes` for LFS tracking
-
-## Security Considerations
-- [ ] No sensitive data (API keys, credentials, PII) added to code
-- [ ] Security implications reviewed
-- [ ] Input validation added for new endpoints
-- [ ] Authentication/authorization checks in place (if applicable)
-
-## Additional Notes
-<!-- Any additional information that reviewers should know -->
-
-## Screenshots (if applicable)
-<!-- Add screenshots to help explain your changes -->
-
-## Checklist for Reviewers
-- [ ] Code is clear and maintainable
-- [ ] Tests are comprehensive and pass
-- [ ] Documentation is accurate and complete
-- [ ] Security best practices followed
-- [ ] Performance implications considered
+### Code Quality
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] My changes generate no new warnings or errors
+- [ ] I have run `black` and `flake8` on Python code (backend)
+- [ ] I have run `npm run lint` on JavaScript/React code (frontend)

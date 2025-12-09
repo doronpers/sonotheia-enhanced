@@ -1,6 +1,6 @@
-# CODEOWNERS file for Sonotheia Enhanced
-# This file defines code ownership for the repository.
-# Code owners are automatically requested for review when someone opens a pull request that modifies code they own.
+# .github/CODEOWNERS
+# CODEOWNERS for Sonotheia Enhanced
+# Code owners are automatically requested for review when a PR modifies files they own.
 
 # Default owner for everything in the repo
 * @doronpers
@@ -14,14 +14,11 @@
 # Infrastructure and deployment
 /backend/api/ @doronpers
 /backend/config/ @doronpers
+/backend/observability/ @doronpers
 /scripts/ @doronpers
-/.github/ @doronpers
-/docker-compose.yml @doronpers
-
-# SAR and risk engine
-/backend/sar/ @doronpers
-/backend/risk_engine/ @doronpers
+docker-compose.yml @doronpers
+render.yaml @doronpers
 
 # Documentation
+/docs/ @doronpers
 /Documentation/ @doronpers
-/*.md @doronpers
