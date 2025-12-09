@@ -5,9 +5,12 @@ Generates explanations for detection results.
 """
 
 import logging
-from typing import Dict, Any, List
+import os
+import json
+from typing import Dict, Any, List, Optional
 
 import numpy as np
+from huggingface_hub import InferenceClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +33,8 @@ class ExplainabilityStage:
         include_temporal_segments: bool = True,
         max_top_features: int = 10,
         detail_level: str = "standard",
+        llm_model_id: str = "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        enable_llm: bool = True,
     ):
         """
         Initialize explainability stage.
@@ -40,12 +45,28 @@ class ExplainabilityStage:
             include_temporal_segments: Include temporal segment analysis
             max_top_features: Maximum number of top features to report
             detail_level: Explanation detail ("minimal", "standard", "detailed")
+            llm_model_id: Hugging Face model ID for LLM analysis
+            enable_llm: Whether to enable LLM-based analysis
         """
         self.generate_saliency = generate_saliency
         self.include_feature_importance = include_feature_importance
         self.include_temporal_segments = include_temporal_segments
         self.max_top_features = max_top_features
         self.detail_level = detail_level
+        self.llm_model_id = llm_model_id
+        self.enable_llm = enable_llm
+
+        self.client = None
+        if self.enable_llm:
+            token = os.getenv("HUGGINGFACE_TOKEN")
+            if token:
+                try:
+                    self.client = InferenceClient(model=llm_model_id, token=token)
+                    logger.info(f"LLM enabled: {llm_model_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize LLM client: {e}")
+            else:
+                logger.warning("HUGGINGFACE_TOKEN not found. LLM explainability disabled.")
 
         logger.info(f"ExplainabilityStage initialized: detail_level={detail_level}")
 
@@ -96,6 +117,17 @@ class ExplainabilityStage:
             reasoning = self._generate_reasoning_chain(
                 stage_results, fusion_result, summary
             )
+
+            # LLM Enhancement (Forensic Analysis)
+            if self.client:
+                llm_insight = self._query_llm(stage_results, fusion_result)
+                if llm_insight:
+                    # Override summary with expert analysis if available
+                    if "summary" in llm_insight and llm_insight["summary"]:
+                        summary = llm_insight["summary"]
+                    # Append expert reasoning
+                    if "reasoning_chain" in llm_insight and llm_insight["reasoning_chain"]:
+                        reasoning.extend(llm_insight["reasoning_chain"])
 
             # Compute explainability score
             explainability_score = self._compute_explainability_score(
@@ -420,3 +452,90 @@ class ExplainabilityStage:
             "explainability_score": 0.0,
             "confidence_factors": [],
         }
+
+    def _query_llm(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Query LLM for forensic analysis using chat completion (Mistral compatible).
+        """
+        try:
+            # Construct context
+            context = {
+                "fusion": {
+                    "score": fusion_result.get("fused_score"),
+                    "verdict": fusion_result.get("decision"),
+                    "confidence": fusion_result.get("confidence")
+                },
+                "sensors": {}
+            }
+            
+            # Physics
+            if "physics_analysis" in stage_results:
+                phys = stage_results["physics_analysis"].get("sensor_results", {})
+                for k, v in phys.items():
+                    context["sensors"][k] = {
+                        "score": v.get("score"), 
+                        "passed": v.get("passed", False),
+                        "details": v.get("metadata", {})
+                    }
+
+            # RawNet
+            if "rawnet3" in stage_results:
+                rn = stage_results["rawnet3"]
+                context["sensors"]["RawNet3"] = {
+                    "score": rn.get("score"),
+                    "is_demo": rn.get("demo_mode", False)
+                }
+
+            # Use chat completion for robust template handling
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a Forensic Audio Analyst for Sonotheia. Analyze the provided JSON detection data and provide a concise, expert conclusion."
+                },
+                {
+                    "role": "user",
+                    "content": f"""Context:
+- High scores (>0.5) indicate FAKE/SYNTHETIC access.
+- Low scores (<0.5) indicate REAL/ORGANIC access.
+- "Breath Sensor" detects breathing. Absence is suspicious.
+- "Phase Coherence" detects vocoder artifacts (0.0 is perfect machine phase, suspicious).
+- "RawNet3" is a deep learning detector.
+
+Data:
+{json.dumps(context, indent=2)}
+
+Provide your analysis in this JSON format (no markdown):
+{{
+  "summary": "A 1-2 sentence expert conclusion.",
+  "reasoning_chain": ["Observation 1...", "Observation 2...", "Conclusion..."]
+}}"""
+                }
+            ]
+
+            response = self.client.chat_completion(
+                messages=messages,
+                max_tokens=500,
+                temperature=0.3,
+                response_format={"type": "json"}  # Enforce JSON if supported
+            )
+            
+            # Extract content from chat completion message
+            content = response.choices[0].message.content
+            
+            # Simple cleanup to ensure valid JSON
+            cleaned = content.strip()
+            if cleaned.startswith("```json"):
+                cleaned = cleaned.replace("```json", "").replace("```", "")
+            elif cleaned.startswith("```"):
+                cleaned = cleaned.replace("```", "")
+            
+            return json.loads(cleaned)
+
+        except Exception as e:
+            logger.warning(f"LLM Query failed: {e}")
+            return None
+

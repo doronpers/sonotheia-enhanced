@@ -105,6 +105,8 @@ class ExplainabilityConfig:
     include_temporal_segments: bool = True
     max_top_features: int = 10
     explanation_detail_level: str = "standard"  # "minimal", "standard", "detailed"
+    llm_model_id: str = "meta-llama/Meta-Llama-3-70B-Instruct"
+    enable_llm: bool = True
 
 
 @dataclass

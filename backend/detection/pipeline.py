@@ -199,6 +199,13 @@ class DetectionPipeline:
             else:
                 result = self._run_full_pipeline(audio, job)
 
+            # OPTIMIZATION: Remove heavy raw feature arrays to significantly reduce JSON size (from ~45MB to ~50KB)
+            # We only keep stats, scores, and lightweight metadata.
+            if "stage_results" in result and "feature_extraction" in result["stage_results"]:
+                fe_res = result["stage_results"]["feature_extraction"]
+                fe_res.pop("features", None)
+                fe_res.pop("combined_features", None)
+
             # Ensure JSON serializable
             result = convert_numpy_types(result)
 
