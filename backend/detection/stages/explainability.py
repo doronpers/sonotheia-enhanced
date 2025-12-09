@@ -120,9 +120,12 @@ class ExplainabilityStage:
                 stage_results, fusion_result, summary
             )
 
+            # Generate detailed decision trace (sensor-level transparency)
+            decision_trace = self._generate_decision_trace(stage_results, fusion_result)
+
             # LLM Enhancement (Forensic Analysis)
             if self.client:
-                llm_insight = self._query_llm(stage_results, fusion_result)
+                llm_insight = self._query_llm(stage_results, fusion_result, decision_trace)
                 if llm_insight:
                     # Override summary with expert analysis if available
                     if "summary" in llm_insight and llm_insight["summary"]:
@@ -135,6 +138,12 @@ class ExplainabilityStage:
             explainability_score = self._compute_explainability_score(
                 stage_results, fusion_result
             )
+            
+            # Check for Arbiter Override for summary context
+            arbiter_override = fusion_result.get("arbiter_override", False)
+            arbiter_details = fusion_result.get("arbiter_details", "")
+            if arbiter_override:
+                summary = f"ARBITER OVERRIDE: {summary} ({arbiter_details})"
 
             return {
                 "success": True,
@@ -144,6 +153,11 @@ class ExplainabilityStage:
                 "temporal_explanations": temporal_explanations,
                 "artifact_explanations": artifact_explanations,
                 "reasoning_chain": reasoning,
+                "decision_trace": decision_trace,
+                "arbiter_context": {
+                    "override_applied": arbiter_override,
+                    "details": arbiter_details
+                },
                 "explainability_score": float(explainability_score),
                 "confidence_factors": self._get_confidence_factors(
                     stage_results, fusion_result
@@ -306,6 +320,68 @@ class ExplainabilityStage:
             "explanations": explanations,
             "total_artifacts": len(artifacts),
         }
+
+    def _generate_decision_trace(
+        self,
+        stage_results: Dict[str, Dict[str, Any]],
+        fusion_result: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate a detailed, step-by-step trace of the decision process.
+        This provides 'max information' about sensor values and threshold checks.
+        """
+        trace = []
+        
+        # 1. Physics Sensors (The Ground Truth)
+        if "physics_analysis" in stage_results:
+            phys = stage_results["physics_analysis"].get("sensor_results", {})
+            for name, res in phys.items():
+                status = "PASSED" if res.get("passed") else "VIOLATION"
+                score = res.get("value", 0.0)
+                thresh = res.get("threshold", 0.0)
+                details = res.get("detail", str(res.get("metadata", {})))
+                
+                trace.append({
+                    "stage": "Physics Analysis",
+                    "sensor": name,
+                    "status": status,
+                    "score": f"{score:.3f} (Threshold: {thresh})",
+                    "details": details
+                })
+
+        # 2. Neural Networks
+        if "rawnet3" in stage_results:
+            rn = stage_results["rawnet3"]
+            trace.append({
+                "stage": "Neural Network",
+                "sensor": "RawNet3",
+                "status": "INFO",
+                "score": f"{rn.get('score', 0.0):.3f}",
+                "details": f"Model confidence. Demo Mode: {rn.get('demo_mode', False)}"
+            })
+            
+        # 3. Artifacts
+        if "artifact_detection" in stage_results:
+            ad = stage_results["artifact_detection"]
+            trace.append({
+                "stage": "Signal Analysis",
+                "sensor": "Artifact Detector",
+                "status": "INFO",
+                "score": f"{ad.get('artifact_score', 0.0):.3f}",
+                "details": f"Found {ad.get('total_artifacts', 0)} artifacts."
+            })
+
+        # 4. Arbiter Action
+        if fusion_result.get("arbiter_override", False):
+            trace.append({
+                "stage": "Arbiter",
+                "sensor": "Rule-Based Logic",
+                "status": "OVERRIDE",
+                "score": "N/A",
+                "details": fusion_result.get("arbiter_details", "Arbiter intervened.")
+            })
+            
+        return trace
 
     def _generate_reasoning_chain(
         self,
