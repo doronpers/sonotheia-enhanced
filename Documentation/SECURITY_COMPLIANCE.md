@@ -200,9 +200,10 @@ Sonotheia uses alternative, physics-based detection methods that are safe and ef
 - [ENTERPRISE_INTEGRATION.md](ENTERPRISE_INTEGRATION.md) - Enterprise security features
 - [DEPLOYMENT.md](DEPLOYMENT.md) - SSL/TLS setup
 - [ROADMAP.md](ROADMAP.md) - Security improvements planned
+- [SECURITY_AUDIT_API_KEYS.md](../SECURITY_AUDIT_API_KEYS.md) - API key security audit (2025-12-09)
 
 ---
 
-**Last Updated:** 2025-01-XX  
+**Last Updated:** 2025-12-09
 **Security Contact:** security@sonotheia.ai
 

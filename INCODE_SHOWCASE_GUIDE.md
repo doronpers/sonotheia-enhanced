@@ -690,7 +690,7 @@ A: Continuous improvement:
 
 Provide Incode with:
 
-1. **Integration Guide** (`INTEGRATION_GUIDE.md`)
+1. **Integration Guide** (`INCODE_INTEGRATION_GUIDE.md`)
 2. **API Documentation** (OpenAPI/Swagger at `/docs`)
 3. **SDK Packages**:
    - React Native wrappers
