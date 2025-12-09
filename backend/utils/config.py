@@ -68,7 +68,8 @@ def get_sensor_thresholds() -> Dict[str, Any]:
         Dictionary of sensor thresholds with defaults.
     """
     settings = load_settings()
-    sensor_config = settings.get("sensor_thresholds", {})
+    # Support both "sensors" (new standard) and "sensor_thresholds" (legacy)
+    sensor_config = settings.get("sensors", {}) or settings.get("sensor_thresholds", {})
 
     # Default values - used if not specified in config
     defaults = {

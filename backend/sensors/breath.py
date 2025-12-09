@@ -52,7 +52,8 @@ class BreathSensor(BaseSensor):
         self,
         max_phonation_seconds: float = MAX_PHONATION_SECONDS,
         silence_threshold_db: float = SILENCE_THRESHOLD_DB,
-        frame_size_seconds: float = FRAME_SIZE_SECONDS
+        frame_size_seconds: float = FRAME_SIZE_SECONDS,
+        category: str = "defense"
     ):
         """
         Initialize breath sensor.
@@ -63,8 +64,9 @@ class BreathSensor(BaseSensor):
                                   Note: The VAD module uses adaptive thresholding for
                                   more robust detection.
             frame_size_seconds: Frame size for analysis (default: 0.02s)
+            category: "prosecution" or "defense"
         """
-        super().__init__("Breath Sensor (Max Phonation)")
+        super().__init__("Breath Sensor (Max Phonation)", category=category)
         self.max_phonation_seconds = max_phonation_seconds
         self.silence_threshold_db = silence_threshold_db
         self.frame_size_seconds = frame_size_seconds
@@ -162,6 +164,16 @@ class BreathSensor(BaseSensor):
                     f"without detectable breath event (max: {MAX_VOICED_WITHOUT_BREATH_SECONDS}s). "
                     f"Indicates synthetic audio with no biological constraints on speech duration."
                 )
+                
+        # Calculate normalized anomaly score (0.0 = Real, 1.0 = Fake)
+        # Soft sigmoid around threshold
+        # If max_duration is 8s (well below 14s), score should be low.
+        # If max_duration is 16s (above 14s), score should be high.
+        deviation = max_duration - self.max_phonation_seconds
+        # Map deviation: -5s -> 0.0, 0s -> 0.5, +5s -> 1.0
+        normalized_score = 1.0 / (1.0 + np.exp(-deviation))
+        
+        result.score = float(normalized_score) # Explicit score for FusionEngine
         
         # Add respiration monitoring metadata
         result.metadata = {

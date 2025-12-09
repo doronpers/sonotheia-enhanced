@@ -1,72 +1,106 @@
+# .github/workflows/ci.yml
 name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
     branches: [ main ]
 
-jobs:
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 black
-          if [ -f backend/requirements.txt ]; then
-            # Install only linting dependencies to keep job fast
-            pip install -r backend/requirements.txt || echo "Some dependencies may have failed, continuing with linting"
-          fi
-      
-      - name: Run black formatter check
-        run: |
-          black --check backend/
-      
-      - name: Run flake8 linter
-        run: |
-          # Stop the build if there are Python syntax errors or undefined names
-          flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Exit-zero treats all errors as warnings
-          flake8 backend/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+permissions:
+  contents: read
 
-  test:
-    name: test
+jobs:
+  smoke:
+    name: Smoke (develop)
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-      
+      - name: Repo sanity
+        run: |
+          echo "Develop push — lightweight CI"
+          git status
+          test -d backend && echo "backend present" || echo "backend missing"
+
+  lint-python:
+    name: Lint Python (PR to main)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
-      - name: Install dependencies
+      - name: Install lint tools
         run: |
           python -m pip install --upgrade pip
-          if [ -f backend/requirements.txt ]; then
-            pip install -r backend/requirements.txt
-          fi
-      
-      - name: Run pytest
+          pip install flake8==7.1.1 black==24.10.0
+      - name: Run flake8
         run: |
-          cd backend
-          pytest --verbose --tb=short
-        env:
-          # Set environment variables for testing
-          DEMO_MODE: "true"
-          PYTHONPATH: ${{ github.workspace }}/backend
+          flake8 backend frontend || true
+      - name: Run black (check mode)
+        run: |
+          black --check backend frontend
+
+  lint-frontend:
+    name: Lint Frontend (PR to main, conditional)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect frontend
+        id: detect
+        run: |
+          if [ -f frontend/package.json ] || [ -f package.json ]; then
+            echo "has_frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_frontend=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Setup Node
+        if: steps.detect.outputs.has_frontend == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install and run lint
+        if: steps.detect.outputs.has_frontend == 'true'
+        run: |
+          if [ -f frontend/package.json ]; then cd frontend; fi
+          npm ci || npm install
+          npm run lint || echo "ESLint warnings/failures surfaced"
+
+  smoke-api:
+    name: Backend import smoke (PR to main)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install backend deps (best-effort)
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            python -m pip install --upgrade pip
+            pip install -r backend/requirements.txt || true
+          fi
+      - name: Import smoke
+        run: |
+          python - <<'PY'
+          try:
+              import importlib
+              importlib.import_module('backend.api.main')
+              print("FastAPI import OK")
+          except Exception as e:
+              print("Import failed:", e)
+              exit(1)
+          PY

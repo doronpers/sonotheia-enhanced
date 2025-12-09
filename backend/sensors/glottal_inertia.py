@@ -52,8 +52,8 @@ class GlottalInertiaSensor(BaseSensor):
     SILENCE_THRESHOLD_DB = -60.0
     SPEECH_THRESHOLD_DB = -20.0
     
-    def __init__(self, config: Optional[GlottalInertiaConfig] = None):
-        super().__init__("Glottal Inertia Sensor")
+    def __init__(self, config: Optional[GlottalInertiaConfig] = None, category: str = "prosecution"):
+        super().__init__("Glottal Inertia Sensor", category=category)
         self.config = config or GlottalInertiaConfig()
         
     def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:
@@ -232,19 +232,40 @@ class GlottalInertiaSensor(BaseSensor):
                  offsets.append(Onset(time=time, frame_index=i)) # Reusing Onset struct for simplicity
                  is_speech = False
 
+
         for offset in offsets:
             decay_time_ms = self._measure_decay_time(envelope_db, offset)
             
+            # Smart Hard Cut Logic (2025-12-09)
+            # Differentiate "Noise Gate" (Benign) from "Synthetic Chop" (Malicious)
+            
             if decay_time_ms < 10:
-                violations.append({
-                    'type': 'hard_cut_ending',
-                    'time': offset.time,
-                    'observed_decay_ms': decay_time_ms,
-                    'explanation': f"Abrupt signal termination at {offset.time:.2f}s with "
-                                   f"{decay_time_ms:.1f}ms decay. Natural speech includes "
-                                   f"room reverberation decay (typically >50ms)."
-                })
+                # Check energy level just before the cut (at the offset frame)
+                # Ensure index is within bounds
+                idx = min(offset.frame_index, len(envelope_db) - 1)
+                pre_cut_energy = envelope_db[idx]
                 
+                # "High Energy Cut" Threshold
+                # If energy is loud (> -40dB) and cuts instantly, it's suspicious.
+                # If energy is quiet (< -40dB) and cuts, it's likely a noise gate.
+                SUSPICIOUS_CUT_THRESHOLD_DB = -40.0 
+                
+                if pre_cut_energy > SUSPICIOUS_CUT_THRESHOLD_DB:
+                    violations.append({
+                        'type': 'hard_cut_ending',
+                        'severity': 'high',
+                        'time': offset.time,
+                        'observed_decay_ms': decay_time_ms,
+                        'pre_cut_energy_db': float(pre_cut_energy),
+                        'explanation': f"Unnatural mid-speech termination at {offset.time:.2f}s. "
+                                       f"Signal cuts from {pre_cut_energy:.1f}dB to silence in {decay_time_ms:.1f}ms. "
+                                       f"Likely synthetic generation artifact."
+                    })
+                else:
+                    # Log as info/low severity but DO NOT flag as violation that affects score
+                    # This is the "Smart" ignoring of Noise Gates
+                    logger.debug(f"Ignored potential noise gate cut at {offset.time:.2f}s (Energy: {pre_cut_energy:.1f}dB)")
+
         return violations
 
     def _measure_decay_time(self, envelope_db: np.ndarray, offset: Onset) -> float:

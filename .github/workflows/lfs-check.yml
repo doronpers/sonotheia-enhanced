@@ -1,127 +1,86 @@
+# .github/workflows/lfs-check.yml
 name: LFS Check
 
 on:
+  push:
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
 
 jobs:
   check-large-files:
-    name: Check for Large Files
+    name: Check for large audio files and LFS usage
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history to compare with base branch
-      
-      - name: Check for large files
+
+      - name: Check for non-LFS audio files over 1MB
         run: |
-          echo "Checking for files larger than 100MB..."
-          echo ""
-          
-          # Get the base branch (main)
-          BASE_BRANCH="${{ github.base_ref }}"
-          
-          # Get list of changed files in this PR
-          git fetch origin "$BASE_BRANCH"
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD)
-          
-          # Track if we find any large files
-          FOUND_LARGE_FILES=0
-          MAX_SIZE_MB=100
-          MAX_SIZE_BYTES=$((MAX_SIZE_MB * 1024 * 1024))
-          
-          echo "Changed files in this PR:"
-          echo "$CHANGED_FILES"
-          echo ""
-          
-          # Check each file
+          echo "Scanning repository for large audio files not tracked by Git LFS..."
+          AUDIO_EXTENSIONS=("wav" "flac" "mp3" "ogg" "m4a" "aac" "opus" "aiff" "wma" "au")
+          NON_LFS_AUDIO=0
+
+          # Find audio files >1MB; for each, verify it's tracked by LFS
           while IFS= read -r file; do
-            if [ -f "$file" ]; then
-              size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
-              size_mb=$(echo "scale=2; $size / 1024 / 1024" | bc)
-              
-              if [ "$size" -gt "$MAX_SIZE_BYTES" ]; then
-                echo "❌ LARGE FILE DETECTED: $file (${size_mb} MB)"
-                FOUND_LARGE_FILES=1
-              elif [ "$size" -gt $((50 * 1024 * 1024)) ]; then
-                # Warn about files larger than 50MB but less than 100MB
-                echo "⚠️  Large file: $file (${size_mb} MB) - consider using Git LFS"
-              fi
+            if git lfs ls-files | grep -q -F "$file"; then
+              echo "✓ LFS: $file"
+            else
+              echo "⚠️  Not LFS: $file"
+              NON_LFS_AUDIO=$((NON_LFS_AUDIO + 1))
             fi
-          done <<< "$CHANGED_FILES"
-          
-          echo ""
-          
-          if [ "$FOUND_LARGE_FILES" -eq 1 ]; then
-            echo "================================"
-            echo "❌ ERROR: Large files detected!"
-            echo "================================"
-            echo ""
-            echo "Files larger than ${MAX_SIZE_MB}MB should be tracked with Git LFS."
-            echo ""
-            echo "To fix this:"
-            echo "1. Install Git LFS: https://git-lfs.github.com/"
-            echo "2. Run: git lfs install"
-            echo "3. Track your large files: git lfs track '*.wav' '*.mp3' etc."
-            echo "4. Add .gitattributes: git add .gitattributes"
-            echo "5. Remove large files from Git history:"
-            echo "   git rm --cached <large-file>"
-            echo "   git add <large-file>  # This will now use LFS"
-            echo "   git commit --amend"
-            echo ""
-            echo "Common audio file patterns are already configured in .gitattributes"
-            echo ""
+          done < <(find . -type f \( \
+              -name "*.wav" -o -name "*.flac" -o -name "*.mp3" -o -name "*.ogg" -o \
+              -name "*.m4a" -o -name "*.aac" -o -name "*.opus" -o -name "*.aiff" -o \
+              -name "*.wma" -o -name "*.au" \
+            \) -size +1M)
+
+          if [ "$NON_LFS_AUDIO" -gt 0 ]; then
+            echo "⚠  Found $NON_LFS_AUDIO audio file(s) larger than 1MB not tracked by Git LFS."
+            echo "    Consider adding patterns to .gitattributes and re-adding files with LFS."
             exit 1
           else
-            echo "✓ No large files detected. All files are under ${MAX_SIZE_MB}MB."
-            echo ""
-            echo "Note: Audio files (*.wav, *.flac, *.mp3) should use Git LFS."
-            echo "Check .gitattributes for configured LFS patterns."
+            echo "✓ No large non-LFS audio files detected."
           fi
-      
-      - name: Check Git LFS usage for audio files
+
+      - name: Check Git LFS usage for changed audio files (PRs)
+        if: github.event_name == 'pull_request'
         run: |
-          echo "Checking for audio files that should use Git LFS..."
-          echo ""
-          
-          # Get the base branch
+          echo "Checking changed audio files in this PR for LFS tracking..."
           BASE_BRANCH="${{ github.base_ref }}"
-          
-          # Get list of changed files
           git fetch origin "$BASE_BRANCH"
           CHANGED_FILES=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD)
-          
-          # Audio file extensions that should use LFS
+
           AUDIO_EXTENSIONS=("wav" "flac" "mp3" "ogg" "m4a" "aac" "opus" "aiff")
-          
-          # Check for audio files
           FOUND_AUDIO=0
+
           while IFS= read -r file; do
+            [ -z "$file" ] && continue
             if [ -f "$file" ]; then
               ext="${file##*.}"
               ext_lower=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
-              
               for audio_ext in "${AUDIO_EXTENSIONS[@]}"; do
                 if [ "$ext_lower" = "$audio_ext" ]; then
                   FOUND_AUDIO=1
                   echo "📁 Audio file detected: $file"
-                  
-                  # Check if file is tracked by LFS
-                  if git lfs ls-files | grep -q "$file"; then
+                  if git lfs ls-files | grep -q -F "$file"; then
                     echo "   ✓ Tracked by Git LFS"
                   else
                     echo "   ⚠️  NOT tracked by Git LFS - consider adding to LFS"
+                    # Fail CI if audio is not tracked to enforce policy
+                    exit 1
                   fi
                 fi
               done
             fi
           done <<< "$CHANGED_FILES"
-          
+
           if [ "$FOUND_AUDIO" -eq 0 ]; then
             echo "No audio files found in this PR."
           fi
-          
-          echo ""
+
           echo "✓ LFS check complete"

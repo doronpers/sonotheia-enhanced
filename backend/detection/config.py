@@ -94,6 +94,7 @@ class FusionEngineConfig:
     )
     confidence_threshold: float = 0.5
     decision_threshold: float = 0.5
+    profiles: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -134,7 +135,7 @@ class DetectionConfig:
     )
     rawnet3: RawNet3Config = field(default_factory=RawNet3Config)
     fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
-    fusion_engine: FusionEngineConfig = field(default_factory=FusionEngineConfig)
+
     physics_analysis: PhysicsAnalysisConfig = field(default_factory=PhysicsAnalysisConfig)
     explainability: ExplainabilityConfig = field(default_factory=ExplainabilityConfig)
 

@@ -64,14 +64,16 @@ class BaseSensor(ABC):
     and sample rate, and returns a SensorResult.
     """
     
-    def __init__(self, name: str):
+    def __init__(self, name: str, category: str = "defense"):
         """
         Initialize sensor.
         
         Args:
-            name: Human-readable name of the sensor
+            name: Sensor name
+            category: "prosecution" (detects FAKE) or "defense" (detects REAL)
         """
         self.name = name
+        self.category = category # Default to 'Defense' (Trust-based) unless specified
     
     @abstractmethod
     def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:

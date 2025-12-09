@@ -7,7 +7,8 @@ set -e
 # Configuration
 LIBRISPEECH_COUNT=${LIBRISPEECH_COUNT:-2000}  # Increased for overnight load
 COMMONVOICE_COUNT=${COMMONVOICE_COUNT:-500}   # Increased for overnight load
-SYNTHETIC_COUNT=${SYNTHETIC_COUNT:-100}      # Increased for overnight load
+SYNTHETIC_COUNT=50
+export PYTHONPATH=$PYTHONPATH:.
 
 echo "============================================================"
 echo "   SONOTHEIA ENHANCED - OVERNIGHT PROCESSING JOB"
@@ -22,9 +23,9 @@ echo "============================================================"
 
 # Python interpreter
 PYTHON="python3"
-if [ -d "backend/venv" ]; then
-    PYTHON="backend/venv/bin/python"
-    echo "Using virtual environment: backend/venv"
+if [ -d ".venv" ]; then
+    PYTHON=".venv/bin/python"
+    echo "Using virtual environment: .venv"
 fi
 
 # 1. Ingest LibriSpeech
@@ -33,17 +34,19 @@ echo "[1/5] Ingesting LibriSpeech ($LIBRISPEECH_COUNT samples)..."
 $PYTHON backend/scripts/ingest_librispeech.py --count $LIBRISPEECH_COUNT || echo "LibriSpeech ingestion warning (check logs)"
 
 # 2. Ingest Common Voice
-echo ""
-echo "[2/5] Ingesting Common Voice ($COMMONVOICE_COUNT samples)..."
-export HUGGINGFACE_TOKEN=$(grep HUGGINGFACE_TOKEN .env | cut -d '=' -f2)
-$PYTHON backend/scripts/ingest_commonvoice.py --count $COMMONVOICE_COUNT || echo "CommonVoice ingestion skipped or failed (check token)"
+# echo ""
+# echo "[2/5] Ingesting Common Voice ($COMMONVOICE_COUNT samples)..."
+# export HUGGINGFACE_TOKEN=$(grep HUGGINGFACE_TOKEN .env | cut -d '=' -f2)
+# $PYTHON backend/scripts/ingest_commonvoice.py --count $COMMONVOICE_COUNT || echo "CommonVoice ingestion skipped or failed (check token)"
 
 # 3. Generate Synthetics
 echo ""
 echo "[3/5] Generating Synthetic Samples ($SYNTHETIC_COUNT per service)..."
 # Check for API keys before running to avoid errors
 if grep -q "ELEVENLABS_API_KEY" .env || grep -q "OPENAI_API_KEY" .env; then
-    $PYTHON backend/scripts/generate_phonetic_samples.py --service all --count $SYNTHETIC_COUNT || echo "Generation warning (check logs/credits)"
+    # Generate new synthetic samples (with Telephony Augmentation)
+    echo "Generating $SYNTHETIC_COUNT synthetic samples per service..."
+    $PYTHON backend/scripts/generate_red_team.py --count $SYNTHETIC_COUNT --service all --augment || echo "Generation warning (check logs/credits)"
 else
     echo "Skipping generation: No API keys found in .env"
 fi
@@ -56,7 +59,7 @@ $PYTHON backend/scripts/analyze_library.py --force --label all || echo "Analysis
 # 5. Calibrate
 echo ""
 echo "[5/5] Calibrating Sensors..."
-$PYTHON backend/scripts/calibrate_library.py || echo "Calibration failed"
+$PYTHON backend/scripts/calibrate_library.py --update-config || echo "Calibration failed"
 
 echo ""
 echo "============================================================"

@@ -1,0 +1,157 @@
+name: Validate Branch Protection
+
+on:
+  pull_request:
+    paths:
+      - '.github/settings.yml'
+      - '.github/workflows/branch-protection-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-settings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate settings.yml syntax
+        run: |
+          # Check if settings.yml exists and is valid YAML
+          if [ ! -f .github/settings.yml ]; then
+            echo "::error::.github/settings.yml not found"
+            exit 1
+          fi
+          
+          # Validate YAML syntax using Python
+          python3 -c "import yaml; yaml.safe_load(open('.github/settings.yml'))"
+          echo "✓ settings.yml is valid YAML"
+
+      - name: Check branch protection configuration
+        run: |
+          echo "Checking branch protection settings for main branch..."
+          
+          # Parse the YAML and extract branch protection settings
+          python3 << 'EOF'
+          import yaml
+          import sys
+          
+          with open('.github/settings.yml', 'r') as f:
+              settings = yaml.safe_load(f)
+          
+          # Check if branches section exists
+          if 'branches' not in settings:
+              print("::error::No branches section found in settings.yml")
+              sys.exit(1)
+          
+          # Find main branch configuration
+          main_branch = None
+          for branch in settings['branches']:
+              if branch.get('name') == 'main':
+                  main_branch = branch
+                  break
+          
+          if not main_branch:
+              print("::error::No configuration found for 'main' branch")
+              sys.exit(1)
+          
+          protection = main_branch.get('protection', {})
+          
+          # Validate required settings per problem statement
+          checks = []
+          
+          # Check: Require pull request before merging
+          if protection.get('required_pull_request_reviews'):
+              print("✓ Require pull request reviews: ENABLED")
+              checks.append(True)
+          else:
+              print("::warning::Require pull request reviews: NOT CONFIGURED")
+              checks.append(False)
+          
+          # Check: Require linear history
+          if protection.get('required_linear_history'):
+              print("✓ Require linear history: ENABLED")
+          else:
+              print("::notice::Require linear history: NOT ENABLED (optional)")
+          
+          # Check: Allow force pushes (should be false)
+          if not protection.get('allow_force_pushes', True):
+              print("✓ Allow force pushes: DISABLED")
+              checks.append(True)
+          else:
+              print("::error::Allow force pushes: ENABLED (should be disabled)")
+              checks.append(False)
+          
+          # Check: Enforce for admins
+          if protection.get('enforce_admins'):
+              print("✓ Enforce for administrators: ENABLED")
+          else:
+              print("::notice::Enforce for administrators: NOT ENABLED (optional)")
+          
+          # Check: Restrictions (should be empty/minimal)
+          restrictions = protection.get('restrictions', {})
+          if not restrictions or (
+              not restrictions.get('users') and 
+              not restrictions.get('teams') and
+              not restrictions.get('apps')
+          ):
+              print("✓ Push restrictions: NOT SET (good - avoids lockout)")
+              checks.append(True)
+          else:
+              print("::warning::Push restrictions configured - ensure you don't lock yourself out")
+          
+          if not all(checks):
+              print("\n::error::Some required branch protection settings are missing")
+              sys.exit(1)
+          else:
+              print("\n✓ All required branch protection settings are configured correctly")
+          EOF
+
+      - name: Report configuration summary
+        if: always()
+        run: |
+          echo "## Branch Protection Configuration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Configuration file: \`.github/settings.yml\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See [Documentation/BRANCH_PROTECTION.md](../Documentation/BRANCH_PROTECTION.md) for setup instructions." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Setup" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to Repository Settings → Branches → Add rule" >> $GITHUB_STEP_SUMMARY
+          echo "2. Set branch name pattern: \`main\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Enable: Require pull request before merging" >> $GITHUB_STEP_SUMMARY
+          echo "4. Enable: Require linear history (optional)" >> $GITHUB_STEP_SUMMARY
+          echo "5. Disable: Allow force pushes" >> $GITHUB_STEP_SUMMARY
+          echo "6. Enable: Enforce for administrators (optional)" >> $GITHUB_STEP_SUMMARY
+
+  check-current-protection:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check current branch protection via API
+        continue-on-error: true
+        run: |
+          echo "Checking current branch protection settings..."
+          
+          # Try to get current protection (will fail if not authenticated or no protection set)
+          response=$(curl -s -w "\n%{http_code}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/branches/main/protection)
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          
+          if [ "$http_code" = "200" ]; then
+            echo "✓ Branch protection is currently enabled for main branch"
+            echo "$body" | python3 -m json.tool | head -50
+          elif [ "$http_code" = "404" ]; then
+            echo "::warning::Branch protection is NOT currently enabled for main branch"
+            echo "Please configure branch protection manually or using the GitHub API"
+          else
+            echo "::notice::Could not check branch protection status (may require authentication)"
+          fi

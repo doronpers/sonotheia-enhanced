@@ -1,25 +1,13 @@
-# Git LFS (Large File Storage) Configuration
-# https://git-lfs.github.com/
-#
-# This file tells Git to use LFS for specific file types, particularly
-# large audio files that would otherwise bloat the repository.
-#
-# To use Git LFS:
-# 1. Install Git LFS: https://git-lfs.github.com/
-# 2. Run: git lfs install
-# 3. Track files with: git lfs track "*.wav"
-# 4. Add .gitattributes: git add .gitattributes
-# 5. Commit normally: git add file.wav && git commit -m "Add audio file"
-#
-# Files matching these patterns will be stored in LFS instead of the repository
+# Git LFS configuration for large file tracking
+# Audio files should be tracked with Git LFS to keep repository size manageable
 
 # Audio files
 *.wav filter=lfs diff=lfs merge=lfs -text
 *.flac filter=lfs diff=lfs merge=lfs -text
 *.mp3 filter=lfs diff=lfs merge=lfs -text
 *.ogg filter=lfs diff=lfs merge=lfs -text
-*.m4a filter=lfs diff=lfs merge=lfs -text
 *.aac filter=lfs diff=lfs merge=lfs -text
+*.m4a filter=lfs diff=lfs merge=lfs -text
 *.opus filter=lfs diff=lfs merge=lfs -text
 *.aiff filter=lfs diff=lfs merge=lfs -text
 *.au filter=lfs diff=lfs merge=lfs -text
@@ -30,6 +18,7 @@
 *.mov filter=lfs diff=lfs merge=lfs -text
 *.avi filter=lfs diff=lfs merge=lfs -text
 *.mkv filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text
 
 # Model files and checkpoints
 *.pth filter=lfs diff=lfs merge=lfs -text
@@ -39,6 +28,7 @@
 *.ckpt filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
 *.safetensors filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
 
 # Large datasets
 *.csv filter=lfs diff=lfs merge=lfs -text

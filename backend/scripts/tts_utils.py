@@ -47,10 +47,10 @@ def load_env_file(script_path: Optional[Path] = None) -> bool:
             return True
 
     except ImportError:
-        logger.debug("python-dotenv not installed, using system environment variables only")
+        logger.warning("WARNING: 'python-dotenv' not installed. .env file will NOT be loaded. Install with: pip install python-dotenv")
         return False
     except Exception as e:
-        logger.debug(f"Could not load .env: {e}")
+        logger.warning(f"WARNING: Could not load .env: {e}")
         return False
 
 
