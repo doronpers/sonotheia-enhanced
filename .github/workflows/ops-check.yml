@@ -177,26 +177,23 @@ jobs:
             echo "No changes detected in status files"
           fi
 
-      - name: Commit and push changes
+      - name: Create Pull Request for module status updates
         if: steps.check_changes.outputs.changes == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Add files that exist
-          for file in MODULE_STATUS_FRAGMENT.md README_MODULE_CONTROL.md STATUS.md; do
-            if [ -f "$file" ]; then
-              git add "$file"
-            fi
-          done
-          
-          # Commit if there are staged changes
-          if git diff --staged --quiet; then
-            echo "No staged changes to commit"
-          else
-            git commit -m "chore: update module status tables [skip ci]"
-            if ! git push; then
-              echo "::warning::Failed to push changes. This may be due to branch protection or permissions."
-              exit 1
-            fi
-          fi
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore: update module status tables [skip ci]"
+          branch: auto-update-module-status
+          delete-branch: true
+          title: "chore: update module status tables"
+          body: |
+            Automated update of module status tables from ops-check workflow.
+            
+            This PR updates:
+            - MODULE_STATUS_FRAGMENT.md
+            - README_MODULE_CONTROL.md
+            - STATUS.md
+            
+            Changes are generated automatically based on current module configuration.
+          labels: |
+            automated
+            documentation
