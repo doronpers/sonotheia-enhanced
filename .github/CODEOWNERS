@@ -1,0 +1,36 @@
+# CODEOWNERS for sonotheia-enhanced
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Each line is a file pattern followed by one or more owners.
+# Owners will be requested for review when someone opens a pull request
+# that modifies files matching the pattern.
+
+# Default owner for everything in the repo
+* @doronpers
+
+# Audio processing and detection components
+/backend/detection/ @doronpers
+/backend/sensors/ @doronpers
+/backend/features/ @doronpers
+/backend/models/ @doronpers
+
+# Infrastructure and deployment
+/backend/api/ @doronpers
+/backend/config/ @doronpers
+/backend/observability/ @doronpers
+/scripts/ @doronpers
+docker-compose.yml @doronpers
+render.yaml @doronpers
+
+# Documentation
+/docs/ @doronpers
+/Documentation/ @doronpers
+*.md @doronpers
+
+# CI/CD and GitHub workflows
+/.github/ @doronpers
+
+# Frontend components
+/frontend/ @doronpers
+/react-native-sdk/ @doronpers
+/reusable-components/ @doronpers
