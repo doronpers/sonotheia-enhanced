@@ -205,7 +205,7 @@ class SensorRegistry:
         Returns:
             Tuple of (verdict, detail) where verdict is "REAL" or reason code
         """
-        from utils.config import get_verdict_config
+        from backend.utils.config import get_verdict_config
         
         if not results:
             return "UNKNOWN", "No sensor results available"

@@ -7,7 +7,7 @@ of synthetic speech generation systems.
 
 import numpy as np
 from .base import BaseSensor, SensorResult
-from utils.config import get_threshold
+from backend.utils.config import get_threshold
 
 # Default constant - can be overridden by config/settings.yaml
 # Lowered from 12.0 to 5.0 to reduce false positives on normal speech

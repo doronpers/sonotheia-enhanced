@@ -8,7 +8,7 @@ of telephony or AI-generated content with limited frequency range.
 import numpy as np
 from scipy.fft import rfft
 from .base import BaseSensor, SensorResult
-from utils.config import get_threshold
+from backend.utils.config import get_threshold
 
 # Constants - can be overridden by config/settings.yaml
 SPECTRAL_ROLLOFF_THRESHOLD_HZ = get_threshold("bandwidth", "rolloff_threshold_hz", 4000)

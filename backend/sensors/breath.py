@@ -16,7 +16,7 @@ from typing import Dict
 import numpy as np
 from .base import BaseSensor, SensorResult
 from .vad import VoiceActivityDetector
-from utils.config import get_threshold
+from backend.utils.config import get_threshold
 
 # Constants - can be overridden by config/settings.yaml
 MAX_PHONATION_SECONDS = get_threshold("breath", "max_phonation_seconds", 14.0)

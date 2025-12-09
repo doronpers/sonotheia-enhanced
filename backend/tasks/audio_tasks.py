@@ -12,7 +12,7 @@ import time
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from celery_app import app  # noqa: E402
-from utils.celery_utils import (  # noqa: E402
+from backend.utils.celery_utils import (  # noqa: E402
     numpy_to_native,
     create_task_result,
     update_task_progress,

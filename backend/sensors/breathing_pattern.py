@@ -20,7 +20,7 @@ Output: Breathing regularity score (0-1)
 import numpy as np
 import librosa
 from .base import BaseSensor, SensorResult
-from utils.config import get_threshold
+from backend.utils.config import get_threshold
 
 # Constants - can be overridden by config/settings.yaml
 BREATH_FREQ_MIN = 20  # Hz - lower bound of breathing frequency range

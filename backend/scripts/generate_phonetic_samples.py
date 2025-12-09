@@ -325,8 +325,22 @@ Examples:
         logger.info(f"Generating {args.count} samples using {service.upper()}")
         logger.info(f"{'='*60}")
         
+        # Check existing files to avoid redundant generation
+        existing_pattern = f"{service}_phonetic_*.mp3"
+        existing_files = list(output_dir.glob(existing_pattern))
+        existing_count = len(existing_files)
+        
+        if existing_count >= args.count:
+             logger.info(f"Skipping {service}: Found {existing_count} existing samples (target: {args.count})")
+             # Add to total for summary correct reporting
+             total_generated += existing_count 
+             continue
+             
+        needed = args.count - existing_count
+        logger.info(f"Found {existing_count} existing samples. Generating {needed} more...")
+        
         # Shuffle phrases for variety
-        selected_phrases = random.sample(phrases, min(args.count, len(phrases)))
+        selected_phrases = random.sample(phrases, min(needed, len(phrases)))
         
         for i, phrase in enumerate(selected_phrases, 1):
             timestamp = int(time.time() * 1000)  # Use milliseconds for uniqueness
@@ -360,7 +374,7 @@ Examples:
     logger.info(f"\n{'='*60}")
     logger.info("Generation Summary")
     logger.info(f"{'='*60}")
-    logger.info(f"Total generated: {total_generated}")
+    logger.info(f"Total available/generated: {total_generated}")
     logger.info(f"Total failed: {total_failed}")
     logger.info(f"Output directory: {output_dir}")
     logger.info("\nMetadata files (.json) saved alongside audio files.")

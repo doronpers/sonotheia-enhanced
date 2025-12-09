@@ -17,11 +17,11 @@ from .base import BaseSensor, SensorResult
 
 # Optional dependency - import conditionally
 try:
-    from huggingface_hub import InferenceClient
+    from huggingface_hub import AsyncInferenceClient
     HAS_HUGGINGFACE = True
 except ImportError:
     HAS_HUGGINGFACE = False
-    InferenceClient = None
+    AsyncInferenceClient = None
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,10 @@ class HFDeepfakeSensor(BaseSensor):
         # Only create the client when token is available to avoid unnecessary API issues
         # Note: InferenceClient doesn't directly support ssl_verify parameter
         # SSL configuration is handled at the requests/httpx library level
-        self.client = InferenceClient(token=self.token) if self.token else None
+        if self.token:
+            self.client = AsyncInferenceClient(token=self.token)
+        else:
+            self.client = None
 
     async def _call_api_with_retry(self, audio_bytes: bytes) -> list:
         """
@@ -108,17 +111,25 @@ class HFDeepfakeSensor(BaseSensor):
 
         for attempt in range(MAX_RETRIES):
             try:
-                # Run the blocking API call in a thread pool to avoid blocking the event loop
-                loop = asyncio.get_event_loop()
-                response = await loop.run_in_executor(
-                    None,
-                    lambda: self.client.audio_classification(
-                        model=self.model_id,
-                        data=audio_bytes
-                    )
+                # Call async API directly
+                response = await self.client.audio_classification(
+                    audio_bytes,
+                    model=self.model_id
                 )
                 return response
+            except (StopIteration, RuntimeError) as e:
+                # Specific handling for the "coroutine raised StopIteration" issue
+                # arising from internal hugginface_hub generator interaction
+                if "StopIteration" in str(e) or isinstance(e, StopIteration):
+                     logger.warning(f"HF API Internal Error (StopIteration): {e}. Skipping retries for this file.")
+                     raise e # Will be caught by outer loop or handler
+                raise e # Propagate other errors for retry logic
             except Exception as e:
+                # Check for StopIteration-related errors (asyncio/generator issues)
+                if isinstance(e, (StopIteration, RuntimeError)) and "StopIteration" in str(e):
+                     logger.warning(f"Aborting HF check for this file due to internal library error: {e}")
+                     raise e
+
                 last_exception = e
                 if attempt < MAX_RETRIES - 1:
                     logger.warning(

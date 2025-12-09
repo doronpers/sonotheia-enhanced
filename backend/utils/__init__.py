@@ -3,7 +3,7 @@ Utils Package
 Utility functions for the backend application.
 """
 
-from utils.celery_utils import (
+from .celery_utils import (
     numpy_to_native,
     serialize_result,
     create_task_result,

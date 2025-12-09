@@ -32,7 +32,7 @@ class SensorResult:
 
         Uses shared convert_numpy_types from utils.serialization to avoid code duplication.
         """
-        from utils.serialization import convert_numpy_types
+        from backend.utils.serialization import convert_numpy_types
 
         result = {
             "sensor_name": self.sensor_name,
