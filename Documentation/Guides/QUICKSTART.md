@@ -125,10 +125,10 @@ npm install --legacy-peer-deps
 ## 📚 Next Steps
 
 1. ✅ Start the services (see above)
-2. 📖 Read the [README.md](README.md) for detailed documentation
+2. 📖 Read the [README.md](../../README.md) for detailed documentation
 3. 🧪 Try the demo endpoints at http://localhost:8000/docs
 4. 🎨 Explore the dashboard at http://localhost:3000
-5. 📊 Review [API.md](API.md) for API reference
+5. 📊 Review [API.md](../API.md) for API reference
 
 ## 💡 Tips
 
@@ -141,7 +141,7 @@ npm install --legacy-peer-deps
 
 ## 🆘 Need Help?
 
-- Check troubleshooting section in [README.md](README.md)
+- Check troubleshooting section in [README.md](../../README.md)
 - Review logs for error messages
 - Ensure all ports (3000, 8000) are available
 - Verify Docker is running (if using Docker)

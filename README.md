@@ -2,8 +2,8 @@
 
 > Multi-factor voice authentication & SAR reporting system combining deepfake detection, MFA orchestration, and automated suspicious activity reporting
 
-[![Showcase Ready](https://img.shields.io/badge/status-showcase_ready-success)](IMPLEMENTATION_SUMMARY.md)
-[![Modules Enabled](https://img.shields.io/badge/modules-12%2F12-brightgreen)](./README_MODULE_CONTROL.md)
+[![Showcase Ready](https://img.shields.io/badge/status-showcase_ready-success)](Documentation/Reports/IMPLEMENTATION_SUMMARY.md)
+[![Modules Enabled](https://img.shields.io/badge/modules-12%2F12-brightgreen)](Documentation/Guides/README_MODULE_CONTROL.md)
 [![Operability](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml/badge.svg)](https://github.com/doronpers/sonotheia-enhanced/actions/workflows/operability.yml)
 [![Patent Compliance](https://img.shields.io/badge/patent-safe-blue)](Documentation/PATENT_COMPLIANCE.md)
 
@@ -17,7 +17,7 @@ The platform is ready for demonstration with:
 - **Automated Escalation**: Human-in-the-loop workflows for high-risk cases
 - **Comprehensive Audit Trails**: SOC2/GDPR compliant logging
 
-📖 **[Read the Implementation Summary](IMPLEMENTATION_SUMMARY.md)** for details on the integration, test results, and showcase guide.
+📖 **[Read the Implementation Summary](Documentation/Reports/IMPLEMENTATION_SUMMARY.md)** for details on the integration, test results, and showcase guide.
 
 ## Features
 
@@ -623,3 +623,25 @@ This platform integrates patterns and components from:
 Created: 2025-11-23 by doronpers
 
 Enhanced with superior aspects from "Sonotheia Multi-Factor Voice Authentication & SAR.md"
+
+## 📚 Documentation Index
+
+We maintain comprehensive documentation for developers, integrators, and security auditors.
+
+### 📘 Core Guides
+*   **[Incode Integration Guide](Documentation/Guides/INCODE_INTEGRATION_GUIDE.md)**: Technical guide for integrating with Incode Omni.
+*   **[Showcase Playbook](Documentation/Guides/INCODE_SHOWCASE_GUIDE.md)**: Script and scenarios for client demonstrations.
+*   **[Quick Start](Documentation/Guides/QUICKSTART.md)**: Getting up and running in 5 minutes.
+*   **[Module Control](Documentation/Guides/README_MODULE_CONTROL.md)**: How to enable/disable platform modules.
+
+### 🛡️ Security & Compliance
+*   **[Security Policy](Documentation/Security/SECURITY_POLICY.md)**: Main security posture and controls.
+*   **[Audit Assessment 2025-11](Documentation/Security/SECURITY_ASSESSMENT_2025-11.md)**: Detailed security audit findings.
+*   **[Patent Compliance](Documentation/PATENT_COMPLIANCE.md)**: Analysis of patent-safe sensor implementations.
+*   **[Branch Protection](Documentation/Guides/QUICKSTART_BRANCH_PROTECTION.md)**: CI/CD security policies.
+
+### 📊 Reports & Strategy
+*   **[Strategic Analysis](Documentation/Strategy/STRATEGIC_ANALYSIS.md)**: Competitive analysis and long-term roadmap.
+*   **[Implementation Summary](Documentation/Reports/IMPLEMENTATION_SUMMARY.md)**: Technical summary of the current build.
+*   **[Code Review Report](Documentation/Reports/CODE_REVIEW_REPORT.md)**: Recent code quality and linting results.
+

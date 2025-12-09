@@ -54,9 +54,9 @@ Your main branch is now protected. All changes must go through pull requests.
 
 ## 📚 Need More Help?
 
-- **Detailed Instructions**: See [Documentation/BRANCH_PROTECTION.md](Documentation/BRANCH_PROTECTION.md)
-- **Implementation Details**: See [BRANCH_PROTECTION_IMPLEMENTATION.md](BRANCH_PROTECTION_IMPLEMENTATION.md)
-- **Configuration Reference**: See [.github/settings.yml](.github/settings.yml)
+- **Detailed Instructions**: See [BRANCH_PROTECTION.md](../BRANCH_PROTECTION.md)
+- **Implementation Details**: See [BRANCH_PROTECTION_IMPLEMENTATION.md](../Security/BRANCH_PROTECTION_IMPLEMENTATION.md)
+- **Configuration Reference**: See [.github/settings.yml](../../.github/settings.yml)
 
 ## 🤖 Alternative: Automated Setup
 
