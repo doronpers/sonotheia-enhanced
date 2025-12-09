@@ -102,10 +102,18 @@ class CalibrationTool:
         voice_data: Dict[str, Any],
         weights: Dict[str, float] = None
     ) -> Dict[str, Any]:
-        """Calculate composite risk score"""
+        """
+        Calculate composite risk score with robust decision logic.
+
+        Decision Architecture:
+        1. PROSECUTION VETO: High voice risk (>0.6) triggers ESCALATE regardless of biometric
+        2. DUAL-FACTOR: Otherwise use weighted composite with appropriate thresholds
+        3. CONSISTENT THRESHOLDS: Aligned with RiskEngine and FusionEngine
+        """
         if weights is None:
-            weights = {"biometric": 0.5, "voice": 0.5}
-        
+            # Voice risk is weighted higher as it's the primary fraud indicator
+            weights = {"biometric": 0.3, "voice": 0.7}
+
         # Calculate biometric risk
         biometric_risk = 0.0
         if not biometric_data.get("document_verified"):
@@ -116,8 +124,8 @@ class CalibrationTool:
         if face_score < 0.8:
             biometric_risk += (1.0 - face_score) * 0.3
         biometric_risk = min(biometric_risk, 1.0)
-        
-        # Calculate voice risk
+
+        # Calculate voice risk (primary deepfake indicator)
         voice_risk = voice_data.get("deepfake_score", 0)
         if not voice_data.get("speaker_verified"):
             voice_risk += 0.2
@@ -125,33 +133,61 @@ class CalibrationTool:
         if speaker_score < 0.8:
             voice_risk += (1.0 - speaker_score) * 0.2
         voice_risk = min(voice_risk, 1.0)
-        
-        # Composite risk
+
+        # =====================================================
+        # PROSECUTION VETO: Voice deepfake detection has veto power
+        # If voice_risk is high, ESCALATE regardless of biometric score
+        # This prevents the 50/50 dilution from letting deepfakes through
+        # =====================================================
+        VOICE_VETO_THRESHOLD = 0.6  # High confidence deepfake indicator
+        prosecution_veto = voice_risk >= VOICE_VETO_THRESHOLD
+
+        # Composite risk calculation
+        # Using weighted average, but voice is weighted higher
         composite_risk = (
             biometric_risk * weights["biometric"] +
             voice_risk * weights["voice"]
         )
-        
-        # Determine decision
-        if composite_risk < 0.3:
+
+        # =====================================================
+        # DECISION LOGIC (consistent with RiskEngine thresholds)
+        # =====================================================
+        # Thresholds aligned with backend/risk_engine/factors.py:
+        # - LOW: < 0.3 → APPROVE
+        # - MEDIUM: 0.3-0.5 → APPROVE (with caution)
+        # - HIGH: 0.5-0.7 → ESCALATE
+        # - CRITICAL: >= 0.7 → ESCALATE (mandatory)
+
+        if prosecution_veto:
+            # Voice deepfake veto overrides composite calculation
+            decision = "ESCALATE"
+            risk_level = "HIGH" if voice_risk < 0.8 else "CRITICAL"
+        elif composite_risk < 0.3:
             decision = "APPROVE"
             risk_level = "LOW"
         elif composite_risk < 0.5:
-            decision = "APPROVE"
-            risk_level = "MEDIUM"
+            # CHANGED: Lower medium threshold for more cautious approval
+            # Only approve if voice_risk is also reasonably low
+            if voice_risk < 0.4:
+                decision = "APPROVE"
+                risk_level = "MEDIUM"
+            else:
+                decision = "ESCALATE"
+                risk_level = "MEDIUM"
         elif composite_risk < 0.7:
             decision = "ESCALATE"
             risk_level = "HIGH"
         else:
             decision = "ESCALATE"
             risk_level = "CRITICAL"
-        
+
         return {
             "composite_risk_score": composite_risk,
             "biometric_risk": biometric_risk,
             "voice_risk": voice_risk,
             "decision": decision,
-            "risk_level": risk_level
+            "risk_level": risk_level,
+            "prosecution_veto": prosecution_veto  # Track if veto was applied
         }
     
     def evaluate_profile(self, profile: Dict[str, Any]) -> Dict[str, Any]:
