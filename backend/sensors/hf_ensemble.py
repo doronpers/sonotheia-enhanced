@@ -136,8 +136,9 @@ class HFEnsembleSensor(BaseSensor):
         models: Optional[List[ModelConfig]] = None,
         enable_warmup: bool = True,
         enable_local_fallback: bool = True,
+        category: str = "prosecution"
     ):
-        super().__init__("AI Deepfake Ensemble (Hugging Face)")
+        super().__init__("AI Deepfake Ensemble (Hugging Face)", category=category)
         self.token = os.getenv("HUGGINGFACE_TOKEN")
         
         # Parse models from environment or use defaults

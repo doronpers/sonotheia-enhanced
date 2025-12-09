@@ -37,8 +37,8 @@ class GlobalFormantSensor(BaseSensor):
     4. Analyze statistical properties of the envelope.
     """
     
-    def __init__(self, n_fft: int = 2048, hop_length: int = 512):
-        super().__init__("Global Formant Stats")
+    def __init__(self, n_fft: int = 2048, hop_length: int = 512, category: str = "defense"):
+        super().__init__("Global Formant Stats", category=category)
         self.n_fft = n_fft
         self.hop_length = hop_length
         

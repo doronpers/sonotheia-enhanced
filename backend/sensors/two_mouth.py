@@ -28,8 +28,8 @@ class TwoMouthSensor(BaseSensor):
     - Spectral Consistency: Detects simultaneous incompatible spectral shapes.
     """
 
-    def __init__(self):
-        super().__init__("Two-Mouth Sensor")
+    def __init__(self, category: str = "prosecution"):
+        super().__init__("Two-Mouth Sensor", category=category)
         
     def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:
         """

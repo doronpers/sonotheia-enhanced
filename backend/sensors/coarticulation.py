@@ -37,6 +37,7 @@ class CoarticulationSensor(BaseSensor):
         n_formants: int = 2,
         frame_length_ms: float = 25.0,
         hop_length_ms: float = 10.0,
+        category: str = "defense"
     ):
         """
         Initialize coarticulation sensor.
@@ -45,8 +46,9 @@ class CoarticulationSensor(BaseSensor):
             n_formants: Number of formants to track (default: 2 for F1, F2)
             frame_length_ms: Frame length in milliseconds
             hop_length_ms: Hop length in milliseconds
+            category: "prosecution" or "defense"
         """
-        super().__init__("Coarticulation Sensor")
+        super().__init__("Coarticulation Sensor", category=category)
         self.n_formants = n_formants
         self.frame_length_ms = frame_length_ms
         self.hop_length_ms = hop_length_ms

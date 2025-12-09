@@ -53,6 +53,7 @@ class ENFSensor(BaseSensor):
         min_duration_sec: float = ENF_MIN_DURATION_SEC,
         stability_threshold: float = ENF_STABILITY_THRESHOLD,
         phase_continuity_threshold: float = ENF_PHASE_CONTINUITY_THRESHOLD,
+        category: str = "defense"
     ):
         """
         Initialize ENF sensor.
@@ -63,8 +64,9 @@ class ENFSensor(BaseSensor):
             min_duration_sec: Minimum audio duration for reliable analysis
             stability_threshold: Maximum frequency deviation for authentic recordings
             phase_continuity_threshold: Minimum phase correlation between windows
+            category: "prosecution" or "defense"
         """
-        super().__init__("ENF Sensor")
+        super().__init__("ENF Sensor", category=category)
         self.nominal_frequency = nominal_frequency
         self.analysis_window_sec = analysis_window_sec
         self.min_duration_sec = min_duration_sec

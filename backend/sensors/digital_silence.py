@@ -51,6 +51,7 @@ class DigitalSilenceSensor(BaseSensor):
         self,
         frame_length_ms: float = 25.0,
         hop_length_ms: float = 10.0,
+        category: str = "prosecution"
     ):
         """
         Initialize digital silence sensor.
@@ -58,8 +59,9 @@ class DigitalSilenceSensor(BaseSensor):
         Args:
             frame_length_ms: Frame length for analysis in milliseconds (default: 25ms)
             hop_length_ms: Hop length for analysis in milliseconds (default: 10ms)
+            category: "prosecution" or "defense"
         """
-        super().__init__("Digital Silence Sensor")
+        super().__init__("Digital Silence Sensor", category=category)
         self.frame_length_ms = frame_length_ms
         self.hop_length_ms = hop_length_ms
     

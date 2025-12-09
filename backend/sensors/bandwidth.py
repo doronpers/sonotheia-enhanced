@@ -35,6 +35,7 @@ class BandwidthSensor(BaseSensor):
         rolloff_threshold_hz: int = SPECTRAL_ROLLOFF_THRESHOLD_HZ,
         rolloff_percent: float = SPECTRAL_ROLLOFF_PERCENT,
         contribute_to_verdict: bool = CONTRIBUTE_TO_VERDICT,
+        category: str = "defense",
     ):
         """
         Initialize bandwidth sensor.
@@ -43,8 +44,9 @@ class BandwidthSensor(BaseSensor):
             rolloff_threshold_hz: Frequency threshold for narrowband classification (default: 4000Hz)
             rolloff_percent: Percentage of energy to use for rolloff calculation (default: 0.90)
             contribute_to_verdict: If True, narrowband detection contributes to verdict (default: True)
+            category: "prosecution" or "defense"
         """
-        super().__init__("Bandwidth Sensor (Rolloff Frequency)")
+        super().__init__("Bandwidth Sensor (Rolloff Frequency)", category=category)
         self.rolloff_threshold_hz = rolloff_threshold_hz
         self.rolloff_percent = rolloff_percent
         self.contribute_to_verdict = contribute_to_verdict

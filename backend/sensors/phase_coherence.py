@@ -47,6 +47,7 @@ class PhaseCoherenceSensor(BaseSensor):
         self,
         n_fft: int = 2048,
         hop_length: int = 512,
+        category: str = "prosecution"
     ):
         """
         Initialize phase coherence sensor.
@@ -54,8 +55,9 @@ class PhaseCoherenceSensor(BaseSensor):
         Args:
             n_fft: FFT window size
             hop_length: Hop length for STFT
+            category: "prosecution" or "defense"
         """
-        super().__init__("Phase Coherence Sensor")
+        super().__init__("Phase Coherence Sensor", category=category)
         self.n_fft = n_fft
         self.hop_length = hop_length
     

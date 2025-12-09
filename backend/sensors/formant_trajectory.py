@@ -46,9 +46,8 @@ class FormantTrajectorySensor(BaseSensor):
     MAX_F3_VELOCITY = 500  # Hz per 10ms
     MAX_F4_VELOCITY = 600  # Hz per 10ms
     
-    def __init__(self):
-        super().__init__()
-        self.name = "FormantTrajectory"
+    def __init__(self, category: str = "defense"):
+        super().__init__("FormantTrajectory", category=category)
     
     def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:
         """

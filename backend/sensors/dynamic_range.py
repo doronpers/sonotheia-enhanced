@@ -23,14 +23,15 @@ class DynamicRangeSensor(BaseSensor):
     often shows unnaturally low crest factors due to compression artifacts.
     """
     
-    def __init__(self, crest_factor_threshold: float = CREST_FACTOR_THRESHOLD):
+    def __init__(self, crest_factor_threshold: float = CREST_FACTOR_THRESHOLD, category: str = "defense"):
         """
         Initialize dynamic range sensor.
         
         Args:
             crest_factor_threshold: Minimum acceptable crest factor (default: 5.0 from config)
+            category: "prosecution" or "defense"
         """
-        super().__init__("Dynamic Range Sensor (Crest Factor)")
+        super().__init__("Dynamic Range Sensor (Crest Factor)", category=category)
         self.crest_factor_threshold = crest_factor_threshold
     
     def analyze(self, audio_data: np.ndarray, samplerate: int) -> SensorResult:

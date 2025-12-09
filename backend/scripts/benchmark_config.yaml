@@ -1,7 +1,7 @@
 # Benchmark Configuration for Sonotheia MVP
 
 # Dataset configuration
-dataset_dir: "./data"  # Directory containing audio files
+dataset_dir: "../data/calibration"  # Directory containing audio files
 metadata_file: "metadata.csv"  # CSV with columns: file_path, label (0=genuine, 1=spoof)
 
 # Output configuration
