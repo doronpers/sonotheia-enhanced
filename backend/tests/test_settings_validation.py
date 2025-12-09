@@ -17,6 +17,12 @@ from sensors.breath import BreathSensor
 from sensors.fusion import DEFAULT_WEIGHTS, THRESHOLD_SYNTHETIC, THRESHOLD_REAL
 from sensors.registry import get_default_sensors
 
+# Optional sensors that may not be available in all environments
+OPTIONAL_SENSORS = [
+    'HFDeepfakeSensor',  # Requires huggingface_hub
+    'BreathSensor',      # May be conditionally included
+]
+
 
 class TestSettingsYamlValidation:
     """Test that settings.yaml matches sensor implementations."""
@@ -272,8 +278,9 @@ class TestConfiguredSensorsExist:
         
         for config_key, sensor_name in config_to_sensor_map.items():
             if config_key in sensor_configs:
-                # This sensor is configured, verify it exists
-                assert sensor_name in sensor_class_names or config_key == 'breath', \
+                # This sensor is configured, verify it exists or is optional
+                is_optional = sensor_name in OPTIONAL_SENSORS
+                assert sensor_name in sensor_class_names or is_optional, \
                     f"Sensor {sensor_name} configured but not found in default sensors"
     
     def test_fusion_weights_reference_valid_sensors(self, settings):
@@ -287,11 +294,12 @@ class TestConfiguredSensorsExist:
             if not sensor_name.endswith('Sensor'):
                 continue  # Skip non-sensor keys
             
-            # Sensor should exist in default sensors
+            # Sensor should exist in default sensors or be optional
             # (Note: some sensors may be optional/conditional)
             if weights[sensor_name] > 0:
                 # Only check sensors with positive weight
-                assert sensor_name in sensor_class_names or sensor_name in ['HFDeepfakeSensor'], \
+                is_optional = sensor_name in OPTIONAL_SENSORS
+                assert sensor_name in sensor_class_names or is_optional, \
                     f"Fusion weight defined for unknown sensor: {sensor_name}"
 
 
