@@ -11,7 +11,6 @@ Usage:
     python3 generate_phonetic_samples.py --service elevenlabs --count 50 --output-dir backend/data/library/phonetic
 """
 
-import os
 import argparse
 import logging
 import json
@@ -23,44 +22,23 @@ from typing import List, Dict
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("phonetic_generator")
 
-# Try to load environment variables from .env file (optional)
-try:
-    from dotenv import load_dotenv
-    # Load .env from project root (two levels up from scripts directory)
-    # Script is at: backend/scripts/generate_phonetic_samples.py
-    # .env is at: .env (project root)
-    script_dir = Path(__file__).parent  # backend/scripts/
-    project_root = script_dir.parent.parent  # project root
-    env_path = project_root / ".env"
-    
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path, override=True)  # override=True ensures .env values take precedence
-        logger.debug(f"Loaded .env from: {env_path}")
-    else:
-        # Fallback: try current directory and parent directories
-        load_dotenv(override=True)  # Will search current dir and parents automatically
-        logger.debug("Attempted to load .env from current directory or parents")
-except ImportError:
-    logger.debug("python-dotenv not installed, using system environment variables only")
-except Exception as e:
-    # Log but don't fail if .env loading has issues
-    logger.debug(f"Could not load .env: {e}")
+# Import shared TTS utilities
+from tts_utils import load_env_file, check_tts_dependencies, generate_elevenlabs, generate_openai
+
+# Load environment variables from project root
+load_env_file(Path(__file__))
 
 # Check for required dependencies at startup
 def check_dependencies():
     """Check if required dependencies are available and provide helpful error messages."""
+    deps = check_tts_dependencies()
     missing = []
-    
-    try:
-        import requests
-    except ImportError:
+
+    if not deps['requests']:
         missing.append("requests")
-    
-    try:
-        from openai import OpenAI
-    except ImportError:
+    if not deps['openai']:
         missing.append("openai")
-    
+
     if missing:
         logger.warning("=" * 60)
         logger.warning("Missing dependencies detected:")
@@ -76,7 +54,7 @@ def check_dependencies():
         logger.warning("")
         logger.warning("The script will continue but API calls will fail.")
         logger.warning("")
-    
+
     return len(missing) == 0
 
 # Phonetically diverse phrases designed to maximize sound combination coverage
@@ -219,82 +197,6 @@ def get_phonetic_coverage(phrases: List[str]) -> Dict[str, any]:
         "consonant_clusters_found": len(consonant_clusters),
         "sample_clusters": consonant_clusters[:20],  # First 20 as sample
     }
-
-
-def generate_elevenlabs(text: str, filename: str, voice_id: str = "pNInz6obpgDQGcFmaJgB") -> bool:
-    """Generate audio using ElevenLabs API."""
-    api_key = os.environ.get("ELEVENLABS_API_KEY")
-    if not api_key:
-        logger.warning("ELEVENLABS_API_KEY not set. Skipping.")
-        return False
-        
-    try:
-        import requests
-    except ImportError:
-        logger.error("'requests' module not found. Please install it: pip install requests")
-        logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
-        return False
-    
-    try:
-        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-        headers = {
-            "Accept": "audio/mpeg",
-            "Content-Type": "application/json",
-            "xi-api-key": api_key
-        }
-        data = {
-            "text": text,
-            "model_id": "eleven_monolingual_v1",
-            "voice_settings": {
-                "stability": 0.5,
-                "similarity_boost": 0.5
-            }
-        }
-        
-        response = requests.post(url, json=data, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            with open(filename, "wb") as f:
-                f.write(response.content)
-            return True
-        else:
-            logger.error(f"ElevenLabs Error ({response.status_code}): {response.text}")
-            return False
-            
-    except Exception as e:
-        logger.error(f"ElevenLabs Exception: {e}")
-        return False
-
-
-def generate_openai(text: str, filename: str, voice: str = "alloy") -> bool:
-    """Generate audio using OpenAI API."""
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        logger.warning("OPENAI_API_KEY not set. Skipping.")
-        return False
-        
-    try:
-        from openai import OpenAI
-    except ImportError:
-        logger.error("'openai' module not found. Please install it: pip install openai")
-        logger.error("Or activate the virtual environment: source backend/venv/bin/activate")
-        return False
-    
-    try:
-        client = OpenAI(api_key=api_key)
-        
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice=voice,
-            input=text
-        )
-        
-        response.stream_to_file(filename)
-        return True
-            
-    except Exception as e:
-        logger.error(f"OpenAI Exception: {e}")
-        return False
 
 
 def save_metadata(filename: Path, phrase: str, service: str, coverage_info: Dict) -> None:

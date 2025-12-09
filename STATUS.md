@@ -43,9 +43,13 @@ This document provides the current operational status of all platform modules. T
 | **PhaseCoherence** | ✅ Active | Entropy & Discontinuity | 0.25 |
 | **Coarticulation** | ✅ Active | Motor Planning (White Space) | 0.20 |
 | **Bandwidth** | ✅ Active | Spectral Analysis | 0.10 |
-| **HuggingFace** | ⚠️ Blocked | Transformer Model | 0.10 |
-| *VocalTract* | ❌ Removed | LPC (Infringing) | 0.00 |
-| *Breath* | ❌ Removed | LPC (Infringing) | 0.00 |
+| **BreathSensor** | ✅ Active | Phonation Duration (non-LPC) | 0.15 |
+| **DynamicRange** | ✅ Active | Crest Factor Analysis | 0.10 |
+| **GlottalInertia** | ✅ Active | Amplitude Rise Velocity | 0.15 |
+| **GlobalFormant** | ✅ Active | Spectral Envelope Statistics | 0.10 |
+| **DigitalSilence** | ✅ Active | Non-biological Silence Detection | 0.10 |
+| **HuggingFace** | ⚠️ Optional | Transformer Model (requires huggingface_hub) | 0.10 |
+| *VocalTract (LPC)* | ❌ Removed | Static LPC Analysis (Infringing) | 0.00 |
 
 ## Status Legend
 

@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 # **Patent-Safe Sensor Set** - No LPC, No Source-Filter Model
 DEFAULT_WEIGHTS = {
     # Physics-based sensors (patent-safe)
-    "GlottalInertiaSensor": 0.25,    # Impossible acceleration (Strong indicator)
-    "FormantTrajectorySensor": 0.25, # Velocity analysis (Strong indicator)
+    "GlottalInertiaSensor": 0.20,    # Impossible acceleration / unnatural attack-decay
+    "TwoMouthSensor": 0.15,          # Overlapping articulations / anatomical conflicts
+    "FormantTrajectorySensor": 0.20, # Velocity analysis (Strong indicator)
     "PhaseCoherenceSensor": 0.10,    # Phase entropy (Strong indicator)
     "DigitalSilenceSensor": 0.15,    # Splicing artifacts
     "GlobalFormantSensor": 0.10,     # Statistical envelope

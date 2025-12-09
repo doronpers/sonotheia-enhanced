@@ -362,7 +362,7 @@ risk_weights:
 ## Support Materials
 
 - **API Documentation**: http://localhost:8000/docs (Swagger)
-- **Integration Guide**: `INTEGRATION_GUIDE.md`
+- **Integration Guide**: `INCODE_INTEGRATION_GUIDE.md`
 - **Showcase Guide**: `INCODE_SHOWCASE_GUIDE.md`
 - **Quick Reference**: `demo/QUICK_REFERENCE.md`
 - **Test Suite**: `backend/tests/test_integration_endpoints.py`
@@ -371,7 +371,7 @@ risk_weights:
 ## Files Created
 
 **Documentation** (3 files, ~50KB):
-- `INTEGRATION_GUIDE.md` - Technical integration guide
+- `INCODE_INTEGRATION_GUIDE.md` - Technical integration guide
 - `INCODE_SHOWCASE_GUIDE.md` - Complete showcase guide
 - `demo/QUICK_REFERENCE.md` - Quick reference card
 
