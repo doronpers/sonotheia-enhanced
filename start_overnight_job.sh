@@ -7,7 +7,7 @@ set -e
 # Configuration
 LIBRISPEECH_COUNT=${LIBRISPEECH_COUNT:-2000}  # Increased for overnight load
 COMMONVOICE_COUNT=${COMMONVOICE_COUNT:-500}   # Increased for overnight load
-SYNTHETIC_COUNT=${SYNTHETIC_COUNT:-100}      # Increased for overnight load
+SYNTHETIC_COUNT=50
 
 echo "============================================================"
 echo "   SONOTHEIA ENHANCED - OVERNIGHT PROCESSING JOB"
@@ -43,7 +43,9 @@ echo ""
 echo "[3/5] Generating Synthetic Samples ($SYNTHETIC_COUNT per service)..."
 # Check for API keys before running to avoid errors
 if grep -q "ELEVENLABS_API_KEY" .env || grep -q "OPENAI_API_KEY" .env; then
-    $PYTHON backend/scripts/generate_phonetic_samples.py --service all --count $SYNTHETIC_COUNT || echo "Generation warning (check logs/credits)"
+    # Generate new synthetic samples (with Telephony Augmentation)
+    echo "Generating $SYNTHETIC_COUNT synthetic samples per service..."
+    $PYTHON backend/scripts/generate_red_team.py --count $SYNTHETIC_COUNT --service all --augment || echo "Generation warning (check logs/credits)"
 else
     echo "Skipping generation: No API keys found in .env"
 fi

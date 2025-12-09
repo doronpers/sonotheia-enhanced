@@ -46,6 +46,7 @@ class FusionEngine:
             "rawnet3": 0.40,
             "explainability": 0.15,
         }
+        self.profiles = kwargs.get("profiles", {}) # Store fusion profiles
         self.confidence_threshold = confidence_threshold
         self.decision_threshold = decision_threshold
 
@@ -67,6 +68,34 @@ class FusionEngine:
         try:
             # Extract scores from each stage
             scores = self._extract_scores(stage_results)
+            
+            # --- CONTEXT-AWARE PROFILE SWITCHING ---
+            # Check Bandwidth Context to switch profiles
+            context = "WIDEBAND"
+            physics = stage_results.get("physics_analysis", {})
+            if physics.get("success", False):
+                sensor_results = physics.get("sensor_results", {})
+                bw_result = sensor_results.get("Bandwidth Sensor (Rolloff Frequency)", {})
+                # Check metadata for context tag
+                ctx = bw_result.get("metadata", {}).get("context")
+                if ctx == "NARROWBAND":
+                    context = "NARROWBAND"
+            
+            # Load specific profile weights if available in config
+            # (In a real implementation, FusionEngine would have access to full config app_state)
+            # For now, we assume self.profiles is populated if passed in __init__
+            current_profile = "default"
+            if hasattr(self, 'profiles') and self.profiles:
+                if context == "NARROWBAND" and "narrowband" in self.profiles:
+                    current_profile = "narrowband"
+                    self.stage_weights = self.profiles["narrowband"].get("weights", self.stage_weights)
+                    self.decision_threshold = self.profiles["narrowband"].get("thresholds", {}).get("synthetic", self.decision_threshold)
+                    logger.info("Context Switch: ACTIVE -> NARROWBAND PROFILE (Phone Mode)")
+                else:
+                    current_profile = "default"
+                    self.stage_weights = self.profiles["default"].get("weights", self.stage_weights)
+                    self.decision_threshold = self.profiles["default"].get("thresholds", {}).get("synthetic", self.decision_threshold)
+            # ---------------------------------------
 
             if not scores:
                 return self._empty_result("No valid scores to fuse")
@@ -267,11 +296,12 @@ class FusionEngine:
         new_score = current_score
         
         # Rule 1: Two-Mouth (Word Overlap)
-        # If two_mouth sensor is confident > 0.5, it found spectral conflict/VTL variance
-        two_mouth = sensor_results.get("TwoMouthSensor", {})
-        if two_mouth.get("value", 0.0) > 0.5: # Threshold for high confidence artifact
-            overrides.append("Two-Mouth Artifact Detected (Word Overlap)")
-            new_score = max(new_score, 0.95) # Near certainty
+        # DISABLED (Checking 2025-12-09: Sensor accuracy ~50%, causing false alarms)
+        # two_mouth = sensor_results.get("TwoMouthSensor", {})
+        # if two_mouth.get("value", 0.0) > 0.5: # Threshold for high confidence artifact
+        #     overrides.append("Two-Mouth Artifact Detected (Word Overlap)")
+        #     new_score = max(new_score, 0.95) # Near certainty
+
             
         # Rule 2: Breath Patterns (Infinite Lung Capacity / Double Breath)
         # Respiration violation implies impossible breathing

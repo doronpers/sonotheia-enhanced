@@ -139,6 +139,7 @@ class DetectionPipeline:
             stage_weights=cfg.fusion_engine.stage_weights,
             confidence_threshold=cfg.fusion_engine.confidence_threshold,
             decision_threshold=cfg.fusion_engine.decision_threshold,
+            profiles=cfg.fusion_engine.profiles,
         )
 
         # Stage 3b: Physics Analysis

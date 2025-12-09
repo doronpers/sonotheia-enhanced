@@ -44,10 +44,19 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Red Team deepfakes")
     parser.add_argument("--service", choices=["elevenlabs", "openai", "all"], default="all", help="TTS Service")
     parser.add_argument("--count", type=int, default=5, help="Number of files to generate per service")
-    parser.add_argument("--dry-run", action="store_true", help="Simulate generation without API calls")
+    parser.add_argument("--augment", action="store_true", help="Generate telephony variants (Landline, Mobile, VoIP)")
     
     args = parser.parse_args()
     
+    # Lazy import to avoid breaking if dependencies missing during dry run
+    if args.augment:
+        try:
+            import soundfile as sf
+            from backend.telephony.pipeline import TelephonyPipeline
+        except ImportError as e:
+            logger.error(f"Augmentation requires 'soundfile' and 'backend' package: {e}")
+            return
+
     prompts = load_prompts()
     
     if args.dry_run:
@@ -65,7 +74,8 @@ def main():
         for i in range(args.count):
             prompt = random.choice(prompts)
             timestamp = int(time.time())
-            filename = DEST_DIR / f"{service}_{timestamp}_{i}.mp3"
+            base_filename = DEST_DIR / f"{service}_{timestamp}_{i}"
+            filename = base_filename.with_suffix(".mp3")
             
             logger.info(f"[{i+1}/{args.count}] Generating: '{prompt[:30]}...' -> {filename.name}")
             
@@ -83,6 +93,30 @@ def main():
                 
             if success:
                 logger.info("Success.")
+                
+                # --- Telephony Augmentation ---
+                if args.augment:
+                    try:
+                        logger.info("  Generating telephony variants...")
+                        # 1. Load original
+                        data, sr = sf.read(str(filename))
+                        
+                        # 2. Landline
+                        landline_audio = TelephonyPipeline.apply_landline_chain(data, sr)
+                        sf.write(str(base_filename) + "_landline.wav", landline_audio, sr)
+                        
+                        # 3. Mobile
+                        mobile_audio = TelephonyPipeline.apply_mobile_chain(data, sr)
+                        sf.write(str(base_filename) + "_mobile.wav", mobile_audio, sr)
+                        
+                        # 4. VoIP
+                        voip_audio = TelephonyPipeline.apply_voip_chain(data, sr)
+                        sf.write(str(base_filename) + "_voip.wav", voip_audio, sr)
+                        
+                    except Exception as e:
+                        logger.error(f"  Augmentation failed: {e}")
+                # ------------------------------
+
                 # Respect rate limits
                 time.sleep(1)
             else:

@@ -43,7 +43,8 @@ def get_default_sensors() -> List[BaseSensor]:
     from .breath import BreathSensor
     from .dynamic_range import DynamicRangeSensor
     from .bandwidth import BandwidthSensor
-    from .phase_coherence import PhaseCoherenceSensor
+    from .bandwidth import BandwidthSensor
+    from .pitch_velocity import PitchVelocitySensor
     from .glottal_inertia import GlottalInertiaSensor
     from .digital_silence import DigitalSilenceSensor
     from .global_formants import GlobalFormantSensor
@@ -56,7 +57,7 @@ def get_default_sensors() -> List[BaseSensor]:
         BreathSensor(),
         DynamicRangeSensor(),
         BandwidthSensor(),
-        PhaseCoherenceSensor(),
+        PitchVelocitySensor(),
         GlottalInertiaSensor(),
         DigitalSilenceSensor(),
         GlobalFormantSensor(),

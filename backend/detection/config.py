@@ -94,6 +94,7 @@ class FusionEngineConfig:
     )
     confidence_threshold: float = 0.5
     decision_threshold: float = 0.5
+    profiles: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

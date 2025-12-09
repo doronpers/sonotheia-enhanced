@@ -97,34 +97,29 @@ class BandwidthSensor(BaseSensor):
         is_narrowband = rolloff_hz < self.rolloff_threshold_hz
         bandwidth_type = "NARROWBAND" if is_narrowband else "FULLBAND"
         
-        # Determine passed status based on contribute_to_verdict setting
-        if self.contribute_to_verdict:
-            # Narrowband = potentially synthetic (passed=False)
-            # Fullband = likely real (passed=True)
-            passed = not is_narrowband
-            reason = "NARROWBAND_DETECTED" if is_narrowband else None
-            detail = (
-                f"Audio is narrowband (rolloff: {int(rolloff_hz)}Hz < {self.rolloff_threshold_hz}Hz). "
-                "This may indicate telephony audio or synthetic generation."
-            ) if is_narrowband else None
-        else:
-            # Info-only mode (backward compatible)
-            passed = None
-            reason = None
-            detail = None
+        # Determine context (Phone vs HD)
+        # Narrowband (<4kHz) = Phone/VoIP context
+        # Wideband (>4kHz) = HD/Studio context
+        context = "NARROWBAND" if is_narrowband else "WIDEBAND"
+        
+        # NOTE: BandwidthSensor no longer votes on Real/Fake.
+        # It provides CONTEXT for the Fusion Engine to select the correct profile.
+        # passed=None ensures it doesn't affect the score.
+        passed = None
+        detail = f"Context Detected: {context} (Rolloff: {int(rolloff_hz)}Hz)"
         
         result = SensorResult(
             sensor_name=self.name,
             passed=passed,
             value=int(rolloff_hz),
             threshold=self.rolloff_threshold_hz,
-            metadata={"type": bandwidth_type}
+            detail=detail,
+            metadata={
+                "type": bandwidth_type,
+                "context": context, 
+                "rolloff_hz": int(rolloff_hz)
+            }
         )
-        
-        if reason:
-            result.reason = reason
-        if detail:
-            result.detail = detail
         
         return result
 

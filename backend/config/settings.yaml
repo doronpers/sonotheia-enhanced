@@ -51,7 +51,7 @@ sensors:
     silence_threshold_db: -60.0   # Below this = silence
     speech_threshold_db: -20.0    # Above this = speech
     min_decay_time_ms: 10.0       # Hard cut detection threshold
-    phase_entropy_threshold: 2.5  # Natural onset chaos threshold
+    phase_entropy_threshold: 0.0000 # Natural onset chaos threshold
 
   two_mouth:
     vtl_variance_threshold: 0.5   # VTL variance score threshold
@@ -64,45 +64,66 @@ sensors:
     consistency_threshold: 0.7068 # Calibration 2025-12-09
 
   global_formants:
-    outlier_threshold: 0.4017     # Calibration 2025-12-09
+    outlier_threshold: 0.4017 # Calibration 2025-12-09
 
   coarticulation:
-    anomaly_threshold: 0.5228     # Calibration 2025-12-09
+    anomaly_threshold: 0.5228 # Calibration 2025-12-09
     
   hf_deepfake:
     confidence_threshold: 0.70    # Calibration suggests 0.00, keeping safe default or use 0.0 only if strictly required
 
   breath:
-    max_phonation_seconds: 14.0   # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
+    max_phonation_seconds: 1.7637 # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
     silence_threshold_db: -60     # Silence detection
     frame_size_seconds: 0.02      # Analysis window
 
   dynamic_range:
-    min_crest_factor: 6.5013      # Calibration 2025-12-09
+    min_crest_factor: 6.5013 # Calibration 2025-12-09
 
   bandwidth:
-    min_rolloff_hz: 4476.789      # Calibration 2025-12-09
+    min_rolloff_hz: 4476.7889 # Context Detection Threshold
 
-  phase_coherence:
-    suspicion_threshold: 0.3011   # Calibration 2025-12-09
+  pitch_velocity:
+    max_velocity_threshold: 35.0 # Human laryngeal limit (semitones/sec)
+    min_voiced_duration: 0.05
 
   digital_silence:
-    silence_threshold: 0.3056     # Calibration 2025-12-09
+    silence_threshold: 0.3056 # Calibration 2025-12-09
 
-# Fusion weights (override defaults in fusion.py)
+# Fusion weights (OVERRIDDEN BY PROFILES BELOW)
 fusion:
-  weights:
-    GlottalInertiaSensor: 0.20
-    TwoMouthSensor: 0.15
-    FormantTrajectorySensor: 0.20
-    PhaseCoherenceSensor: 0.10
-    DigitalSilenceSensor: 0.15
-    GlobalFormantSensor: 0.10
-    CoarticulationSensor: 0.05
-    HFDeepfakeSensor: 0.05
-  thresholds:
-    synthetic: 0.7    # Score > this = SYNTHETIC
-    real: 0.3         # Score < this = REAL
+  # Default Profile (Wideband/HD Audio)
+  profiles:
+    default:
+      weights:
+        GlottalInertiaSensor: 0.35
+        PitchVelocitySensor: 0.15     # Replaces PhaseCoherence
+        FormantTrajectorySensor: 0.20
+        DigitalSilenceSensor: 0.15
+        GlobalFormantSensor: 0.10
+        CoarticulationSensor: 0.05
+        HFDeepfakeSensor: 0.00
+        TwoMouthSensor: 0.00          # Disabled
+      thresholds:
+        synthetic: 0.7
+        real: 0.3
+
+    # Narrowband Profile (Phone/VoIP Audio)
+    # Triggered when BandwidthSensor detects < 4kHz rolloff
+    # Strategy: TRUST PHYSICS, IGNORE SPECTRAL NOISE
+    narrowband:
+      weights:
+        GlottalInertiaSensor: 0.50    # Higher trust in physics
+        PitchVelocitySensor: 0.20     # Higher trust in laryngeal mechanics
+        FormantTrajectorySensor: 0.20 # Reasonable robustness
+        DigitalSilenceSensor: 0.10    # Less reliable on noisy lines
+        GlobalFormantSensor: 0.00     # Un reliable on narrowband
+        CoarticulationSensor: 0.00    # Likely to fail on compression
+        HFDeepfakeSensor: 0.00
+        TwoMouthSensor: 0.00
+      thresholds:
+        synthetic: 0.8  # Stricter threshold for Phone (Err on side of Real)
+        real: 0.4
 
 sar_detection_rules:
   structuring:
