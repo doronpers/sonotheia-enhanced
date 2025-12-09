@@ -37,6 +37,12 @@ config/secrets.yaml
 .env.local
 .env.production
 .env.ci
+# Prevent accidental commits of files with secrets
+open
+*_keys.txt
+*_secrets.*
+*.key
+*.token
 
 # Quick start scripts
 .backend.pid
