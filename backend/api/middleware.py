@@ -3,7 +3,7 @@ API Middleware Components
 Rate limiting, authentication, and request tracking
 """
 
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException, status, Depends
 from fastapi.security import APIKeyHeader
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -42,7 +42,7 @@ if _api_keys_env:
             VALID_API_KEYS[key] = {"client": client, "tier": tier}
 
 
-async def verify_api_key(api_key: Optional[str] = None) -> dict:
+async def verify_api_key(api_key: Optional[str] = Depends(api_key_header)) -> dict:
     """
     Verify API key if authentication is enabled.
     Returns client info if valid, raises HTTPException if invalid.

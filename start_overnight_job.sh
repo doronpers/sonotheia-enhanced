@@ -5,9 +5,9 @@
 set -e
 
 # Configuration
-LIBRISPEECH_COUNT=500  # Number of organic samples to ingest
-COMMONVOICE_COUNT=200   # Number of organic samples to ingest (if token available)
-SYNTHETIC_COUNT=50      # Number of synthetic samples per service (costs API credits)
+LIBRISPEECH_COUNT=${LIBRISPEECH_COUNT:-2000}  # Increased for overnight load
+COMMONVOICE_COUNT=${COMMONVOICE_COUNT:-500}   # Increased for overnight load
+SYNTHETIC_COUNT=${SYNTHETIC_COUNT:-100}      # Increased for overnight load
 
 echo "============================================================"
 echo "   SONOTHEIA ENHANCED - OVERNIGHT PROCESSING JOB"

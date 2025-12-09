@@ -15,10 +15,10 @@ from pathlib import Path
 from tqdm import tqdm
 
 # Add parent to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from detection import get_pipeline, convert_numpy_types
-from sensors.utils import load_and_preprocess_audio
+from backend.detection import get_pipeline, convert_numpy_types
+from backend.sensors.utils import load_and_preprocess_audio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
