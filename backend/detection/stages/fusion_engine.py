@@ -83,8 +83,11 @@ class FusionEngine:
             trust_scores = []
             
             for name, res in sensor_results.items():
-                # Extract score/value
-                val = res.get("value", 0.0)
+                # Extract score (preferred) or value (fallback)
+                val = res.get("score")
+                if val is None:
+                     val = res.get("value", 0.0)
+                     
                 # Determine category (default to defense if not found, but we tagged them)
                 # Note: We need access to the sensor instance or metadata to know category.
                 # Since we don't have the instance here, we rely on mapped names or metadata.

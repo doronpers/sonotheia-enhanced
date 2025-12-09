@@ -75,6 +75,30 @@ class DynamicRangeSensor(BaseSensor):
             threshold=self.crest_factor_threshold,
         )
         
+        # Calculate normalized anomaly score (0.0 = Real, 1.0 = Fake)
+        # Dynamic Range is a "Higher is Better" metric (Crest Factor).
+        # We need to invert it for anomaly scoring.
+        # If CF is 2.0 (Bad), Score -> 1.0
+        # If CF is 10.0 (Good), Score -> 0.0
+        # Threshold is ~5.0
+        
+        # Map: 0.0 -> 1.0 (Worst), Threshold -> 0.5, Threshold*2 -> 0.0
+        if crest_factor >= self.crest_factor_threshold * 2:
+            normalized_score = 0.0
+        elif crest_factor <= 0:
+            normalized_score = 1.0
+        else:
+             # Linear interpolation between 0 and Threshold*2
+             # Normalized x: 0..10
+             # Inverted: 1 - (x / 10)
+             max_healthy = self.crest_factor_threshold * 2
+             normalized_score = 1.0 - (crest_factor / max_healthy)
+             
+        # Clamp
+        normalized_score = float(max(0.0, min(1.0, normalized_score)))
+        
+        result.score = normalized_score
+        
         if not passed:
             result.reason = "SYNTHETIC"
             result.detail = f"Audio is unnaturally compressed (Crest Factor: {round(crest_factor, 2)})."
