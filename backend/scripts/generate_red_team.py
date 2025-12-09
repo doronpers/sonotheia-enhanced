@@ -29,10 +29,10 @@ project_root = script_dir.parent.parent  # project root
 env_path = project_root / ".env"
 
 if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
+    load_dotenv(dotenv_path=env_path, override=True)  # override=True ensures .env values take precedence
 else:
     # Fallback: try current directory and parent directories
-    load_dotenv()  # Will search current dir and parents automatically
+    load_dotenv(override=True)  # Will search current dir and parents automatically
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
