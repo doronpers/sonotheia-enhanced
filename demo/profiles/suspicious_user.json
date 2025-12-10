@@ -1,0 +1,17 @@
+{
+    "user_id": "DEMO-SUSPICIOUS-001",
+    "scenario": "potential_deepfake",
+    "biometric_data": {
+        "document_verified": true,
+        "face_match_score": 0.88,
+        "liveness_passed": true,
+        "incode_session_id": "incode-demo-suspicious-001"
+    },
+    "voice_data": {
+        "deepfake_score": 0.75,
+        "speaker_verified": false,
+        "speaker_score": 0.68,
+        "audio_quality": 0.82,
+        "audio_duration_seconds": 3.8
+    }
+}

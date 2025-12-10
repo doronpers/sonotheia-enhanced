@@ -71,3 +71,5 @@ Cargo.lock
 # Docker
 .dockerignore
 integrate-workspace/
+calibration_results_*.json
+demo/reports/*.pdf

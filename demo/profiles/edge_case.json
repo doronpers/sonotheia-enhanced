@@ -1,0 +1,17 @@
+{
+    "user_id": "DEMO-EDGE-001",
+    "scenario": "noisy_environment",
+    "biometric_data": {
+        "document_verified": true,
+        "face_match_score": 0.92,
+        "liveness_passed": true,
+        "incode_session_id": "incode-demo-edge-001"
+    },
+    "voice_data": {
+        "deepfake_score": 0.28,
+        "speaker_verified": true,
+        "speaker_score": 0.86,
+        "audio_quality": 0.65,
+        "audio_duration_seconds": 5.2
+    }
+}

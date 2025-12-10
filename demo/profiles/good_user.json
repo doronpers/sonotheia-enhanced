@@ -1,0 +1,17 @@
+{
+  "user_id": "DEMO-GOOD-001",
+  "scenario": "legitimate_user",
+  "biometric_data": {
+    "document_verified": true,
+    "face_match_score": 0.96,
+    "liveness_passed": true,
+    "incode_session_id": "incode-demo-good-001"
+  },
+  "voice_data": {
+    "deepfake_score": 0.12,
+    "speaker_verified": true,
+    "speaker_score": 0.94,
+    "audio_quality": 0.89,
+    "audio_duration_seconds": 4.5
+  }
+}

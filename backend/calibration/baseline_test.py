@@ -222,7 +222,7 @@ class CalibrationTool:
         # Generate test profiles
         print(f"Generating {profile_count} test profiles...")
         profiles = self.generate_test_profiles(profile_count)
-        print(f"✓ Generated {len(profiles)} profiles\n")
+        print(f"[OK] Generated {len(profiles)} profiles\n")
         
         # Evaluate each profile
         print("Evaluating profiles...")
@@ -290,21 +290,21 @@ class CalibrationTool:
         print(f"{'='*60}\n")
         
         if accuracy >= 0.85:
-            print("✓ Thresholds are well-calibrated")
+            print("[OK] Thresholds are well-calibrated")
         elif accuracy >= 0.75:
-            print("⚠ Consider fine-tuning thresholds")
+            print("[WARN] Consider fine-tuning thresholds")
             print("  - Review edge cases with risk scores 0.25-0.35")
         else:
-            print("✗ Thresholds need adjustment")
+            print("[X] Thresholds need adjustment")
             print("  - Consider lowering deepfake_threshold to 0.25")
             print("  - Consider raising speaker_threshold to 0.88")
         
         if legitimate_correct / legitimate_total < 0.90:
-            print("\n⚠ High false positive rate on legitimate users")
+            print("\n[WARN] High false positive rate on legitimate users")
             print("  - Consider increasing deepfake_threshold to 0.35")
         
         if deepfake_correct / deepfake_total < 0.85:
-            print("\n⚠ Missing deepfakes")
+            print("\n[WARN] Missing deepfakes")
             print("  - Consider decreasing deepfake_threshold to 0.25")
         
         # Save results
@@ -328,7 +328,7 @@ class CalibrationTool:
         with open(output_file, 'w') as f:
             json.dump(full_results, f, indent=2)
         
-        print(f"\n✓ Results saved to: {output_file}")
+        print(f"\n[OK] Results saved to: {output_file}")
         print(f"{'='*60}\n")
         
         return full_results

@@ -3,8 +3,10 @@ SAR Generator - Automated Suspicious Activity Report generation
 Uses Jinja2 templates to generate SAR narratives from context data
 """
 
+
 from jinja2 import Environment, FileSystemLoader
 from .models import SARContext, SARReport, RiskIntelligence, KnownScheme
+from .pdf_generator import SARPDFGenerator
 from pathlib import Path
 from typing import Dict, List
 from datetime import datetime
@@ -21,8 +23,21 @@ class SARGenerator:
             loader=FileSystemLoader(str(template_dir)),
             autoescape=True
         )
+        self.pdf_generator = SARPDFGenerator()
         # In-memory storage for demo (use database in production)
         self._reports = {}
+
+    def generate_pdf_report(self, sar_id: str) -> str:
+        """Generate PDF for an existing report."""
+        report = self.get_report(sar_id)
+        if not report:
+            raise ValueError(f"Report {sar_id} not found")
+            
+        return self.pdf_generator.generate(
+            context=report.context,
+            narrative=report.narrative,
+            report_id=report.sar_id
+        )
     
     def generate_sar(self, context: SARContext, fusion_verdict: Dict = None) -> str:
         """Generate SAR narrative from context.

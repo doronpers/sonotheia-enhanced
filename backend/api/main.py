@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict
 from datetime import datetime
@@ -229,7 +230,13 @@ app.include_router(admin_modules_router)
 app.include_router(badge_router)
 app.include_router(jobs_router)
 app.include_router(transcription_router)
+app.include_router(transcription_router)
 app.include_router(library_router)
+
+# Mount static files for forensics
+static_dir = Path(__file__).parent.parent / "static"
+static_dir.mkdir(exist_ok=True)
+app.mount("/api/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
 # Prometheus metrics endpoint
@@ -520,12 +527,81 @@ async def generate_sar(
     except Exception as e:
         logger.error(f"SAR generation error: {str(e)}")
         raise HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=get_error_response(
                 "PROCESSING_ERROR",
                 "An error occurred during SAR generation"
             )
         )
+
+
+@app.post(
+    "/api/sar/{sar_id}/generate-pdf",
+    tags=["sar"],
+    summary="Generate SAR PDF",
+    description="Generate PDF version of an existing SAR report",
+    response_description="Path to generated PDF"
+)
+@limiter.limit("10/minute")
+async def generate_sar_pdf(
+    request: Request,
+    sar_id: str,
+    api_key: Optional[str] = Depends(verify_api_key)
+):
+    try:
+        pdf_path = sar_generator.generate_pdf_report(sar_id)
+        return {"status": "success", "pdf_path": pdf_path}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"PDF generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get(
+    "/api/sar/{report_id}/pdf",
+    tags=["sar"],
+    summary="Download SAR PDF",
+    description="Download a generated SAR PDF report",
+    response_class=FileResponse
+)
+@limiter.limit("20/minute")
+async def download_sar_pdf(
+    request: Request,
+    report_id: str,
+    api_key: Optional[str] = Depends(verify_api_key)
+):
+    """Download the PDF report."""
+    try:
+        # Check if report exists in memory logic
+        report = sar_generator.get_report(report_id)
+        if not report:
+             raise HTTPException(status_code=404, detail="Report not found")
+        
+        # Construct path (assumes default output dir from generator)
+        filename = f"{report_id}.pdf"
+        pdf_path = Path(__file__).parent.parent / "reports" / filename
+        
+        if not pdf_path.exists():
+             # Try to generate it on the fly if missing
+             try:
+                 pdf_path = sar_generator.generate_pdf_report(report_id)
+                 pdf_path = Path(pdf_path)
+             except Exception:
+                 raise HTTPException(status_code=404, detail="PDF not found and could not be generated")
+        
+        return FileResponse(
+            path=pdf_path, 
+            filename=filename,
+            media_type='application/pdf'
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Download error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 
 
 

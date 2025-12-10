@@ -1,0 +1,27 @@
+{
+  "duration": 5.0,
+  "sampleRate": 44100,
+  "filename": "artifact_sample.wav",
+  "artifacts": [
+    {
+      "id": "ART-001",
+      "name": "Vocoder Artifact",
+      "description": "High-frequency metallic buzzing indicative of neural vocoders.",
+      "startTime": 1.5,
+      "endTime": 2.5,
+      "freqMin": 4000,
+      "freqMax": 8000,
+      "color": "#ef4444"
+    },
+    {
+      "id": "ART-002",
+      "name": "Phase Discontinuity",
+      "description": "Unnatural signal cutoff not present in biological speech.",
+      "startTime": 3.5,
+      "endTime": 3.55,
+      "freqMin": 0,
+      "freqMax": 20000,
+      "color": "#f59e0b"
+    }
+  ]
+}

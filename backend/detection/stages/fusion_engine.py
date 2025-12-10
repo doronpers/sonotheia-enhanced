@@ -26,7 +26,7 @@ class FusionEngine:
         self,
         fusion_method: str = "weighted_average",
         stage_weights: Optional[Dict[str, float]] = None,
-        stage_weights: Optional[Dict[str, float]] = None,
+
         confidence_threshold: float = 0.5,
         decision_threshold: float = 0.5,
         **kwargs
