@@ -368,6 +368,38 @@ class FusionEngine:
                      if previous_score > 0.5 and new_score < 0.5:
                           overrides.append("Glottal Physics Validation (Trust Boost)")
 
+        # -------------------------------------------------------------------------
+        # 4. Prosecution Logic (New)
+        # -------------------------------------------------------------------------
+        # If a dedicated "Prosecutor" sensor is highly confident it's a fake,
+        # we trust it even if other sensors are unsure (e.g. ignoring a weak RawNet).
+        
+        prosecutors = ["feature_extraction", "rawnet3", "artifact_detection"]
+        max_prosecution_score = 0.0
+        prosecutor_name = ""
+        
+        # Extract scores from stage_results for prosecution logic
+        stage_scores = {}
+        for stage, res in stage_results.items():
+            if isinstance(res, dict) and "score" in res:
+                stage_scores[stage] = res["score"]
+
+        for p in prosecutors:
+            s_score = stage_scores.get(p, 0.0)
+            if s_score > max_prosecution_score:
+                max_prosecution_score = s_score
+                prosecutor_name = p
+        
+        # Threshold: 0.70 (Prosecution Confidence)
+        if max_prosecution_score > 0.70:
+            # Only override if the fusion would have failed it
+            if new_score < max_prosecution_score:
+                overrides.append(f"Prosecution Override by {prosecutor_name} ({max_prosecution_score:.2f})")
+                new_score = max(new_score, max_prosecution_score)
+                # Ensure it crosses the decision threshold if it's really close (margin of error)
+                if new_score > 0.74:
+                     new_score = max(new_score, self.decision_threshold + 0.01)
+
         if not overrides:
             return {"override_applied": False, "fused_score": current_score, "decision": current_decision}
             

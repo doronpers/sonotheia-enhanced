@@ -99,6 +99,12 @@ def run_test(count: int, update_library: bool = False):
             
             # Extract Pitch Velocity for debug context
             pitch_vel = 0.0
+            breakdown = {}
+            if "stage_scores" in res:
+                breakdown = res["stage_scores"]
+            elif "fusion_result" in res and "stage_scores" in res["fusion_result"]:
+                breakdown = res["fusion_result"]["stage_scores"]
+
             if "stage_results" in res and "physics_analysis" in res["stage_results"]:
                 physics = res["stage_results"]["physics_analysis"]
                 if "sensor_results" in physics:
@@ -113,7 +119,9 @@ def run_test(count: int, update_library: bool = False):
                 "predicted": "SPOOF" if detected_spoof else "REAL",
                 "decision": decision,
                 "score": score,
-                "pitch_vel": pitch_vel
+                "pitch_vel": pitch_vel,
+                "breakdown": breakdown,
+                "explanation": res.get("explanation", "")
             })
             
             if is_synthetic:
@@ -161,11 +169,33 @@ def run_test(count: int, update_library: bool = False):
     print(f"False Negatives (Fake->Real):  {results['FN']}")
     print("============================================================")
     
+    print("============================================================")
+    
+    # Print logic for analysis
+    print("\nScore Analysis:")
+    tps = [d for d in details if d["predicted"] == "SPOOF" and d["expected"] == "SPOOF"]
+    tns = [d for d in details if d["predicted"] == "REAL" and d["expected"] == "REAL"]
+    fps = [d for d in details if d["predicted"] == "SPOOF" and d["expected"] == "REAL"]
+    fns = [d for d in details if d["predicted"] == "REAL" and d["expected"] == "SPOOF"]
+    
+    if tps:
+        print(f"True Positives (Avg Score: {np.mean([d['score'] for d in tps]):.4f})")
+        for d in tps[:5]: print(f"  - {d['file']}: {d['score']:.4f}")
+    if fps:
+        print(f"False Positives (Avg Score: {np.mean([d['score'] for d in fps]):.4f})")
+        for d in fps[:5]: 
+            print(f"  - {d['file']}: {d['score']:.4f}")
+            print(f"    Breakdown: {d.get('breakdown', {})}")
+            
+    if fns:
+        print(f"False Negatives (Missed Fakes, Avg Score: {np.mean([d['score'] for d in fns]):.4f})")
+        for d in fns[:5]: 
+            print(f"  - {d['file']}: {d['score']:.4f}")
+            print(f"    Breakdown: {d.get('breakdown', {})}")
+            print(f"    Explanation: {d.get('explanation', '')}")
+            
     if results["FP"] > 0:
-        print("\nFalse Positives (Top 5):")
-        fps = [d for d in details if d["expected"] == "REAL" and d["predicted"] == "SPOOF"]
-        for fp in fps[:5]:
-             print(f"- {fp['file']} (Score: {fp['score']:.2f}, Dec: {fp['decision']})")
+        print(f"Recalibration needed. Suggested Threshold > {max([d['score'] for d in fps]):.4f}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Micro Test Run")
