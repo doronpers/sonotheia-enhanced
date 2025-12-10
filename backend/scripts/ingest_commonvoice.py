@@ -116,10 +116,9 @@ def ingest_from_huggingface(count: int, lang: str = "en"):
         logger.info(f"Loading Common Voice ({lang}) from Hugging Face...")
         # Try different Common Voice dataset versions
         dataset_names = [
-            "mozilla-foundation/common_voice_13_0",
-            "mozilla-foundation/common_voice_12_0", 
-            "mozilla-foundation/common_voice_11_0",
-            "mozilla-foundation/common_voice_10_0"
+            "fsicoli/common_voice_22_0",  # Reliable mirror
+            "fsicoli/common_voice_18_0",
+            "mozilla-foundation/common_voice_11_0"
         ]
         ds = None
         last_error = None

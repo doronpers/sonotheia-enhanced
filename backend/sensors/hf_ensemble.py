@@ -110,6 +110,10 @@ DEFAULT_MODELS = [
         model_id="MelodyMachine/Deepfake-audio-detection-V2",
         weight=1.0,
     ),
+    ModelConfig(
+        model_id="mo-thecreator/Deepfake-audio-detection",
+        weight=1.0,
+    ),
 ]
 
 
