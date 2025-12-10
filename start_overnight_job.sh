@@ -25,7 +25,7 @@ echo "============================================================"
 # Python interpreter
 PYTHON="python3"
 if [ -d ".venv" ]; then
-    PYTHON=".venv/bin/python"
+    PYTHON=".venv/bin/python -u"
     echo "Using virtual environment: .venv"
 fi
 

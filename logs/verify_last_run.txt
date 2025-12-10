@@ -1,0 +1,31 @@
+============================================================
+   MICRO TEST RUN (Target: 250 samples per class)
+============================================================
+Found 250 organic and 250 synthetic files.
+HFEnsembleSensor initialized with 2 model(s)
+
+Running analysis...
+Starting model warm-up...
+Model MelodyMachine/Deepfake-audio-detection-V2 warm-up failed: RuntimeError: Model MelodyMachine/Deepfake-audio-detection-V2 raised StopIteration (converted to RuntimeError)
+Model mo-thecreator/Deepfake-audio-detection warm-up failed: RuntimeError: Model mo-thecreator/Deepfake-audio-detection raised StopIteration (converted to RuntimeError)
+Local transformers fallback available
+Model MelodyMachine/Deepfake-audio-detection-V2 attempt 1 failed: Model MelodyMachine/Deepfake-audio-detection-V2 raised StopIteration (converted to RuntimeError). Retrying in 1.0s...
+Model mo-thecreator/Deepfake-audio-detection attempt 1 failed: Model mo-thecreator/Deepfake-audio-detection raised StopIteration (converted to RuntimeError). Retrying in 1.0s...
+Model MelodyMachine/Deepfake-audio-detection-V2 attempt 2 failed: Model MelodyMachine/Deepfake-audio-detection-V2 raised StopIteration (converted to RuntimeError). Retrying in 2.0s...
+Model mo-thecreator/Deepfake-audio-detection attempt 2 failed: Model mo-thecreator/Deepfake-audio-detection raised StopIteration (converted to RuntimeError). Retrying in 2.0s...
+API models unavailable, using local fallback
+Local pipeline loaded on cpu
+LLM Query failed: StopIteration: 
+Traceback (most recent call last):
+  File "/Volumes/Treehorn/Gits/sonotheia-enhanced/backend/detection/stages/explainability.py", line 602, in _query_llm
+    response = self.client.chat_completion(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Treehorn/Gits/sonotheia-enhanced/.venv/lib/python3.12/site-packages/huggingface_hub/inference/_client.py", line 878, in chat_completion
+    provider_helper = get_provider_helper(
+                      ^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Treehorn/Gits/sonotheia-enhanced/.venv/lib/python3.12/site-packages/huggingface_hub/inference/_providers/__init__.py", line 217, in get_provider_helper
+    provider = next(iter(provider_mapping)).provider
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+Model MelodyMachine/Deepfake-audio-detection-V2 attempt 1 failed: Model MelodyMachine/Deepfake-audio-detection-V2 raised StopIteration (converted to RuntimeError). Retrying in 1.0s...
+Model mo-thecreator/Deepfake-audio-detection attempt 1 failed: Model mo-thecreator/Deepfake-audio-detection raised StopIteration (converted to RuntimeError). Retrying in 1.0s...

@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 # Run the synthetic batch test
 # Use tee to show output AND save to file for printing
-python3 backend/scripts/test_synthetic_batch.py "$@" | tee logs/batch_last_run.txt
+.venv/bin/python -u backend/scripts/test_synthetic_batch.py "$@" | tee logs/batch_last_run.txt
 
 # Print the report
 echo "Printing report..."
