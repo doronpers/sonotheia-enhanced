@@ -53,7 +53,14 @@ def get_files(label: str, count: int) -> list[Path]:
     # Filter for audio files (not json) - but we need to verify the audio exists
     # The library structure usually implies audio files are present or strictly handled.
     # We look for files that are NOT .json
-    all_files = [f for f in dir_path.glob("*") if f.is_file() and f.suffix.lower() != ".json"]
+    # Filter for valid audio files (ignore hidden files and json)
+    valid_extensions = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
+    all_files = [
+        f for f in dir_path.glob("*") 
+        if f.is_file() 
+        and not f.name.startswith(".") 
+        and f.suffix.lower() in valid_extensions
+    ]
     
     if len(all_files) <= count:
         return all_files

@@ -232,6 +232,8 @@ app.include_router(jobs_router)
 app.include_router(transcription_router)
 app.include_router(transcription_router)
 app.include_router(library_router)
+from api.factory_router import router as factory_router
+app.include_router(factory_router)
 
 # Mount static files for forensics
 static_dir = Path(__file__).parent.parent / "static"
