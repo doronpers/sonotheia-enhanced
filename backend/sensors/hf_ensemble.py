@@ -315,7 +315,7 @@ class HFEnsembleSensor(BaseSensor):
                     None,
                     lambda: self.client.audio_classification(
                         model=model_id,
-                        data=audio_bytes
+                        audio=audio_bytes
                     )
                 ),
                 timeout=timeout
