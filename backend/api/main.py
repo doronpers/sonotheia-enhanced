@@ -527,7 +527,6 @@ async def generate_sar(
     except Exception as e:
         logger.error(f"SAR generation error: {str(e)}")
         raise HTTPException(
-        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=get_error_response(
                 "PROCESSING_ERROR",
@@ -608,6 +607,11 @@ async def download_sar_pdf(
 
 
 # Dashboard endpoints
+
+import psutil
+import time
+START_TIME = time.time()
+
 @app.get(
     "/api/dashboard/status",
     tags=["demo"],
@@ -616,14 +620,30 @@ async def download_sar_pdf(
 )
 @limiter.limit("100/minute")
 async def get_dashboard_status(request: Request):
-    """Get system status and metrics for dashboard"""
+    """Get real-time system status and health metrics"""
+    
+    # Calculate uptime
+    uptime_seconds = int(time.time() - START_TIME)
+    uptime_str = f"{uptime_seconds // 3600}h {(uptime_seconds % 3600) // 60}m"
+    
+    # Check Quantization Status (Infer from architecture/env)
+    # If running on Mac/Linux without GPU, we likely used quantization
+    is_quantized = False
+    try:
+        import torch
+        if not torch.cuda.is_available() and psutil.cpu_percent() > 0:
+            is_quantized = True # Heuristic: CPU mode usually implies quantization in our new setup
+    except:
+        pass
+
     return {
-        "totalTests": 15,
-        "passedTests": 12,
-        "failedTests": 2,
-        "uptime": "99.9%",
-        "lastUpdate": datetime.now().isoformat(),
-        "systemHealth": "operational"
+        "engineStatus": "ONLINE (Local)",
+        "cpuUsage": psutil.cpu_percent(),
+        "memoryUsage": psutil.virtual_memory().percent,
+        "quantizationActive": is_quantized,
+        "uptime": uptime_str,
+        "systemHealth": "operational",
+        "lastUpdate": datetime.now().isoformat()
     }
 
 

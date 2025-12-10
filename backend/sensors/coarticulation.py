@@ -18,7 +18,7 @@ FORMANT_STABILITY_THRESHOLD = 50.0  # Hz variance for stable vowel
 
 TRANSITION_CONSTRAINTS = {
     "max_formant_velocity_hz_ms": 30.0,
-    "min_formant_continuity": 0.8,
+    "min_formant_continuity": 0.6, # Lowered from 0.8 to accept organic irregularities
     "min_transition_duration_ms": 30.0,
 }
 
@@ -273,12 +273,17 @@ class CoarticulationSensor(BaseSensor):
         anomaly_score = 0.0
         
         # Check for impossible velocities
+        # Check for impossible velocities
         impossible_f1 = np.sum(f1_velocity_hz_ms > max_allowed)
         impossible_f2 = np.sum(f2_velocity_hz_ms > max_allowed)
         
-        if impossible_f1 > 0 or impossible_f2 > 0:
-            pct_impossible = (impossible_f1 + impossible_f2) / (2 * len(f1_velocity_hz_ms))
-            anomaly_score = min(0.9, 0.5 + pct_impossible)
+        # Calculate percentage of frames that violate constraints
+        total_frames = len(f1_velocity_hz_ms)
+        pct_impossible = (impossible_f1 + impossible_f2) / (2 * total_frames)
+        
+        # ENHANCEMENT: Only flag if more than 2% of frames are impossible (robust to glitches)
+        if pct_impossible > 0.02:
+            anomaly_score = min(0.9, 0.4 + pct_impossible) # Start at 0.4 + pct
         else:
             anomaly_score = 0.1
         

@@ -15,6 +15,7 @@ and can generate run-on sentences or 30-second flows of speech with zero intake 
 from typing import Dict
 import numpy as np
 from .base import BaseSensor, SensorResult
+from backend.calibration.environment import EnvironmentAnalyzer
 from .vad import VoiceActivityDetector
 from backend.utils.config import get_threshold
 
@@ -112,26 +113,26 @@ class BreathSensor(BaseSensor):
                 detail="Audio too short for analysis."
             )
         
+        # Dynamic Calibration: Analyze Environment
+        env_stats = EnvironmentAnalyzer.analyze(audio_data, samplerate)
+        noise_floor = env_stats["noise_floor_db"]
+        
+        # Adapt silence threshold: Must be at least 6dB above noise floor
+        # But never lower than the configured base threshold (e.g., -60dB)
+        base_threshold = self.silence_threshold_db # Use instance attribute
+        adapted_threshold = max(base_threshold, noise_floor + 6.0)
+        
+        if adapted_threshold > base_threshold:
+            logger.debug(f"BreathSensor: Adapted silence threshold from {base_threshold}dB to {adapted_threshold:.1f}dB due to noise floor ({noise_floor:.1f}dB)")
+        
         # Use robust VAD to find speech segments (breath groups)
-        
-        # Autonomous Tuning: Calculate dynamic noise threshold
-        noise_floor_db = self._calculate_noise_floor(audio_data)
-        
-        # Default safety: default to configured hard threshold if noise floor is absurdly low (digital silence)
-        # or absurdly high (constant loud noise).
-        # Otherwise, adapt: silence = noise_floor + 10dB (10dB SNR assumption for speech onset)
-        tuned_threshold = self.silence_threshold_db
-        
-        if -80 < noise_floor_db < -30:
-            tuned_threshold = max(self.silence_threshold_db, noise_floor_db + 10.0)
-            
         # Create a temporary VAD instance with the tuned threshold for this specific analysis
         # (This is lightweight)
         vad = VoiceActivityDetector(
             speech_threshold=0.5,
             min_speech_duration=0.1,
             min_silence_duration=0.2,
-            silence_threshold_db=tuned_threshold
+            silence_threshold_db=adapted_threshold # Use adapted threshold
         )
         
         max_duration = vad.get_max_continuous_speech(audio_data, samplerate)

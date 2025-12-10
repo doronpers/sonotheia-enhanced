@@ -306,11 +306,12 @@ class FormantTrajectorySensor(BaseSensor):
             if len(velocity_array) == 0:
                 continue
             
-            # Find maximum velocity for this formant
-            formant_max = np.max(velocity_array)
+            # Find maximum velocity for this formant (Robust: Use 99th percentile to filter glitches)
+            # Single-frame tracking errors can cause massive velocity spikes.
+            velocity_robust_max = np.percentile(velocity_array, 99)
             
-            if formant_max > max_velocity:
-                max_velocity = formant_max
+            if velocity_robust_max > max_velocity:
+                max_velocity = velocity_robust_max
                 max_formant = formant_num
         
         return max_velocity, max_formant

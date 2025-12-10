@@ -73,6 +73,8 @@ class PhysicsAnalysisStage:
             total_score = 0.0
             
             for name, res in results_dict.items():
+                if res.value > 0:
+                   print(f"DEBUG: {name} raw value: {res.value}")
                 # Convert SensorResult to dict
                 res_dict = {
                     "passed": res.passed,

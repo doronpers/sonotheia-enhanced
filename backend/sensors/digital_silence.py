@@ -24,6 +24,7 @@ except ImportError:
     HAS_LIBROSA = False
 
 from .base import BaseSensor, SensorResult
+from backend.calibration.environment import EnvironmentAnalyzer
 
 # Detection thresholds
 MIN_NOISE_FLOOR_VARIANCE = 1e-8  # Minimum variance for natural room tone (dB²)
@@ -96,6 +97,20 @@ class DigitalSilenceSensor(BaseSensor):
             )
         
         try:
+            # Dynamic Calibration: Check environment first
+            env_stats = EnvironmentAnalyzer.analyze(audio_data, samplerate)
+            
+            # If noise floor is too high (> -40dB), digital silence detection is unreliable
+            # because the noise masks the artifacts.
+            if env_stats["is_noisy"] and env_stats["noise_floor_db"] > -40.0:
+                 return SensorResult(
+                    sensor_name=self.name,
+                    passed=True, # Trust defense
+                    value=0.0,
+                    threshold=0.5,
+                    detail=f"Skipped due to high noise floor ({env_stats['noise_floor_db']:.1f}dB). Environment too noisy for silence analysis."
+                )
+
             # Analyze noise floor and spectral flux
             noise_floor_results = self._analyze_noise_floor(audio_data, samplerate)
             spectral_flux_results = self._analyze_spectral_flux(audio_data, samplerate)
@@ -259,9 +274,12 @@ class DigitalSilenceSensor(BaseSensor):
         """
         frame_length = int(self.frame_length_ms * sr / 1000.0)
         hop_length = int(self.hop_length_ms * sr / 1000.0)
-        nperseg = min(frame_length, 1024)
+        # ENHANCEMENT: Use 2048 for consistency and avoid warnings
+        nperseg = min(frame_length, 2048)
         
-        if len(audio) < nperseg * 2:
+        # Require minimum 2048 samples for reliable spectral analysis
+        if len(audio) < 2048:
+            # logger.debug(f"Audio too short for spectral flux: {len(audio)} samples < 2048")
             return {
                 "has_instant_change": False,
                 "instant_change_count": 0,
@@ -334,7 +352,10 @@ class DigitalSilenceSensor(BaseSensor):
             end_sample = end_frame * hop_length
             region = audio[start_sample:end_sample]
             
+            # ENHANCEMENT: Use 2048 samples minimum to avoid n_fft warnings
+            # At 16kHz, 2048 samples = 128ms
             if len(region) < 2048:
+                # logger.debug(f"Skipping short silence region: {len(region)} samples < 2048 (128ms)")
                 continue
 
             # Compute room tone signature (spectral centroid, flatness)

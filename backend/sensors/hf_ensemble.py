@@ -347,12 +347,37 @@ class HFEnsembleSensor(BaseSensor):
             # Use a lightweight model for local inference
             # This model should be cached after first download
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            self._local_pipeline = pipeline(
-                "audio-classification",
-                model="MelodyMachine/Deepfake-audio-detection-V2",
-                device=device,
-            )
-            logger.info(f"Local pipeline loaded on {device}")
+            model_id = "MelodyMachine/Deepfake-audio-detection-V2"
+            
+            if device == "cpu":
+                logger.info("Loading model for CPU with Dynamic Quantization...")
+                # Load model/tokenizer manually to apply quantization
+                from transformers import AutoModelForAudioClassification, AutoFeatureExtractor
+                
+                model = AutoModelForAudioClassification.from_pretrained(model_id)
+                feature_extractor = AutoFeatureExtractor.from_pretrained(model_id)
+                
+                # Apply Dynamic Quantization (Int8)
+                model = torch.quantization.quantize_dynamic(
+                    model, {torch.nn.Linear}, dtype=torch.qint8
+                )
+                
+                self._local_pipeline = pipeline(
+                    "audio-classification",
+                    model=model,
+                    feature_extractor=feature_extractor,
+                    device=-1 # Force CPU in pipeline
+                )
+                logger.info("Local pipeline loaded on CPU (Quantized)")
+            else:
+                # GPU - Load normally (FP16/FP32 handled by device)
+                self._local_pipeline = pipeline(
+                    "audio-classification",
+                    model=model_id,
+                    device=device,
+                )
+                logger.info(f"Local pipeline loaded on {device}")
+            
             return self._local_pipeline
         except Exception as e:
             logger.error(f"Failed to load local pipeline: {e}")

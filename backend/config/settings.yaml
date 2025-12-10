@@ -104,10 +104,11 @@ fusion:
   profiles:
     default:
       weights:
-        GlottalInertiaSensor: 0.35
+        GlottalInertiaSensor: 0.30    # Reduced from 0.35 to make room
+        ProsodicContinuitySensor: 0.15 # New Sensor
         PitchVelocitySensor: 0.15     # Replaces PhaseCoherence
-        FormantTrajectorySensor: 0.20
-        DigitalSilenceSensor: 0.15
+        FormantTrajectorySensor: 0.15 # Reduced from 0.20
+        DigitalSilenceSensor: 0.10    # Reduced from 0.15
         GlobalFormantSensor: 0.10
         CoarticulationSensor: 0.05
         HFDeepfakeSensor: 0.00
