@@ -48,9 +48,9 @@ echo ""
 echo "[3/6] Generating Synthetic Samples ($SYNTHETIC_COUNT per service)..."
 # Check for API keys before running to avoid errors
 if grep -q "ELEVENLABS_API_KEY" .env || grep -q "OPENAI_API_KEY" .env; then
-    # Generate new synthetic samples (with Telephony Augmentation)
-    echo "Generating $SYNTHETIC_COUNT synthetic samples per service..."
-    $PYTHON backend/scripts/generate_red_team.py --count $SYNTHETIC_COUNT --service all --augment || echo "Generation warning (check logs/credits)"
+    echo "Step 3: Generating Synthetic Samples (Red Team)..."
+    # Using OpenAI only due to ElevenLabs quota limits
+    $PYTHON backend/scripts/generate_red_team.py --service openai --count $SYNTHETIC_COUNT --augment || echo "Generation warning (continuing)..."
 else
     echo "Skipping generation: No API keys found in .env"
 fi
