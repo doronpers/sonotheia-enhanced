@@ -57,6 +57,11 @@ class PhysicsAnalysisStage:
             # Assume 16kHz sample rate as per pipeline standard
             # Ideally this should be passed in, but the pipeline standardizes on 16kHz
             sample_rate = 16000
+
+            # Risk contribution constants
+            PROSECUTION_BASE_INCREMENT = 0.2
+            PROSECUTION_MAX_INCREMENT = 0.6
+            PROSECUTION_SEVERITY_BONUS = 0.1
             
             # Run all registered sensors
             # analyze_all is async, so we need to run it in an event loop
@@ -88,21 +93,19 @@ class PhysicsAnalysisStage:
                 # Normalize score (some sensors return value, not 0-1 probability)
                 # This is a heuristic aggregation
                 if res.value is not None:
-                    # If passed is True, score contributes 0 to risk
-                    # If passed is False, score contributes to risk
-                    if res.passed is False:
-                        # Convert boolean passed status to risk score
-                        # passed=True (real) -> risk=0.0
-                        # passed=False (spoof) -> risk=1.0
-                        risk_score = 1.0
-
-                        # ENHANCEMENT: Validate risk_score is in [0,1] range
-                        if res.value is not None:
-                             # Use actual value if available and reasonable
-                             risk_score = max(0.0, min(1.0, float(res.value)))
-                        
-                        # Simple risk contribution
-                        total_score += 0.2 * risk_score # Weighted by magnitude of failure
+                    # Only count prosecution-category failures toward risk to reduce organic false positives
+                    category = self._categorize_sensor(name, res.metadata)
+                    if res.passed is False and category == "prosecution":
+                        # Scale contribution by severity to still flag clearly synthetic noise
+                        severity = res.value
+                        if severity < 0.4:
+                            increment = PROSECUTION_BASE_INCREMENT
+                        else:
+                            increment = min(
+                                PROSECUTION_MAX_INCREMENT,
+                                PROSECUTION_SEVERITY_BONUS + severity,
+                            )  # keep bounded
+                        total_score += increment  # Prosecution failures add risk
             
             # Cap risk score at 1.0
             physics_score = min(total_score, 1.0)
@@ -131,3 +134,22 @@ class PhysicsAnalysisStage:
             "total_sensors": 0,
             "is_spoof": False
         }
+
+    def _categorize_sensor(self, name: str, metadata: Optional[Dict[str, Any]]) -> str:
+        """
+        Infer sensor category (prosecution/defense) based on metadata or name.
+
+        Sensors tagged as prosecution indicate fake evidence; defense indicates real evidence.
+        """
+        if metadata and metadata.get("category"):
+            return metadata.get("category")
+
+        lower = name.lower()
+        # Prosecution indicators (risk)
+        prosecution_tokens = [
+            "pitch", "glottal", "silence", "two", "prosodic",
+            "phase", "hf", "deepfake", "artifact"
+        ]
+        if any(tok in lower for tok in prosecution_tokens):
+            return "prosecution"
+        return "defense"
