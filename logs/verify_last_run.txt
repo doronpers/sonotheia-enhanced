@@ -1,7 +1,7 @@
 ============================================================
-   MICRO TEST RUN (Target: 2 samples per class)
+   MICRO TEST RUN (Target: 25 samples per class)
 ============================================================
-Found 2 organic and 2 synthetic files.
+Found 25 organic and 25 synthetic files.
 HFEnsembleSensor initialized with 2 model(s)
 
 Running analysis...
@@ -12,33 +12,40 @@ Local pipeline loaded on cpu
 API models unavailable, using local fallback
 API models unavailable, using local fallback
 API models unavailable, using local fallback
-
-============================================================
-   RESULTS SUMMARY
-============================================================
-Total Processed: 4
-Errors:          0
-------------------------------------------------------------
-Accuracy:        25.00%
-Precision:       0.00%
-Recall:          0.00%
-------------------------------------------------------------
-True Positives (Caught Fakes): 0
-True Negatives (Cleared Real): 1
-False Positives (Real->Fake):  1
-False Negatives (Fake->Real):  2
-============================================================
-============================================================
-
-Score Analysis:
-False Positives (Avg Score: 0.7800)
-  - libri_1272-128104-0003.flac: 0.7800
-    Breakdown: {'feature_extraction': 0.7351362148920696, 'temporal_analysis': 0.586, 'artifact_detection': 0.78, 'rawnet3': 0.6626103520393372}
-False Negatives (Missed Fakes, Avg Score: 0.6486)
-  - openai_alloy_1765330234_21_landline.wav: 0.6658
-    Breakdown: {'feature_extraction': 0.7971535364786785, 'temporal_analysis': 0.508, 'artifact_detection': 0.65, 'rawnet3': 0.6650976538658142}
-    Explanation: {'success': True, 'summary': 'UNCERTAIN RESULT. The detection result is inconclusive. Manual review recommended. Detection score: 0.67, Confidence: 0.81.', 'stage_explanations': {'feature_extraction': 'Feature analysis extracted 234 frames with anomaly score 0.797. Elevated anomaly score suggests unusual acoustic patterns.', 'temporal_analysis': 'Temporal analysis found 13 potential anomalies with score 0.508. Discontinuities or unusual transitions detected.', 'artifact_detection': 'Artifact detection found 7 artifacts with score 0.650. Minimal artifacts detected.', 'physics_analysis': 'Stage physics_analysis completed.', 'rawnet3': 'Neural network analysis produced score 0.665. Model indicates synthetic characteristics.'}, 'feature_importance': {'top_features': {'mfcc': {'importance_score': 1.0, 'mean': -31.372516632080078, 'std': 110.86261749267578}, 'lfcc': {'importance_score': 1.0, 'mean': -4.239342212677002, 'std': 21.895505905151367}, 'logspec': {'importance_score': 0.7829212188720703, 'mean': -4.888789653778076, 'std': 3.9146060943603516}}, 'total_features_analyzed': 3}, 'temporal_explanations': {'segment_explanations': ['Suspicious segment at 0.24s - 0.44s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.25s - 0.45s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.29s - 0.49s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.30s - 0.50s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.31s - 0.51s (confidence: 1.00, type: discontinuity)'], 'num_discontinuities': 13, 'temporal_summary': 'Found 13 suspicious segments and 13 discontinuities.'}, 'artifact_explanations': {'by_type': {'silence': 2, 'click': 5}, 'explanations': ['2 silence artifact(s) detected', '5 click artifact(s) detected'], 'total_artifacts': 7}, 'reasoning_chain': ['1. Feature extraction analyzed 234 frames with anomaly score 0.797.', '2. Temporal analysis found 13 anomalies with score 0.508.', '3. Artifact detection found 7 artifacts with score 0.650.', '4. RawNet3 neural network produced score 0.665.', '5. Scores fused using Weighted Average to produce final score 0.666.', '6. Final decision: UNCERTAIN.'], 'decision_trace': [{'stage': 'Physics Analysis', 'sensor': 'Breath Sensor (Max Phonation)', 'status': 'PASSED', 'score': '0.000 (Threshold: 1.3114)', 'details': None}, {'stage': 'Physics Analysis', 'sensor': 'Dynamic Range Sensor (Crest Factor)', 'status': 'PASSED', 'score': '0.000 (Threshold: 5.0)', 'details': None}, {'stage': 'Physics Analysis', 'sensor': 'Bandwidth Sensor (Rolloff Frequency)', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 4000)', 'details': 'Context Detected: NARROWBAND (Rolloff: 2420Hz)'}, {'stage': 'Physics Analysis', 'sensor': 'Pitch Velocity Sensor (Larynx Analysis)', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Max Glide: 40.0 st/s (Limit: 175.0).'}, {'stage': 'Physics Analysis', 'sensor': 'Glottal Inertia Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Glottal inertia analysis passed. Score: 0.00'}, {'stage': 'Physics Analysis', 'sensor': 'Digital Silence Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'Digital silence artifacts detected. Score: 0.70 (violations: 10). Indicates piecemeal audio generation rather than continuous recording.'}, {'stage': 'Physics Analysis', 'sensor': 'Global Formant Stats', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Global formant stats passed. Score: 0.40'}, {'stage': 'Physics Analysis', 'sensor': 'Coarticulation Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'Coarticulation patterns indicate synthetic speech. Anomaly score: 0.52 (velocity: 0.90, smoothness: 0.70)'}, {'stage': 'Physics Analysis', 'sensor': 'FormantTrajectory', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 1.0)', 'details': 'Max formant velocity: F4 at 4234.4 Hz/10ms (limit: 600 Hz/10ms)'}, {'stage': 'Physics Analysis', 'sensor': 'Two-Mouth Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Two-Mouth analysis passed. Score: 0.00'}, {'stage': 'Physics Analysis', 'sensor': 'ENF Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'No ENF signature detected. Authentic recordings typically contain 50/60Hz power grid frequency signatures from electrical devices.'}, {'stage': 'Physics Analysis', 'sensor': 'Phase Coherence Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Phase coherence analysis passed. Score: 0.30'}, {'stage': 'Physics Analysis', 'sensor': 'AI Deepfake Ensemble (Hugging Face)', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'Ensemble score: 100.00% (local_fallback:1.00)'}, {'stage': 'Neural Network', 'sensor': 'RawNet3', 'status': 'INFO', 'score': '0.665', 'details': 'Model confidence. Demo Mode: False'}, {'stage': 'Signal Analysis', 'sensor': 'Artifact Detector', 'status': 'INFO', 'score': '0.650', 'details': 'Found 7 artifacts.'}], 'arbiter_context': {'override_applied': False, 'details': ''}, 'explainability_score': 0.7130377549766717, 'confidence_factors': []}
-  - openai_echo_1765327950_27.mp3: 0.6314
-    Breakdown: {'feature_extraction': 0.756826917330424, 'temporal_analysis': 0.466, 'artifact_detection': 0.55, 'rawnet3': 0.6653965711593628}
-    Explanation: {'success': True, 'summary': 'UNCERTAIN RESULT. The detection result is inconclusive. Manual review recommended. Detection score: 0.63, Confidence: 0.81.', 'stage_explanations': {'feature_extraction': 'Feature analysis extracted 250 frames with anomaly score 0.757. Elevated anomaly score suggests unusual acoustic patterns.', 'temporal_analysis': 'Temporal analysis found 10 potential anomalies with score 0.466. Discontinuities or unusual transitions detected.', 'artifact_detection': 'Artifact detection found 6 artifacts with score 0.550. Minimal artifacts detected.', 'physics_analysis': 'Stage physics_analysis completed.', 'rawnet3': 'Neural network analysis produced score 0.665. Model indicates synthetic characteristics.'}, 'feature_importance': {'top_features': {'mfcc': {'importance_score': 1.0, 'mean': -14.325736045837402, 'std': 112.8756332397461}, 'lfcc': {'importance_score': 1.0, 'mean': -1.2253371477127075, 'std': 18.088930130004883}, 'logspec': {'importance_score': 0.540961503982544, 'mean': -4.331300258636475, 'std': 2.7048075199127197}}, 'total_features_analyzed': 3}, 'temporal_explanations': {'segment_explanations': ['Suspicious segment at 0.00s - 0.16s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.00s - 0.17s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.00s - 0.18s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.00s - 0.19s (confidence: 1.00, type: discontinuity)', 'Suspicious segment at 0.00s - 0.20s (confidence: 1.00, type: discontinuity)'], 'num_discontinuities': 10, 'temporal_summary': 'Found 10 suspicious segments and 10 discontinuities.'}, 'artifact_explanations': {'by_type': {'silence': 1, 'click': 5}, 'explanations': ['1 silence artifact(s) detected', '5 click artifact(s) detected'], 'total_artifacts': 6}, 'reasoning_chain': ['1. Feature extraction analyzed 250 frames with anomaly score 0.757.', '2. Temporal analysis found 10 anomalies with score 0.466.', '3. Artifact detection found 6 artifacts with score 0.550.', '4. RawNet3 neural network produced score 0.665.', '5. Scores fused using Weighted Average to produce final score 0.631.', '6. Final decision: UNCERTAIN.'], 'decision_trace': [{'stage': 'Physics Analysis', 'sensor': 'Breath Sensor (Max Phonation)', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 1.3114)', 'details': 'Phonation duration of 2.45s exceeds biological limit.'}, {'stage': 'Physics Analysis', 'sensor': 'Dynamic Range Sensor (Crest Factor)', 'status': 'PASSED', 'score': '0.000 (Threshold: 5.0)', 'details': None}, {'stage': 'Physics Analysis', 'sensor': 'Bandwidth Sensor (Rolloff Frequency)', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 4000)', 'details': 'Context Detected: WIDEBAND (Rolloff: 5337Hz)'}, {'stage': 'Physics Analysis', 'sensor': 'Pitch Velocity Sensor (Larynx Analysis)', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Max Glide: 129.6 st/s (Limit: 175.0).'}, {'stage': 'Physics Analysis', 'sensor': 'Glottal Inertia Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Glottal inertia analysis passed. Score: 0.00'}, {'stage': 'Physics Analysis', 'sensor': 'Digital Silence Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'Digital silence artifacts detected. Score: 0.60 (violations: 3). Indicates piecemeal audio generation rather than continuous recording.'}, {'stage': 'Physics Analysis', 'sensor': 'Global Formant Stats', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Global formant stats passed. Score: 0.40'}, {'stage': 'Physics Analysis', 'sensor': 'Coarticulation Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'Coarticulation patterns indicate synthetic speech. Anomaly score: 0.52 (velocity: 0.90, smoothness: 0.70)'}, {'stage': 'Physics Analysis', 'sensor': 'FormantTrajectory', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 1.0)', 'details': 'Max formant velocity: F4 at 1984.4 Hz/10ms (limit: 600 Hz/10ms)'}, {'stage': 'Physics Analysis', 'sensor': 'Two-Mouth Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Two-Mouth analysis passed. Score: 0.29'}, {'stage': 'Physics Analysis', 'sensor': 'ENF Sensor', 'status': 'VIOLATION', 'score': '0.000 (Threshold: 0.5)', 'details': 'No ENF signature detected. Authentic recordings typically contain 50/60Hz power grid frequency signatures from electrical devices.'}, {'stage': 'Physics Analysis', 'sensor': 'Phase Coherence Sensor', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Phase coherence analysis passed. Score: 0.30'}, {'stage': 'Physics Analysis', 'sensor': 'AI Deepfake Ensemble (Hugging Face)', 'status': 'PASSED', 'score': '0.000 (Threshold: 0.5)', 'details': 'Ensemble score: 0.00% (local_fallback:0.00)'}, {'stage': 'Neural Network', 'sensor': 'RawNet3', 'status': 'INFO', 'score': '0.665', 'details': 'Model confidence. Demo Mode: False'}, {'stage': 'Signal Analysis', 'sensor': 'Artifact Detector', 'status': 'INFO', 'score': '0.550', 'details': 'Found 6 artifacts.'}], 'arbiter_context': {'override_applied': False, 'details': ''}, 'explainability_score': 0.6901380037201775, 'confidence_factors': []}
-Recalibration needed. Suggested Threshold > 0.7800
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback
+API models unavailable, using local fallback

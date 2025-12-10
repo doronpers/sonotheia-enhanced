@@ -334,7 +334,7 @@ class DigitalSilenceSensor(BaseSensor):
             end_sample = end_frame * hop_length
             region = audio[start_sample:end_sample]
             
-            if len(region) < 512:
+            if len(region) < 2048:
                 continue
 
             # Compute room tone signature (spectral centroid, flatness)

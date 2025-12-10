@@ -41,11 +41,11 @@ class FusionEngine:
         """
         self.fusion_method = fusion_method
         self.stage_weights = stage_weights or {
-            "feature_extraction": 0.30, # Increased to 0.30
+            "feature_extraction": 0.25,
             "temporal_analysis": 0.15,
             "artifact_detection": 0.15,
-            "rawnet3": 0.25, # Reduced to 0.25
-            "explainability": 0.15,
+            "rawnet3": 0.25,
+            "physics_analysis": 0.20, # Added Physics
         }
         self.profiles = kwargs.get("profiles", {}) # Store fusion profiles
         self.confidence_threshold = confidence_threshold
@@ -96,8 +96,11 @@ class FusionEngine:
                 # WORKAROUND: Map known names until pipeline passes category in result.metadata
                 category = "defense"
                 lower_name = name.lower()
-                if "glottal" in lower_name or "pitch velocity" in lower_name or "silence" in lower_name or "two-mouth" in lower_name:
+                if "prosecution" in lower_name or "glottal" in lower_name or "pitch velocity" in lower_name or "silence" in lower_name or "two-mouth" in lower_name or "enf" in lower_name:
                     category = "prosecution"
+                
+                # Clamp value to 0-1 range (safety for sensors returning raw metrics)
+                val = min(max(val, 0.0), 1.0)
                 
                 # Check optional metadata override
                 meta = res.get("metadata") or {}
@@ -125,8 +128,8 @@ class FusionEngine:
             decision_logic = "Weighted Average"
             
             # Logic: High Risk trumps everything (Veto)
-            # SAFE MODE: Disabled Veto to prevent false positives from single sensors
-            if risk_score > 0.98: # Was 0.8. Raised to 0.98 (effectively disabled for non-certainty)
+            # SAFE MODE: Lowered threshold to 0.85 to allow strong physics violations to veto
+            if risk_score > 0.85: 
                 final_score = max(final_score, risk_score)
                 decision_logic = "Prosecution Veto (High Risk)"
             
@@ -188,6 +191,8 @@ class FusionEngine:
             score = None
             if "score" in result:
                 score = result["score"]
+            elif "physics_score" in result: # Added support for Physics Stage
+                score = result["physics_score"]
             elif "anomaly_score" in result:
                 score = result["anomaly_score"]
             elif "temporal_score" in result:
