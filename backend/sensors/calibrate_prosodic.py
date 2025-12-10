@@ -25,9 +25,10 @@ import numpy as np
 import yaml
 
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir.parent))
 
-from sensors.prosodic_continuity import ProsodicContinuitySensor
+from backend.sensors.prosodic_continuity import ProsodicContinuitySensor
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
