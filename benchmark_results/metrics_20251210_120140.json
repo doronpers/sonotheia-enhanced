@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.52,
+  "precision": 0.5166666666666667,
+  "recall": 0.62,
+  "f1_score": 0.5636363636363636,
+  "auc": 0.5392,
+  "threshold": 0.5,
+  "true_negative": 21,
+  "false_positive": 29,
+  "false_negative": 19,
+  "true_positive": 31,
+  "fpr": 0.58,
+  "fnr": 0.38
+}

@@ -28,7 +28,7 @@ fi
 # 1. Analyze Library
 echo ""
 echo "[1/3] Analyzing EXISTING Audio Library (Force Update)..."
-$PYTHON backend/scripts/analyze_library.py --force --label all || echo "Analysis failed"
+$PYTHON backend/scripts/analyze_library.py --label all || echo "Analysis failed"
 
 # 2. Calibrate
 echo ""

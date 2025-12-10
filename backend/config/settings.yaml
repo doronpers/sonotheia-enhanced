@@ -73,22 +73,22 @@ sensors:
     confidence_threshold: 0.70    # Calibration suggests 0.00, keeping safe default or use 0.0 only if strictly required
 
   breath:
-    max_phonation_seconds: 1.7637 # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
+    max_phonation_seconds: 1.3114 # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
     silence_threshold_db: -60     # Silence detection
     frame_size_seconds: 0.02      # Analysis window
 
   dynamic_range:
-    min_crest_factor: 6.5013 # Calibration 2025-12-09
+    min_crest_factor: 7.6502 # Calibration 2025-12-09
 
   bandwidth:
-    min_rolloff_hz: 4476.7889 # Context Detection Threshold
+    min_rolloff_hz: 4134.6778 # Context Detection Threshold
 
   pitch_velocity:
     max_velocity_threshold: 175.0 # Recalibrated 2025-12-10 (Organic P99: 174.28 st/s)
     min_voiced_duration: 0.05
 
   digital_silence:
-    silence_threshold: 0.3056 # Calibration 2025-12-09
+    silence_threshold: 0.4056 # Calibration 2025-12-09
 
 # Fusion weights (OVERRIDDEN BY PROFILES BELOW)
 fusion:

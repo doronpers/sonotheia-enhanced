@@ -1,8 +1,8 @@
 # Benchmark Configuration for Sonotheia MVP
 
 # Dataset configuration
-dataset_dir: "../data/calibration"  # Directory containing audio files
-metadata_file: "metadata.csv"  # CSV with columns: file_path, label (0=genuine, 1=spoof)
+dataset_dir: "/Volumes/Treehorn/Gits/sonotheia-enhanced/backend/data/library"  # Directory containing audio files
+metadata_file: "benchmark_metadata.csv"  # CSV with columns: file_path, label (0=genuine, 1=spoof)
 
 # Output configuration
 output_dir: "./benchmark_results"  # Where to save results
