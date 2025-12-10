@@ -85,15 +85,15 @@ class FusionEngineConfig:
     fusion_method: str = "weighted_average"  # "weighted_average", "max", "learned"
     stage_weights: Dict[str, float] = field(
         default_factory=lambda: {
-            "feature_extraction": 0.15,
+            "feature_extraction": 0.30, # Increased to capture acoustic anomalies
             "temporal_analysis": 0.15,
             "artifact_detection": 0.15,
-            "rawnet3": 0.40,
+            "rawnet3": 0.25, # Reduced due to local mode limitations
             "explainability": 0.15,
         }
     )
     confidence_threshold: float = 0.5
-    decision_threshold: float = 0.5
+    decision_threshold: float = 0.6 # Raised to 0.6 for Safe Mode (Organic P99 protection)
     profiles: Dict[str, Any] = field(default_factory=dict)
 
 

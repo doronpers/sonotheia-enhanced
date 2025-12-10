@@ -88,29 +88,32 @@ def run_test(count: int, update_library: bool = False):
     print("\nRunning analysis...")
     for file_path, is_synthetic in tqdm(test_set, unit="file"):
         try:
-            # Load
-            with open(file_path, "rb") as f:
-                import io
-                audio_io = io.BytesIO(f.read())
-                audio_array, sr = load_and_preprocess_audio(audio_io)
-            
-            # Detect
-            res = pipeline.detect(audio_array, quick_mode=False)
+            # Detect directly from path to allow pipeline's loading fallbacks
+            res = pipeline.detect(str(file_path), quick_mode=False)
             
             # Check correctness
-            # We treat UNCERTAIN as a "safe" result effectively, but statistically:
-            # If is_spoof=True, it thinks it's fake.
+            # The pipeline returns "is_spoof" (bool) and "detection_score" (float)
             detected_spoof = res.get("is_spoof", False)
             decision = res.get("decision", "UNKNOWN")
+            score = res.get("detection_score", 0.0)
             
+            # Extract Pitch Velocity for debug context
+            pitch_vel = 0.0
+            if "stage_results" in res and "physics_analysis" in res["stage_results"]:
+                physics = res["stage_results"]["physics_analysis"]
+                if "sensor_results" in physics:
+                    pv = physics["sensor_results"].get("Pitch Velocity Sensor")
+                    if pv:
+                        pitch_vel = pv.get("score") or pv.get("value", 0.0)
+
             # Record detailed stat
             details.append({
                 "file": file_path.name,
                 "expected": "SPOOF" if is_synthetic else "REAL",
                 "predicted": "SPOOF" if detected_spoof else "REAL",
                 "decision": decision,
-                "score": res.get("detection_score", 0.0),
-                "pitch_vel": res.get("stage_results", {}).get("physics_analysis", {}).get("sensor_results", {}).get("Pitch Velocity Sensor", {}).get("score", 0.0)
+                "score": score,
+                "pitch_vel": pitch_vel
             })
             
             if is_synthetic:
