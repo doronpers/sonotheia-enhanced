@@ -73,6 +73,11 @@ class FeatureExtractionStage:
         """
         if audio is None or len(audio) == 0:
             return self._empty_result("Empty audio input")
+            
+        # Pad audio if shorter than n_fft to avoid librosa warnings
+        if hasattr(self, 'n_fft') and len(audio) < self.n_fft:
+             padding = self.n_fft - len(audio)
+             audio = np.pad(audio, (0, padding), mode='constant')
 
         try:
             features = {}

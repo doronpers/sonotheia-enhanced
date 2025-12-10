@@ -599,12 +599,16 @@ Provide your analysis in this JSON format (no markdown):
                 }
             ]
 
-            response = self.client.chat_completion(
-                messages=messages,
-                max_tokens=500,
-                temperature=0.3,
-                response_format={"type": "json"}  # Enforce JSON if supported
-            )
+            try:
+                response = self.client.chat_completion(
+                    messages=messages,
+                    max_tokens=500,
+                    temperature=0.3,
+                    response_format={"type": "json"}  # Enforce JSON if supported
+                )
+            except (StopIteration, RuntimeError, Exception) as e:
+                logger.warning(f"LLM Query failed: {e}")
+                return None
             
             # Extract content from chat completion message
             # Safety: Check if choices exist and have at least one item

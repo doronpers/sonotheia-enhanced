@@ -84,12 +84,10 @@ class GlobalFormantSensor(BaseSensor):
         audio = np.append(audio[0], audio[1:] - 0.97 * audio[:-1])
 
         # Skip analysis if shorter than n_fft (padding distorts stats)
+        # Pad if shorter than n_fft (padding distorts stats slightly but better than crashing)
         if len(audio) < self.n_fft:
-             # Return a flat envelope that won't trigger alarms, or handle in callers
-             # But this method returns ndarray. 
-             # Better to return a dummy envelope that produces "clean" stats or raise exception caught by analyze
-             # Let's return a simple flat envelope
-             return np.ones((self.n_fft // 2 + 1, 1))
+             padding = self.n_fft - len(audio)
+             audio = np.pad(audio, (0, padding), mode='constant')
         
         # STFT
         if HAS_LIBROSA:

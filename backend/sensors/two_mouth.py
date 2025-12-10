@@ -44,14 +44,10 @@ class TwoMouthSensor(BaseSensor):
             )
 
         # Skip if too short for analysis (needs at least n_fft=2048)
+        # Pad audio if too short for analysis (needs at least n_fft=2048)
         if len(audio) < 2048:
-             return SensorResult(
-                sensor_name=self.name,
-                passed=None,
-                value=0.0,
-                threshold=0.5,
-                detail="Audio too short for Two-Mouth analysis."
-            )
+             padding = 2048 - len(audio)
+             audio = np.pad(audio, (0, padding), mode='edge') # Use edge padding to minimize artifacts
 
         try:
             # 1. VTL Variance Analysis

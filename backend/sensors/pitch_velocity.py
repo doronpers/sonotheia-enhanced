@@ -61,8 +61,10 @@ class PitchVelocitySensor(BaseSensor):
              return SensorResult(self.name, None, 0.0, 0.0, detail="Invalid input")
 
         # Skip if too short for frame_length analysis (2048)
+        # Pad audio if shorter than frame_length (2048) to avoid librosa warnings
         if len(audio) < 2048:
-             return SensorResult(self.name, None, 0.0, 0.0, detail="Audio too short for pitch analysis")
+             padding = 2048 - len(audio)
+             audio = np.pad(audio, (0, padding), mode='edge')
 
         # 1. Extract Pitch (F0)
         # using pyin for robustness (probabilistic YIN)
