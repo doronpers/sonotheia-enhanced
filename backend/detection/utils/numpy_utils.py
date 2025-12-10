@@ -31,7 +31,7 @@ def convert_numpy_types(obj: Any) -> Any:
     if isinstance(obj, (np.integer, np.int_, np.int8, np.int16, np.int32, np.int64)):
         return int(obj)
 
-    if isinstance(obj, (np.floating, np.float_, np.float16, np.float32, np.float64)):
+    if isinstance(obj, (np.floating, np.float16, np.float32, np.float64)):
         return float(obj)
 
     if isinstance(obj, np.bool_):

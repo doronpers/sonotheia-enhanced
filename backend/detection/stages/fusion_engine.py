@@ -76,13 +76,15 @@ class FusionEngine:
             # 1. Prosecution (Risk): Violation of Physics -> High Confidence FAKE
             # 2. Defense (Trust): Presence of Life Signs -> Confidence Boost for REAL
             
-            physics = stage_results.get("physics_analysis", {})
+            physics = stage_results.get("physics_analysis") or {}
             sensor_results = physics.get("sensor_results", {}) if physics.get("success") else {}
             
             risk_scores = []
             trust_scores = []
             
             for name, res in sensor_results.items():
+                if res is None:
+                    continue
                 # Extract score (preferred) or value (fallback)
                 val = res.get("score")
                 if val is None:
@@ -99,8 +101,9 @@ class FusionEngine:
                     category = "prosecution"
                 
                 # Check optional metadata override
-                if res.get("metadata", {}).get("category"):
-                     category = res.get("metadata", {}).get("category")
+                meta = res.get("metadata") or {}
+                if meta.get("category"):
+                     category = meta.get("category")
 
                 if category == "prosecution":
                     risk_scores.append(val)
@@ -178,10 +181,10 @@ class FusionEngine:
         scores = {}
 
         for stage_name, result in stage_results.items():
-            if not result.get("success", False):
+            if result is None or not result.get("success", False):
                 continue
 
-            # Get score based on stage type
+            # Extract score based on stage type
             score = None
             if "score" in result:
                 score = result["score"]
@@ -318,7 +321,7 @@ class FusionEngine:
         2. Breath Pattern Violation: Impossible lung capacity or double-breaths -> High Fake Probability
         3. Glottal Inertia: If 100% clean (no violations), boost Trust (lower Fake Score)
         """
-        physics = stage_results.get("physics_analysis", {})
+        physics = stage_results.get("physics_analysis") or {}
         if not physics.get("success", False):
             return {"override_applied": False, "fused_score": current_score, "decision": current_decision}
 
@@ -336,15 +339,17 @@ class FusionEngine:
             
         # Rule 2: Breath Patterns (Infinite Lung Capacity / Double Breath)
         # Respiration violation implies impossible breathing
-        breath = sensor_results.get("Breath Sensor (Max Phonation)", {}) # Name check needed
-        breath_meta = breath.get("metadata", {})
+        # Rule 2: Breath Patterns (Infinite Lung Capacity / Double Breath)
+        # Respiration violation implies impossible breathing
+        breath = sensor_results.get("Breath Sensor (Max Phonation)") or {}
+        breath_meta = breath.get("metadata") or {}
         if breath_meta.get("respiration_violation", False):
             overrides.append("Impossible Breath Pattern (Infinite Lung Capacity)")
             new_score = max(new_score, 0.90)
             
         # Rule 3: Glottal Inertia (Trust Booster)
-        glottal = sensor_results.get("Glottal Inertia Sensor", {})
-        glottal_meta = glottal.get("metadata", {})
+        glottal = sensor_results.get("Glottal Inertia Sensor") or {}
+        glottal_meta = glottal.get("metadata") or {}
         violation_count = glottal_meta.get("violation_count", 0)
         
         if violation_count > 0:

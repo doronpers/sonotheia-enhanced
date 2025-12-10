@@ -57,8 +57,8 @@ class SincConv(nn.Module):
         self.low_hz_ = nn.Parameter(hz[:-1].unsqueeze(1))
         self.band_hz_ = nn.Parameter((hz[1:] - hz[:-1]).unsqueeze(1))
 
-        # Hamming window
-        n_lin = torch.linspace(0, kernel_size / 2 - 1, kernel_size // 2)
+        # Hamming window (full length)
+        n_lin = torch.linspace(0, kernel_size - 1, kernel_size)
         window = 0.54 - 0.46 * torch.cos(2 * np.pi * n_lin / kernel_size)
         self.register_buffer("window", window)
 
@@ -86,21 +86,22 @@ class SincConv(nn.Module):
         f_times_t_low = self.t * low
         f_times_t_high = self.t * high
 
-        band_pass_left = (
+        # Compute bandpass filter
+        band_pass = (
             (torch.sin(f_times_t_high) - torch.sin(f_times_t_low))
             / (self.t / 2 + 1e-8)
         )
+        
+        # Access center frequency values
         band_pass_center = 2 * (high - low)
-        band_pass_right = (
-            (torch.sin(f_times_t_high) - torch.sin(f_times_t_low))
-            / (self.t / 2 + 1e-8)
-        )
+        
+        # Replace center value (at t=0) which is handled poorly by epsilon
+        # self.t is symmetrical around 0, so center is at len//2
+        center_idx = band_pass.shape[1] // 2
+        band_pass[:, center_idx] = band_pass_center[:, 0]
 
-        # Combine and apply window
-        band_pass = torch.cat(
-            [band_pass_left, band_pass_center, band_pass_right], dim=1
-        )
-        band_pass = band_pass / (2 * band_pass_center + 1e-8)
+        # Apply window
+        band_pass = band_pass * self.window
 
         # Reshape for convolution
         filters = band_pass.view(self.out_channels, 1, self.kernel_size)

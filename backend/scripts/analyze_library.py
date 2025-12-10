@@ -48,7 +48,15 @@ def analyze_directory(label: str, force: bool = False):
     
     logger.info(f"Found {len(files)} files in {label} library.")
     
-    pipeline = get_pipeline()
+    logger.info(f"Found {len(files)} files in {label} library.")
+    
+    # Initialize pipeline with explicit PROD mode (disable demo)
+    from backend.detection.config import get_default_config
+    from backend.detection.pipeline import DetectionPipeline
+    
+    cfg = get_default_config()
+    cfg.demo_mode = False  # CRITICAL: Force real analysis
+    pipeline = DetectionPipeline(config=cfg)
     
     for file_path in tqdm(files, desc=f"Analyzing {label}"):
         result_path = file_path.with_suffix(".json")
