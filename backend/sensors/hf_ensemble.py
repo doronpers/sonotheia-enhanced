@@ -129,10 +129,16 @@ class HFEnsembleSensor(BaseSensor):
     - Local model fallback when API is unavailable
     
     Environment Variables:
-    - HUGGINGFACE_TOKEN: API token for HF Inference API
+    - HUGGINGFACE_TOKEN: Optional API token for HF Inference API (not required)
     - HF_ENSEMBLE_MODELS: Comma-separated list of model IDs
     - HF_LOCAL_FALLBACK: Enable local model fallback (true/false)
     - HF_WARMUP_ENABLED: Enable model warm-up on init (true/false)
+    - HF_MODE: Force mode selection ('api', 'local', 'auto') - default 'auto'
+    
+    Mode Selection (when HF_MODE='auto'):
+    - If HUGGINGFACE_TOKEN exists → Use API mode
+    - If no token but GPU available → Use local mode
+    - If no token and no GPU → Sensor disabled (fails open)
     """
     
     def __init__(
@@ -148,9 +154,19 @@ class HFEnsembleSensor(BaseSensor):
         # Parse models from environment or use defaults
         self.models = models or self._load_models_from_env()
         
-        # Local fallback settings
+        # Detect GPU availability early
+        self._gpu_available = self._detect_gpu()
+        
+        # Determine operating mode
+        self._mode = self._determine_mode()
+        
+        # Local fallback settings (only if mode allows)
         env_local_fallback = os.getenv("HF_LOCAL_FALLBACK", "true").lower()
-        self.enable_local_fallback = enable_local_fallback and env_local_fallback in ("true", "1", "yes")
+        self.enable_local_fallback = (
+            enable_local_fallback and 
+            env_local_fallback in ("true", "1", "yes") and
+            self._mode in ("local", "auto")
+        )
         
         # Warm-up settings
         env_warmup = os.getenv("HF_WARMUP_ENABLED", "true").lower()
@@ -172,15 +188,63 @@ class HFEnsembleSensor(BaseSensor):
         self._request_queue: deque = deque()
         self._queue_lock = asyncio.Lock()
         
-        # Log startup info (avoid logging full model IDs in production)
+        # Log startup info
         model_count = len([m for m in self.models if m.enabled])
-        logger.info(f"HFEnsembleSensor initialized with {model_count} model(s)")
+        logger.info(
+            f"HFEnsembleSensor initialized: mode={self._mode}, "
+            f"models={model_count}, gpu={self._gpu_available}"
+        )
         
-        if not self.token:
+        # Log appropriate message based on mode
+        if self._mode == "disabled":
             logger.warning(
-                "HUGGINGFACE_TOKEN not set. API calls will be skipped. "
-                "Local fallback will be used if enabled."
+                "HFEnsembleSensor disabled: No HUGGINGFACE_TOKEN and no GPU available. "
+                "Sensor will fail open (pass all samples)."
             )
+        elif self._mode == "local":
+            logger.info(
+                "HFEnsembleSensor using local mode: GPU detected, running models locally."
+            )
+        elif self._mode == "api" and self.token:
+            logger.info("HFEnsembleSensor using API mode with HUGGINGFACE_TOKEN.")
+        elif self._mode == "api" and not self.token:
+            logger.warning(
+                "HFEnsembleSensor API mode requested but HUGGINGFACE_TOKEN not set. "
+                "Falling back to local mode if available."
+            )
+    
+    def _detect_gpu(self) -> bool:
+        """Detect if GPU is available for local inference."""
+        try:
+            import torch
+            return torch.cuda.is_available()
+        except ImportError:
+            return False
+    
+    def _determine_mode(self) -> str:
+        """
+        Determine operating mode based on token and GPU availability.
+        
+        Returns:
+            'api': Use HuggingFace API
+            'local': Use local transformers models
+            'disabled': Sensor is disabled (no token, no GPU)
+        """
+        # Check for explicit mode override
+        env_mode = os.getenv("HF_MODE", "auto").lower()
+        if env_mode in ("api", "local"):
+            return env_mode
+        
+        # Auto mode selection
+        if self.token:
+            # Token available - prefer API mode
+            return "api"
+        elif self._gpu_available:
+            # No token but GPU available - use local mode
+            return "local"
+        else:
+            # No token and no GPU - disable sensor
+            return "disabled"
     
     def _load_models_from_env(self) -> List[ModelConfig]:
         """Load model configurations from environment variables."""
@@ -207,18 +271,24 @@ class HFEnsembleSensor(BaseSensor):
         if self._initialized:
             return
         
+        # If disabled mode, skip initialization
+        if self._mode == "disabled":
+            logger.info("HFEnsembleSensor is disabled, skipping initialization")
+            self._initialized = True
+            return
+        
         # Initialize model states
         for model in self.models:
             if model.enabled:
                 self.model_states[model.model_id] = ModelStatus.READY
                 self.rate_limit_states[model.model_id] = RateLimitState()
         
-        # Warm up models if enabled
-        if self.enable_warmup and self.token:
+        # Warm up models if enabled and in API mode
+        if self.enable_warmup and self.token and self._mode == "api":
             await self._warmup_models()
         
-        # Check local fallback availability
-        if self.enable_local_fallback:
+        # Check local fallback availability for local or auto modes
+        if self.enable_local_fallback or self._mode == "local":
             self._check_local_model_availability()
         
         self._initialized = True
@@ -560,6 +630,16 @@ class HFEnsembleSensor(BaseSensor):
         if not self._initialized:
             await self.initialize()
         
+        # If sensor is disabled, fail open
+        if self._mode == "disabled":
+            return SensorResult(
+                sensor_name=self.name,
+                passed=True,  # Fail open
+                value=0.0,
+                detail="Sensor disabled: No HUGGINGFACE_TOKEN and no GPU available",
+                threshold=0.5
+            )
+        
         # Validate input
         if not self.validate_input(audio_data, samplerate):
             return SensorResult(
@@ -570,48 +650,47 @@ class HFEnsembleSensor(BaseSensor):
                 threshold=0.5
             )
         
-        # Check if we have any available models
-        enabled_models = [m for m in self.models if m.enabled]
-        if not enabled_models and not self.enable_local_fallback:
-            return SensorResult(
-                sensor_name=self.name,
-                passed=True,
-                value=0.0,
-                detail="No models configured",
-                threshold=0.5
-            )
-        
-        # Prepare audio bytes
-        audio_bytes = self._prepare_audio_bytes(audio_data, samplerate)
-        
-        # Run models in parallel if we have API access
+        # Run models in parallel based on mode
         results: List[ModelResult] = []
         
-        if self.token and enabled_models:
-            # Create tasks for all enabled models
-            tasks = [
-                self._call_model_with_retry(model, audio_bytes)
-                for model in enabled_models
-            ]
-            
-            # Run all models in parallel
-            results = await asyncio.gather(*tasks)
-        
-        # Check if all API models failed and we should use local fallback
-        api_success = any(r.status == ModelStatus.READY for r in results)
-        
-        if not api_success and self.enable_local_fallback and self._local_model_available:
-            logger.info("API models unavailable, using local fallback")
+        # Local mode: use local inference directly
+        if self._mode == "local":
+            logger.debug("Using local mode for inference")
             local_result = await self._call_local_fallback(audio_data, samplerate)
             results.append(local_result)
         
-        # Handle case where no API and no local fallback
+        # API mode: try API models first
+        elif self._mode == "api":
+            enabled_models = [m for m in self.models if m.enabled]
+            
+            if self.token and enabled_models:
+                # Prepare audio bytes for API
+                audio_bytes = self._prepare_audio_bytes(audio_data, samplerate)
+                
+                # Create tasks for all enabled models
+                tasks = [
+                    self._call_model_with_retry(model, audio_bytes)
+                    for model in enabled_models
+                ]
+                
+                # Run all models in parallel
+                results = await asyncio.gather(*tasks)
+                
+                # Check if all API models failed and we should use local fallback
+                api_success = any(r.status == ModelStatus.READY for r in results)
+                
+                if not api_success and self.enable_local_fallback and self._local_model_available:
+                    logger.info("API models unavailable, using local fallback")
+                    local_result = await self._call_local_fallback(audio_data, samplerate)
+                    results.append(local_result)
+        
+        # Handle case where no results were generated
         if not results:
             return SensorResult(
                 sensor_name=self.name,
                 passed=True,  # Fail open
                 value=0.0,
-                detail="Skipped: HUGGINGFACE_TOKEN not set and no local fallback",
+                detail="Skipped: No models available",
                 threshold=0.5
             )
         
@@ -681,6 +760,8 @@ class HFEnsembleSensor(BaseSensor):
     def get_model_status(self) -> Dict[str, Any]:
         """Get current status of all models in the ensemble."""
         return {
+            "mode": self._mode,
+            "gpu_available": self._gpu_available,
             "models": [
                 {
                     "model_id": model.model_id,
