@@ -30,6 +30,21 @@ class FeatureExtractor:
         self.hop_length = hop_length
         self.win_length = win_length
 
+    def _pad_audio(self, audio: np.ndarray) -> np.ndarray:
+        """Ensure audio is long enough for FFT analysis."""
+        min_len = max(self.n_fft, 2048)  # Ensure at least 2048 to be safe for default librosa calls
+        if len(audio) < min_len:
+            padding = min_len - len(audio)
+            # Pad with reflection to avoid artifacts, or constant if too short for reflection
+            if len(audio) > 0:
+                try:
+                    return np.pad(audio, (0, padding), mode='reflect')
+                except:
+                    return np.pad(audio, (0, padding), mode='constant')
+            else:
+                 return np.pad(audio, (0, padding), mode='constant')
+        return audio
+
     def extract_lfcc(self, audio: np.ndarray, n_lfcc: int = 20) -> np.ndarray:
         """
         Extract Linear Frequency Cepstral Coefficients (LFCC)
@@ -41,6 +56,8 @@ class FeatureExtractor:
         Returns:
             LFCC matrix (frames x n_lfcc)
         """
+        audio = self._pad_audio(audio)
+        
         # Compute STFT
         stft = librosa.stft(
             audio,
@@ -76,6 +93,8 @@ class FeatureExtractor:
         Returns:
             Log-spectrogram matrix (frames x freq_bins)
         """
+        audio = self._pad_audio(audio)
+        
         # Compute STFT
         stft = librosa.stft(
             audio,
@@ -108,6 +127,8 @@ class FeatureExtractor:
         Returns:
             CQCC matrix (frames x n_cqcc)
         """
+        audio = self._pad_audio(audio)
+
         # Compute Constant-Q Transform
         # Use 84 bins to avoid exceeding Nyquist frequency at 16kHz
         cqt = librosa.cqt(
@@ -145,6 +166,8 @@ class FeatureExtractor:
         Returns:
             MFCC matrix (frames x n_mfcc)
         """
+        audio = self._pad_audio(audio)
+        
         mfcc = librosa.feature.mfcc(
             y=audio,
             sr=self.sr,

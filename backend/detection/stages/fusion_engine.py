@@ -259,7 +259,7 @@ class FusionEngine:
         if confidence < self.confidence_threshold:
             return "UNCERTAIN"
 
-        if score > 0.7:
+        if score > max(0.9, self.decision_threshold + 0.1):
             return "SPOOF_HIGH"
         elif score > self.decision_threshold:
             return "SPOOF_LIKELY"
@@ -374,15 +374,13 @@ class FusionEngine:
         # If a dedicated "Prosecutor" sensor is highly confident it's a fake,
         # we trust it even if other sensors are unsure (e.g. ignoring a weak RawNet).
         
-        prosecutors = ["feature_extraction", "rawnet3", "artifact_detection"]
+        prosecutors = ["rawnet3", "artifact_detection"]
         max_prosecution_score = 0.0
         prosecutor_name = ""
         
         # Extract scores from stage_results for prosecution logic
-        stage_scores = {}
-        for stage, res in stage_results.items():
-            if isinstance(res, dict) and "score" in res:
-                stage_scores[stage] = res["score"]
+        # Use the shared _extract_scores method to handle different key names (anomaly_score, etc)
+        stage_scores = self._extract_scores(stage_results)
 
         for p in prosecutors:
             s_score = stage_scores.get(p, 0.0)
@@ -397,7 +395,7 @@ class FusionEngine:
                 overrides.append(f"Prosecution Override by {prosecutor_name} ({max_prosecution_score:.2f})")
                 new_score = max(new_score, max_prosecution_score)
                 # Ensure it crosses the decision threshold if it's really close (margin of error)
-                if new_score > 0.74:
+                if new_score > 0.71:
                      new_score = max(new_score, self.decision_threshold + 0.01)
 
         if not overrides:

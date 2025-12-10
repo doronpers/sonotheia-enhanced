@@ -607,7 +607,7 @@ Provide your analysis in this JSON format (no markdown):
                     response_format={"type": "json"}  # Enforce JSON if supported
                 )
             except (StopIteration, RuntimeError, Exception) as e:
-                logger.warning(f"LLM Query failed: {e}")
+                logger.debug(f"LLM Query failed: {type(e).__name__}: {e}")
                 return None
             
             # Extract content from chat completion message

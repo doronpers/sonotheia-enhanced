@@ -248,7 +248,7 @@ class HFEnsembleSensor(BaseSensor):
                 self.model_states[model.model_id] = ModelStatus.READY
                 logger.info(f"Model {model.model_id} warmed up successfully")
             except BaseException as e:
-                logger.warning(f"Model {model.model_id} warm-up failed: {type(e).__name__}: {e}")
+                logger.debug(f"Model {model.model_id} warm-up failed: {type(e).__name__}: {e}")
                 self.model_states[model.model_id] = ModelStatus.READY  # Still ready for requests
     
     def _check_local_model_availability(self):
@@ -376,7 +376,7 @@ class HFEnsembleSensor(BaseSensor):
             except Exception as e:
                 last_exception = e
                 if attempt < MAX_RETRIES - 1:
-                    logger.warning(
+                    logger.debug(
                         f"Model {model_config.model_id} attempt {attempt + 1} failed: {e}. "
                         f"Retrying in {backoff:.1f}s..."
                     )
