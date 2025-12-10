@@ -74,9 +74,11 @@ class FeatureExtractionStage:
         if audio is None or len(audio) == 0:
             return self._empty_result("Empty audio input")
             
-        # Pad audio if shorter than n_fft to avoid librosa warnings
-        if hasattr(self, 'n_fft') and len(audio) < self.n_fft:
-             padding = self.n_fft - len(audio)
+        # Pad audio if shorter than required for analysis (default librosa window is 2048)
+        # Even if our n_fft is small (512), other internal calls or defaults might need 2048
+        min_len = max(self.n_fft, 2048)
+        if len(audio) < min_len:
+             padding = min_len - len(audio)
              audio = np.pad(audio, (0, padding), mode='constant')
 
         try:
