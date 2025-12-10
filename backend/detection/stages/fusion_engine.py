@@ -41,11 +41,11 @@ class FusionEngine:
         """
         self.fusion_method = fusion_method
         self.stage_weights = stage_weights or {
-            "feature_extraction": 0.25,
-            "temporal_analysis": 0.15,
-            "artifact_detection": 0.15,
-            "rawnet3": 0.25,
-            "physics_analysis": 0.20, # Added Physics
+            "feature_extraction": 0.10,
+            "temporal_analysis": 0.05,
+            "artifact_detection": 0.05,
+            "rawnet3": 0.20,                 # Reduced (1 part)
+            "physics_analysis": 0.60,        # Increased (3 parts) - 3:1 Ratio
         }
         self.profiles = kwargs.get("profiles", {}) # Store fusion profiles
         self.confidence_threshold = confidence_threshold
@@ -93,32 +93,70 @@ class FusionEngine:
                 # Note: We need access to the sensor instance or metadata to know category.
                 # Since we don't have the instance here, we rely on mapped names or metadata.
                 # Ideally, metadata['category'] should be passed in result.
-                # WORKAROUND: Map known names until pipeline passes category in result.metadata
-                category = "defense"
-                lower_name = name.lower()
-                if "prosecution" in lower_name or "glottal" in lower_name or "pitch velocity" in lower_name or "silence" in lower_name or "two-mouth" in lower_name or "enf" in lower_name:
-                    category = "prosecution"
-                
-                # Clamp value to 0-1 range (safety for sensors returning raw metrics)
-                val = min(max(val, 0.0), 1.0)
-                
-                # Check optional metadata override
+                # ENHANCEMENT: Check metadata first, then fall back to name mapping
                 meta = res.get("metadata") or {}
-                if meta.get("category"):
-                     category = meta.get("category")
+                category = meta.get("category")
+
+                if not category:
+                    # Fall back to name-based mapping
+                    lower_name = name.lower()
+
+                    # Informational sensors (don't contribute to risk/trust)
+                    if "bandwidth" in lower_name:
+                        # logger.debug(f"Skipping informational sensor: {name}")
+                        continue  # Skip, don't add to risk_scores or trust_scores
+
+                    # Prosecution sensors (violations = high risk)
+                    elif ("glottal" in lower_name or "pitch velocity" in lower_name or
+                          "silence" in lower_name or "two-mouth" in lower_name or 
+                          "enf" in lower_name or "phase" in lower_name or 
+                          "ensemble" in lower_name):
+                        category = "prosecution"
+
+                    # Defense sensors (natural signs = trust)
+                    else:
+                        category = "defense"
 
                 if category == "prosecution":
+                    # ENHANCEMENT: Clamp to [0,1] range and log violations
+                    original_val = val
+                    val = max(0.0, min(1.0, float(val)))
+                    if abs(original_val - val) > 1e-6:
+                         logger.warning(f"Sensor {name} returned out-of-range value: {original_val:.3f}, clamped to {val:.3f}")
                     risk_scores.append(val)
                 else:
+                    # ENHANCEMENT: Clamp to [0,1] range and log violations
+                    original_val = val
+                    val = max(0.0, min(1.0, float(val)))
+                    if abs(original_val - val) > 1e-6:
+                         logger.warning(f"Sensor {name} returned out-of-range value: {original_val:.3f}, clamped to {val:.3f}")
                     trust_scores.append(val)
 
             # 1. Calculate Risk (Max of Prosecution)
             # If any prosecutor finds a violation, Risk is high.
             risk_score = max(risk_scores) if risk_scores else 0.0
             
+            # ENHANCEMENT: Clamp risk_score to [0,1]
+            risk_score = max(0.0, min(1.0, risk_score))
+            
             # 2. Calculate Trust (Avg of Defense)
             # consistently good defense signs build trust.
             trust_score = sum(trust_scores) / len(trust_scores) if trust_scores else 0.5
+            
+            # ENHANCEMENT: Clamp trust_score to [0,1]
+            trust_score = max(0.0, min(1.0, trust_score))
+
+            # ENHANCEMENT: Debug logging for score tracking
+            logger.debug(f"Prosecution sensors: {len(risk_scores)} active, max risk: {risk_score:.3f}")
+            logger.debug(f"Defense sensors: {len(trust_scores)} active, avg trust: {trust_score:.3f}")
+
+            if risk_scores and logger.isEnabledFor(logging.DEBUG):
+                top_risk = sorted(risk_scores, reverse=True)[:5]
+                logger.debug(f"Top risk scores: {[f'{s:.3f}' for s in top_risk]}")
+
+            if trust_scores and logger.isEnabledFor(logging.DEBUG):
+                top_trust = sorted(trust_scores, reverse=True)[:5]
+                logger.debug(f"Top trust scores: {[f'{s:.3f}' for s in top_trust]}")
             
             # 3. The Verdict Matrix
             # Default to weighted average of all stages
@@ -191,7 +229,7 @@ class FusionEngine:
             score = None
             if "score" in result:
                 score = result["score"]
-            elif "physics_score" in result: # Added support for Physics Stage
+            elif "physics_score" in result: # ENHANCEMENT: Added
                 score = result["physics_score"]
             elif "anomaly_score" in result:
                 score = result["anomaly_score"]
@@ -201,7 +239,9 @@ class FusionEngine:
                 score = result["artifact_score"]
 
             if score is not None:
-                scores[stage_name] = float(score)
+                # ENHANCEMENT: Clamp to [0,1] range
+                score = max(0.0, min(1.0, float(score)))
+                scores[stage_name] = score
 
         return scores
 

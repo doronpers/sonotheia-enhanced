@@ -7,6 +7,7 @@ of synthetic speech generation systems.
 
 import numpy as np
 from .base import BaseSensor, SensorResult
+from backend.calibration.environment import EnvironmentAnalyzer
 from backend.utils.config import get_threshold
 
 # Default constant - can be overridden by config/settings.yaml
@@ -56,6 +57,23 @@ class DynamicRangeSensor(BaseSensor):
         
         peak_amplitude = np.max(np.abs(audio_data))
         rms_amplitude = np.sqrt(np.mean(np.square(audio_data)))
+        
+        # Dynamic Calibration: Adapt threshold based on SNR
+        env_stats = EnvironmentAnalyzer.analyze(audio_data, samplerate)
+        snr_db = env_stats["snr_db"]
+        
+        # Base threshold from config/class
+        adapted_threshold = self.crest_factor_threshold
+        
+        # If SNR is low (< 15dB), the audio is noisy/compressed, which naturally lowers crest factor.
+        # We should relax the threshold to avoid false positives on bad lines.
+        if snr_db < 15.0:
+            # Linearly relax threshold as SNR drops from 15dB to 5dB
+            # At 15dB -> factor 1.0
+            # At 5dB  -> factor 0.6
+            reduction_factor = max(0.6, 0.6 + (0.4 * (snr_db - 5.0) / 10.0))
+            adapted_threshold *= reduction_factor
+            # logger.debug(f"DynamicRange: Lowered threshold to {adapted_threshold:.2f} due to low SNR ({snr_db:.1f}dB)")
         
         if rms_amplitude == 0:
             return SensorResult(

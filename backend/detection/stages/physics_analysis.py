@@ -68,6 +68,8 @@ class PhysicsAnalysisStage:
             total_score = 0.0
             
             for name, res in results_dict.items():
+                if res.value > 0:
+                   print(f"DEBUG: {name} raw value: {res.value}")
                 # Convert SensorResult to dict
                 res_dict = {
                     "passed": res.passed,
@@ -89,8 +91,18 @@ class PhysicsAnalysisStage:
                     # If passed is True, score contributes 0 to risk
                     # If passed is False, score contributes to risk
                     if res.passed is False:
+                        # Convert boolean passed status to risk score
+                        # passed=True (real) -> risk=0.0
+                        # passed=False (spoof) -> risk=1.0
+                        risk_score = 1.0
+
+                        # ENHANCEMENT: Validate risk_score is in [0,1] range
+                        if res.value is not None:
+                             # Use actual value if available and reasonable
+                             risk_score = max(0.0, min(1.0, float(res.value)))
+                        
                         # Simple risk contribution
-                        total_score += 0.2  # Each failure adds 20% risk
+                        total_score += 0.2 * risk_score # Weighted by magnitude of failure
             
             # Cap risk score at 1.0
             physics_score = min(total_score, 1.0)
