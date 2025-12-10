@@ -51,3 +51,35 @@ def test_physics_stage_integration():
     assert result["is_spoof"] is True
     assert result["physics_score"] > 0.5
 
+
+def test_physics_stage_prosecution_only_counts(monkeypatch):
+    """Ensure only prosecution-category failures raise physics_score."""
+    stage = PhysicsAnalysisStage()
+
+    async def fake_analyze_all(audio, sr, sensor_names=None, metrics=None):
+        from backend.sensors.base import SensorResult
+        return {
+            "Defense Sensor": SensorResult(
+                sensor_name="Defense Sensor",
+                passed=False,
+                value=1.0,
+                threshold=0.5,
+                metadata={"category": "defense"},
+            ),
+            "Prosecution Sensor": SensorResult(
+                sensor_name="Prosecution Sensor",
+                passed=False,
+                value=1.0,
+                threshold=0.5,
+                metadata={"category": "prosecution"},
+            ),
+        }
+
+    monkeypatch.setattr(stage.registry, "analyze_all", fake_analyze_all)
+
+    sr = 16000
+    audio = np.zeros(sr)
+    result = stage.process(audio)
+
+    # Only prosecution failure should contribute (scaled to 0.6), defense failure should not.
+    assert result["physics_score"] == 0.6
