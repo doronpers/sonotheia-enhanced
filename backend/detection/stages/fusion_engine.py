@@ -121,21 +121,38 @@ class FusionEngine:
             # 3. The Verdict Matrix
             # Default to weighted average of all stages
             base_score = self._weighted_average_fusion(scores)
-            
+
             final_score = base_score
             decision_logic = "Weighted Average"
-            
-            # Logic: High Risk trumps everything (Veto)
-            # SAFE MODE: Disabled Veto to prevent false positives from single sensors
-            if risk_score > 0.98: # Was 0.8. Raised to 0.98 (effectively disabled for non-certainty)
-                final_score = max(final_score, risk_score)
-                decision_logic = "Prosecution Veto (High Risk)"
-            
+
+            # ADAPTIVE PROSECUTION VETO LOGIC
+            # Two-tier veto system for balanced detection:
+            # - High confidence veto (>0.85): Guaranteed fake, override all
+            # - Moderate confidence veto (>0.75): Influence score, allow defense
+
+            high_confidence_veto = 0.85  # Strong veto threshold
+            moderate_veto = 0.75  # Moderate influence threshold
+
+            if risk_score > high_confidence_veto:
+                # Strong veto: Very confident this is fake
+                final_score = risk_score
+                decision_logic = "High-Confidence Prosecution Veto"
+                logger.info(f"High-confidence veto applied: risk_score={risk_score:.3f}")
+
+            elif risk_score > moderate_veto:
+                # Moderate veto: Boost score but allow defense to influence
+                # Blend base score and risk score (weighted average)
+                final_score = (base_score * 0.4) + (risk_score * 0.6)
+                decision_logic = "Prosecution Influence"
+                logger.debug(f"Moderate prosecution influence: risk_score={risk_score:.3f}, final={final_score:.3f}")
+
             # Logic: Low Risk + High Trust = Boost Real
-            elif risk_score < 0.3 and trust_score < 0.3: # Trust sensors return low score for Real (0.0=Real)
-                 # If Trust is high (meaning scores are low/passed), we pull the score down
-                 final_score = min(final_score, 0.2)
-                 decision_logic = "Defense Validation (High Trust)"
+            elif risk_score < 0.3 and trust_score < 0.3:
+                # Trust sensors return low score for Real (0.0=Real)
+                # If Trust is high (meaning scores are low/passed), we pull the score down
+                final_score = min(final_score, 0.2)
+                decision_logic = "Defense Validation (High Trust)"
+                logger.debug(f"Defense validation applied: trust_score={trust_score:.3f}")
 
             # ---------------------------------------
 

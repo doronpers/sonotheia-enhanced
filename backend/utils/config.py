@@ -166,15 +166,15 @@ def get_verdict_config() -> Dict[str, Any]:
         Dictionary with verdict settings.
     """
     settings = load_settings()
-    
+
     # Try new structure first (verdict_logic)
     verdict_config = settings.get("verdict_logic", {})
-    
+
     # Fallback to old structure (sensor_thresholds.verdict)
     if not verdict_config:
         thresholds = get_sensor_thresholds()
         verdict_config = thresholds.get("verdict", {})
-    
+
     # Default values if neither structure found
     if not verdict_config:
         verdict_config = {
@@ -184,5 +184,87 @@ def get_verdict_config() -> Dict[str, Any]:
             "sensor_weights": {},
             "weighted_threshold": 1.5,
         }
-    
+
     return verdict_config
+
+
+def get_fusion_config() -> Dict[str, Any]:
+    """
+    Get fusion configuration from settings.yaml.
+
+    Returns:
+        Dictionary containing fusion configuration with profiles and weights.
+    """
+    settings = load_settings()
+    fusion_config = settings.get("fusion", {})
+
+    # Default fusion config if not found
+    if not fusion_config:
+        fusion_config = {
+            "profiles": {
+                "default": {
+                    "weights": {},
+                    "thresholds": {
+                        "synthetic": 0.7,
+                        "real": 0.3
+                    }
+                }
+            }
+        }
+
+    return fusion_config
+
+
+def get_sensor_weights(profile: str = "default") -> Dict[str, float]:
+    """
+    Get sensor weights for a specific fusion profile.
+
+    Args:
+        profile: Profile name (default, narrowband, etc.)
+
+    Returns:
+        Dictionary mapping sensor names to weights.
+    """
+    fusion_config = get_fusion_config()
+    profiles = fusion_config.get("profiles", {})
+    profile_config = profiles.get(profile, {})
+    weights = profile_config.get("weights", {})
+
+    # Default weights if profile not found
+    if not weights:
+        logger.warning(f"No weights found for profile '{profile}', using defaults")
+        weights = {
+            "GlottalInertiaSensor": 0.35,
+            "PitchVelocitySensor": 0.15,
+            "FormantTrajectorySensor": 0.20,
+            "DigitalSilenceSensor": 0.15,
+            "GlobalFormantSensor": 0.10,
+            "CoarticulationSensor": 0.05,
+        }
+
+    return weights
+
+
+def get_fusion_thresholds(profile: str = "default") -> Dict[str, float]:
+    """
+    Get fusion decision thresholds for a specific profile.
+
+    Args:
+        profile: Profile name (default, narrowband, etc.)
+
+    Returns:
+        Dictionary with 'synthetic' and 'real' thresholds.
+    """
+    fusion_config = get_fusion_config()
+    profiles = fusion_config.get("profiles", {})
+    profile_config = profiles.get(profile, {})
+    thresholds = profile_config.get("thresholds", {})
+
+    # Default thresholds
+    if not thresholds:
+        thresholds = {
+            "synthetic": 0.7,
+            "real": 0.3
+        }
+
+    return thresholds
