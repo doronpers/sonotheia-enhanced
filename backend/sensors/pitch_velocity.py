@@ -41,7 +41,17 @@ class PitchVelocitySensor(BaseSensor):
     
     def __init__(self, config: Optional[PitchVelocityConfig] = None, category: str = "prosecution"):
         super().__init__("Pitch Velocity Sensor (Larynx Analysis)", category=category)
-        self.config = config or PitchVelocityConfig()
+        
+        if config:
+            self.config = config
+        else:
+            # Load from settings.yaml
+            max_vel = get_threshold("pitch_velocity", "max_velocity_threshold", 35.0)
+            min_dur = get_threshold("pitch_velocity", "min_voiced_duration", 0.05)
+            self.config = PitchVelocityConfig(
+                max_velocity_threshold=float(max_vel),
+                min_voiced_duration=float(min_dur)
+            )
 
     def analyze(self, audio: np.ndarray, sr: int) -> SensorResult:
         if not HAS_LIBROSA:
@@ -71,13 +81,18 @@ class PitchVelocitySensor(BaseSensor):
         # If we see sustained "super-human" glides
         is_suspicious = max_vel > self.config.max_velocity_threshold
         
-        # Use a soft score based on how far past the limit it went
-        # Sigmoid-like mapping
-        # 35 st/s -> 0.5
-        # 70 st/s -> 1.0
-        score = min(1.0, max(0.0, (max_vel - 20) / 40)) 
+        # Calculate score relative to threshold
+        if is_suspicious:
+            # Scale from 0.5 to 1.0 based on how much it exceeds threshold
+            # e.g. Threshold + 50st/s = 1.0
+            excess = max_vel - self.config.max_velocity_threshold
+            score = 0.5 + min(0.5, excess / 50.0)
+        else:
+            # Scale from 0.0 to 0.5 based on proximity to threshold
+            ratio = max_vel / self.config.max_velocity_threshold
+            score = 0.5 * ratio
         
-        passed = score < 0.5
+        passed = not is_suspicious
         
         detail = f"Max Glide: {max_vel:.1f} st/s (Limit: {self.config.max_velocity_threshold})."
         if not passed:

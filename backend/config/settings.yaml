@@ -84,7 +84,7 @@ sensors:
     min_rolloff_hz: 4476.7889 # Context Detection Threshold
 
   pitch_velocity:
-    max_velocity_threshold: 35.0 # Human laryngeal limit (semitones/sec)
+    max_velocity_threshold: 175.0 # Recalibrated 2025-12-10 (Organic P99: 174.28 st/s)
     min_voiced_duration: 0.05
 
   digital_silence:

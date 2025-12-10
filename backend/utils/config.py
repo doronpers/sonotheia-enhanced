@@ -122,13 +122,18 @@ def get_sensor_thresholds() -> Dict[str, Any]:
     }
 
     # Merge config with defaults (config values override defaults)
-    result = {}
-    for sensor_name, default_values in defaults.items():
-        config_values = sensor_config.get(sensor_name, {})
-        if isinstance(default_values, dict) and isinstance(config_values, dict):
-            result[sensor_name] = {**default_values, **config_values}
+    # Merge defaults and config
+    result = defaults.copy()
+    
+    for sensor_name, config_values in sensor_config.items():
+        if sensor_name not in result:
+            result[sensor_name] = config_values
+        elif isinstance(result[sensor_name], dict) and isinstance(config_values, dict):
+             # Deep merge for dictionary values
+             result[sensor_name] = {**result[sensor_name], **config_values}
         else:
-            result[sensor_name] = config_values if config_values else default_values
+             # Overwrite non-dict values
+             result[sensor_name] = config_values
 
     return result
 

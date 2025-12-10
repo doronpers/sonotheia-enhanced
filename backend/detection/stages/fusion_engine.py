@@ -126,7 +126,8 @@ class FusionEngine:
             decision_logic = "Weighted Average"
             
             # Logic: High Risk trumps everything (Veto)
-            if risk_score > 0.8:
+            # SAFE MODE: Disabled Veto to prevent false positives from single sensors
+            if risk_score > 0.98: # Was 0.8. Raised to 0.98 (effectively disabled for non-certainty)
                 final_score = max(final_score, risk_score)
                 decision_logic = "Prosecution Veto (High Risk)"
             
@@ -343,9 +344,10 @@ class FusionEngine:
         # Respiration violation implies impossible breathing
         breath = sensor_results.get("Breath Sensor (Max Phonation)") or {}
         breath_meta = breath.get("metadata") or {}
-        if breath_meta.get("respiration_violation", False):
-            overrides.append("Impossible Breath Pattern (Infinite Lung Capacity)")
-            new_score = max(new_score, 0.90)
+        # SAFE MODE: Disabled Breath Veto
+        # if breath_meta.get("respiration_violation", False):
+        #     overrides.append("Impossible Breath Pattern (Infinite Lung Capacity)")
+        #     new_score = max(new_score, 0.90)
             
         # Rule 3: Glottal Inertia (Trust Booster)
         glottal = sensor_results.get("Glottal Inertia Sensor") or {}
