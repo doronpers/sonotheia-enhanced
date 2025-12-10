@@ -182,6 +182,11 @@ def trim_silence(
     if audio is None or len(audio) == 0:
         return audio
 
+    # If audio is shorter than frame_length, librosa will warn. 
+    # Skip trimming for such short clips.
+    if len(audio) < frame_length:
+        return audio
+
     trimmed, _ = librosa.effects.trim(
         audio, top_db=top_db, frame_length=frame_length, hop_length=hop_length
     )

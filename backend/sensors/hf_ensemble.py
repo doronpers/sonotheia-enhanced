@@ -227,8 +227,8 @@ class HFEnsembleSensor(BaseSensor):
         """Warm up models by sending a small test request."""
         logger.info("Starting model warm-up...")
         
-        # Generate a short test audio (100ms of silence)
-        test_audio = np.zeros(1600, dtype=np.float32)  # 100ms at 16kHz
+        # Generate a short test audio (250ms of silence to satisfy n_fft=2048)
+        test_audio = np.zeros(4000, dtype=np.float32)  # 250ms at 16kHz
         
         for model in self.models:
             if not model.enabled:
