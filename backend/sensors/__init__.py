@@ -41,6 +41,9 @@ from .global_formants import GlobalFormantSensor
 from .coarticulation import CoarticulationSensor
 from .formant import FormantTrajectorySensor
 from .enf import ENFSensor
+from .prosodic_continuity import ProsodicContinuitySensor
+from .vad import VoiceActivityDetector, SpeechSegment, ONNX_AVAILABLE
+from .hf_ensemble import ModelConfig, ModelStatus
 from .registry import SensorRegistry, get_default_sensors
 
 
@@ -73,6 +76,7 @@ __all__ = [
     "ENFSensor",
     "CoarticulationSensor",
     "DigitalSilenceSensor",
+    "ProsodicContinuitySensor",
     "ModelConfig",
     "ModelStatus",
     "SensorRegistry",

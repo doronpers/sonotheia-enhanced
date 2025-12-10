@@ -24,6 +24,7 @@ DEFAULT_WEIGHTS = {
     "DigitalSilenceSensor": 0.15,    # Splicing artifacts
     "GlobalFormantSensor": 0.10,     # Statistical envelope
     "CoarticulationSensor": 0.05,    # Motor planning
+    "ProsodicContinuitySensor": 0.10, # Prosodic discontinuities / splicing
 
     # Patent-guarded/deprecated kept at zero
     "BreathSensor": 0,               # Deprecated (fallback map handles weighting)

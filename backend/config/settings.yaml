@@ -90,6 +90,14 @@ sensors:
   digital_silence:
     silence_threshold: 0.4056 # Calibration 2025-12-09
 
+  prosodic_continuity:
+    max_breaks_per_second: 2.0     # Maximum natural break rate
+    risk_threshold: 0.7            # Risk score threshold for failure
+    f0_zscore_threshold: 3.0       # Z-score threshold for pitch breaks
+    energy_zscore_threshold: 3.0   # Z-score threshold for energy breaks
+    centroid_zscore_threshold: 3.0 # Z-score threshold for timbre breaks
+    min_speech_duration: 0.5       # Minimum speech duration for analysis
+
 # Fusion weights (OVERRIDDEN BY PROFILES BELOW)
 fusion:
   # Default Profile (Wideband/HD Audio)

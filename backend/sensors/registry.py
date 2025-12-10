@@ -51,6 +51,7 @@ def get_default_sensors() -> List[BaseSensor]:
     from .coarticulation import CoarticulationSensor
     from .formant_trajectory import FormantTrajectorySensor
     from .two_mouth import TwoMouthSensor
+    from .prosodic_continuity import ProsodicContinuitySensor
     from .enf import ENFSensor
     from .phase_coherence import PhaseCoherenceSensor
     from .hf_ensemble import HFEnsembleSensor
@@ -68,6 +69,7 @@ def get_default_sensors() -> List[BaseSensor]:
 
         FormantTrajectorySensor(category="defense"),# Trust (Fluid Motion)
         TwoMouthSensor(category="prosecution"),     # Risk (Impossible Overlap)
+        ProsodicContinuitySensor(category="prosecution"), # Risk (Abrupt Prosodic Changes)
         
         # Dormant Sensors Activated
         ENFSensor(category="defense"),              # Trust (Grid Frequency)
