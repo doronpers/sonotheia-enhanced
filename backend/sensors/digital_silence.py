@@ -85,6 +85,16 @@ class DigitalSilenceSensor(BaseSensor):
                 detail="Invalid or empty audio input."
             )
         
+        # Skip analysis for very short audio (avoids false positives from zero-padding)
+        if len(audio_data) < 2048:
+             return SensorResult(
+                sensor_name=self.name,
+                passed=None, # Abstain/Neutral
+                value=0.0,
+                threshold=0.5,
+                detail="Audio too short for Digital Silence analysis (needs 2048+ samples)."
+            )
+        
         try:
             # Analyze noise floor and spectral flux
             noise_floor_results = self._analyze_noise_floor(audio_data, samplerate)

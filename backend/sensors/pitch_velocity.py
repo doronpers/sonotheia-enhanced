@@ -60,6 +60,10 @@ class PitchVelocitySensor(BaseSensor):
         if not self.validate_input(audio, sr):
              return SensorResult(self.name, None, 0.0, 0.0, detail="Invalid input")
 
+        # Skip if too short for frame_length analysis (2048)
+        if len(audio) < 2048:
+             return SensorResult(self.name, None, 0.0, 0.0, detail="Audio too short for pitch analysis")
+
         # 1. Extract Pitch (F0)
         # using pyin for robustness (probabilistic YIN)
         f0, voiced_flag, voiced_probs = librosa.pyin(

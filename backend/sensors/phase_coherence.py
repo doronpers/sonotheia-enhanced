@@ -81,6 +81,16 @@ class PhaseCoherenceSensor(BaseSensor):
                 detail="Invalid or empty audio input."
             )
         
+        # Skip if too short (padding introduces phase discontinuities/artifacts)
+        if len(audio) < self.n_fft:
+             return SensorResult(
+                sensor_name=self.name,
+                passed=None,
+                value=0.0,
+                threshold=0.5,
+                detail="Audio too short for phase analysis."
+            )
+        
         # 1. Analyze Phase Entropy (New Patent-Safe Method)
         entropy_results = self._analyze_phase_entropy(audio, sr)
         

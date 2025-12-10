@@ -245,9 +245,10 @@ class HFEnsembleSensor(BaseSensor):
                 # Try a request
                 await self._call_model_api(model.model_id, audio_bytes, timeout=10.0)
                 self.model_states[model.model_id] = ModelStatus.READY
+                self.model_states[model.model_id] = ModelStatus.READY
                 logger.info(f"Model {model.model_id} warmed up successfully")
-            except Exception as e:
-                logger.warning(f"Model {model.model_id} warm-up failed: {e}")
+            except BaseException as e:
+                logger.warning(f"Model {model.model_id} warm-up failed: {type(e).__name__}: {e}")
                 self.model_states[model.model_id] = ModelStatus.READY  # Still ready for requests
     
     def _check_local_model_availability(self):
@@ -307,16 +308,26 @@ class HFEnsembleSensor(BaseSensor):
         if rate_state:
             rate_state.record_request()
         
+        # Wrapper to prevent StopIteration from crashing asyncio executor
+        def safe_call():
+             try:
+                 return self.client.audio_classification(
+                     model=model_id,
+                     audio=audio_bytes
+                 )
+             except StopIteration:
+                 # Converting StopIteration to RuntimeError to be asyncio-safe
+                 raise RuntimeError(f"Model {model_id} raised StopIteration (converted to RuntimeError)")
+             except Exception as e:
+                 raise e
+
         # Run the blocking API call in a thread pool
         loop = asyncio.get_event_loop()
         try:
             response = await asyncio.wait_for(
                 loop.run_in_executor(
                     None,
-                    lambda: self.client.audio_classification(
-                        model=model_id,
-                        audio=audio_bytes
-                    )
+                    safe_call
                 ),
                 timeout=timeout
             )

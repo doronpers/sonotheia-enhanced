@@ -192,13 +192,13 @@ class FeatureExtractionStage:
     def _extract_spectral_features(self, audio: np.ndarray) -> np.ndarray:
         """Extract spectral features (centroid, bandwidth, rolloff)."""
         spectral_centroid = librosa.feature.spectral_centroid(
-            y=audio, sr=self.sample_rate, hop_length=self.hop_length
+            y=audio, sr=self.sample_rate, n_fft=self.n_fft, hop_length=self.hop_length
         )
         spectral_bandwidth = librosa.feature.spectral_bandwidth(
-            y=audio, sr=self.sample_rate, hop_length=self.hop_length
+            y=audio, sr=self.sample_rate, n_fft=self.n_fft, hop_length=self.hop_length
         )
         spectral_rolloff = librosa.feature.spectral_rolloff(
-            y=audio, sr=self.sample_rate, hop_length=self.hop_length
+            y=audio, sr=self.sample_rate, n_fft=self.n_fft, hop_length=self.hop_length
         )
 
         features = np.vstack([spectral_centroid, spectral_bandwidth, spectral_rolloff])

@@ -169,7 +169,18 @@ class ArtifactDetectionStage:
     def _detect_frequency_artifacts(self, audio: np.ndarray) -> Dict[str, Any]:
         """Detect frequency domain artifacts."""
         # Compute spectrum
+        # Compute spectrum
         n_fft = 2048
+        if len(audio) < n_fft:
+            return {
+                "spectral_flatness": 1.0, # Neutral
+                "spectral_peak_ratio": 0.0,
+                "num_spectral_holes": 0,
+                "high_frequency_energy": 0.0,
+                "suspicious": False,
+                "note": "Audio too short for frequency analysis"
+            }
+            
         spectrum = np.abs(np.fft.rfft(audio, n=n_fft))
         freqs = np.fft.rfftfreq(n_fft, 1 / self.sample_rate)
 

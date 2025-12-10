@@ -15,9 +15,14 @@ import random
 from pathlib import Path
 from tqdm import tqdm
 import numpy as np
+from dotenv import load_dotenv
 
 # Add parent to path
-sys.path.append(str(Path(__file__).parent.parent.parent))
+root_dir = Path(__file__).parent.parent.parent
+sys.path.append(str(root_dir))
+
+# Load environment variables
+load_dotenv(root_dir / ".env")
 
 from backend.detection import get_pipeline, convert_numpy_types
 from backend.sensors.utils import load_and_preprocess_audio

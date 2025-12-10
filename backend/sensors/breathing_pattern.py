@@ -90,6 +90,16 @@ class BreathingPatternSensor(BaseSensor):
                 detail="Invalid or empty audio input."
             )
 
+        # Skip if too short for STFT (n_fft=2048)
+        if len(audio_data) < 2048:
+             return SensorResult(
+                sensor_name=self.name,
+                passed=None,
+                value=0.5,
+                threshold=self.min_variance_threshold,
+                detail="Audio too short for breathing analysis."
+            )
+
         # Check SNR - reject if too noisy
         snr_db = self._calculate_snr(audio_data)
         if snr_db < self.snr_threshold_db:

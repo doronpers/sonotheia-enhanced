@@ -535,6 +535,7 @@ class ExplainabilityStage:
         self,
         stage_results: Dict[str, Dict[str, Any]],
         fusion_result: Dict[str, Any],
+        decision_trace: List[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Query LLM for forensic analysis using chat completion (Mistral compatible).
@@ -547,6 +548,7 @@ class ExplainabilityStage:
                     "verdict": fusion_result.get("decision"),
                     "confidence": fusion_result.get("confidence")
                 },
+                "decision_trace": decision_trace or [],
                 "sensors": {}
             }
             
