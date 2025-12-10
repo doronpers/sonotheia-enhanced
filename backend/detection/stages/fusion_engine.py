@@ -26,7 +26,6 @@ class FusionEngine:
         self,
         fusion_method: str = "weighted_average",
         stage_weights: Optional[Dict[str, float]] = None,
-
         confidence_threshold: float = 0.5,
         decision_threshold: float = 0.5,
         **kwargs
@@ -42,10 +41,10 @@ class FusionEngine:
         """
         self.fusion_method = fusion_method
         self.stage_weights = stage_weights or {
-            "feature_extraction": 0.15,
+            "feature_extraction": 0.30, # Increased to 0.30
             "temporal_analysis": 0.15,
             "artifact_detection": 0.15,
-            "rawnet3": 0.40,
+            "rawnet3": 0.25, # Reduced to 0.25
             "explainability": 0.15,
         }
         self.profiles = kwargs.get("profiles", {}) # Store fusion profiles
@@ -360,13 +359,14 @@ class FusionEngine:
              new_score = max(new_score, 0.85) 
         elif glottal.get("passed") is True and violation_count == 0:
              # Trust Boost: Validated human physics
-             # Only reduce score if we don't have other fatal strikes (TwoMouth/Breath)
-             if len(overrides) == 0: 
-                 trust_factor = 0.5
-                 previous_score = new_score
-                 new_score = new_score * trust_factor
-                 if previous_score > 0.5 and new_score < 0.5:
-                      overrides.append("Glottal Physics Validation (Trust Boost)")
+             # Only apply if the base score is clearly REAL (< 0.5). If it's borderline or fake, don't trust physics.
+             if new_score < 0.5:
+                 if len(overrides) == 0: 
+                     trust_factor = 0.7 # Weakened from 0.5 to 0.7 to be safer
+                     previous_score = new_score
+                     new_score = new_score * trust_factor
+                     if previous_score > 0.5 and new_score < 0.5:
+                          overrides.append("Glottal Physics Validation (Trust Boost)")
 
         if not overrides:
             return {"override_applied": False, "fused_score": current_score, "decision": current_decision}
