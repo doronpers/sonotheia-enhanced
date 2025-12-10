@@ -58,7 +58,7 @@ sensors:
     vtl_cv_low: 0.10              # Coefficient of variation: normal start
     vtl_cv_high: 0.20             # Coefficient of variation: suspicious end
     spectral_conflict_rate: 0.05  # Max % of frames with both-band conflict
-    combined_threshold: 0.4033    # Overall pass/fail threshold (Calibration 2025-12-09)
+    combined_threshold: 0.55      # Raised from 0.4033 to reduce FP (Phase 2.1 - ready to enable)
 
   formant_trajectory:
     consistency_threshold: 0.7068 # Calibration 2025-12-09
@@ -70,7 +70,7 @@ sensors:
     anomaly_threshold: 0.5228 # Calibration 2025-12-09
     
   hf_deepfake:
-    confidence_threshold: 0.70    # Calibration suggests 0.00, keeping safe default or use 0.0 only if strictly required
+    confidence_threshold: 0.85    # Raised from 0.70 to reduce false positives (Phase 2.1)
 
   breath:
     max_phonation_seconds: 1.3114 # Human lung capacity limit (Calibration result 1.76s rejected as too aggressive)
@@ -96,14 +96,14 @@ fusion:
   profiles:
     default:
       weights:
-        GlottalInertiaSensor: 0.35
+        GlottalInertiaSensor: 0.30    # Reduced from 0.35 to make room
         PitchVelocitySensor: 0.15     # Replaces PhaseCoherence
         FormantTrajectorySensor: 0.20
-        DigitalSilenceSensor: 0.15
+        DigitalSilenceSensor: 0.10    # Reduced from 0.15
         GlobalFormantSensor: 0.10
         CoarticulationSensor: 0.05
-        HFDeepfakeSensor: 0.00
-        TwoMouthSensor: 0.00          # Disabled
+        HFDeepfakeSensor: 0.10        # RE-ENABLED: ML model detection
+        TwoMouthSensor: 0.00          # Keep disabled for now (needs more tuning)
       thresholds:
         synthetic: 0.7
         real: 0.3
