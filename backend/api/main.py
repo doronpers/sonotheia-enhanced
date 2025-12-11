@@ -156,6 +156,11 @@ app = FastAPI(
 )
 
 # CORS Configuration - Improved security with configurable origins
+# CORS Configuration - Improved security with configurable origins
+# Parse additional origins from environment variable (comma separated)
+import os
+env_origins = [o.strip() for o in os.getenv("ADDITIONAL_ORIGINS", "").split(",") if o.strip()]
+
 ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001", 
@@ -163,8 +168,9 @@ ALLOWED_ORIGINS = [
     "http://localhost:3003",
     "http://localhost:3004",
     "http://localhost:5173", # Website-Sonotheia Vite Dev Server
-    # Add production domains here
-    # "https://yourdomain.com",
+    "https://website-sonotheia-v251120.onrender.com", # Likely Frontend URL
+    "https://sonotheia-frontend.onrender.com",       # Generic Frontend URL
+    *env_origins # Expand any environment-provided origins
 ]
 
 app.add_middleware(
