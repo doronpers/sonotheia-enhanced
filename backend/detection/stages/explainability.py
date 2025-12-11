@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional
 import numpy as np
 from huggingface_hub import InferenceClient
 
-from backend.utils.serialization import convert_numpy_types
+from utils.serialization import convert_numpy_types
 
 logger = logging.getLogger(__name__)
 
