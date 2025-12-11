@@ -18,6 +18,7 @@ services:
   # Frontend Static Site
   - type: static
     name: sonotheia-frontend
+    plan: free
     buildCommand: |
         cd frontend
         npm install
