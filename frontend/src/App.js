@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress, Button, AppBar, Toolbar, Tabs, Tab } from "@mui/material";
 import WaveformDashboard from "./components/WaveformDashboard";
@@ -7,7 +7,7 @@ import RiskScoreBox from "./components/RiskScoreBox";
 import Dashboard from "./components/Dashboard";
 import AuthenticationForm from "./components/AuthenticationForm";
 import Laboratory from "./components/Laboratory";
-import ForensicViewer from "./components/ForensicViewer";
+import ArtifactViewer from "./components/ArtifactViewer";
 
 function HomePage() {
   const [loading, setLoading] = useState(false);
@@ -145,22 +145,73 @@ function HomePage() {
   );
 }
 
+function ArtifactViewerPage() {
+  const [metadata, setMetadata] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArtifacts = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/static/forensics/artifact_metadata.json');
+        const data = await response.json();
+        setMetadata(data);
+      } catch (err) {
+        console.error('Failed to load artifact metadata:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArtifacts();
+  }, []);
+
+  if (loading) {
+    return (
+      <Container sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" gutterBottom>
+          Voice Authentication Artifact Analysis
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Interactive visualization of detected anomalies and artifacts in voice samples
+        </Typography>
+      </Box>
+
+      {metadata ? (
+        <ArtifactViewer 
+          audioData={null}
+          artifacts={metadata.artifacts}
+          sampleRate={metadata.sampleRate}
+          duration={metadata.duration}
+        />
+      ) : (
+        <Typography color="error">Failed to load artifact data</Typography>
+      )}
+    </Container>
+  );
+}
+
 function NavTabs() {
   const location = useLocation();
   const currentPath = location.pathname;
 
   let tabValue = 0;
   if (currentPath === '/dashboard') tabValue = 1;
-  if (currentPath === '/dashboard') tabValue = 1;
   if (currentPath === '/lab') tabValue = 2;
-  if (currentPath === '/forensics') tabValue = 3;
+  if (currentPath === '/artifacts') tabValue = 3;
 
   return (
     <Tabs value={tabValue} textColor="inherit" indicatorColor="secondary">
       <Tab label="Authentication" component={Link} to="/" />
       <Tab label="Dashboard" component={Link} to="/dashboard" />
       <Tab label="Lab" component={Link} to="/lab" />
-      <Tab label="Forensics" component={Link} to="/forensics" />
+      <Tab label="Artifacts" component={Link} to="/artifacts" />
     </Tabs>
   );
 }
@@ -182,11 +233,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lab" element={<Laboratory />} />
-          <Route path="/forensics" element={
-            <Container maxWidth="xl" sx={{ py: 4 }}>
-              <ForensicViewer />
-            </Container>
-          } />
+          <Route path="/artifacts" element={<ArtifactViewerPage />} />
         </Routes>
       </Box>
     </Router>
