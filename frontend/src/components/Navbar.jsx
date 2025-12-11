@@ -1,30 +1,9 @@
 const Navbar = ({ onOpenLab, onOpenSim }) => (
   <nav className="navbar" role="navigation" aria-label="Main navigation">
     <div className="nav-container">
-      <button
-        onClick={(e) => {
-          // Secret Trigger: 5 clicks in 2 seconds opens Simulation Studio
-          const now = Date.now();
-          const clicks = (window.simClickCount || 0) + 1;
-          const lastClick = window.simLastClick || 0;
-
-          if (now - lastClick > 2000) {
-            window.simClickCount = 1;
-          } else {
-            window.simClickCount = clicks;
-          }
-          window.simLastClick = now;
-
-          if (window.simClickCount >= 5) {
-            onOpenSim();
-            window.simClickCount = 0;
-          }
-        }}
-        className="nav-logo focus:outline-none"
-        aria-label="Sonotheia - Return to home"
-      >
+      <a href="#home" className="nav-logo" aria-label="Sonotheia - Return to home">
         SONOTHEIA
-      </button>
+      </a>
       <ul className="nav-menu" role="menubar">
         <li role="none">
           <button
@@ -35,7 +14,6 @@ const Navbar = ({ onOpenLab, onOpenSim }) => (
             [ R&D LAB ]
           </button>
         </li>
-        {/* SIMULATION BUTTON HIDDEN FOR PUBLIC RELEASE 
         <li role="none">
           <button
             onClick={onOpenSim}
@@ -45,7 +23,6 @@ const Navbar = ({ onOpenLab, onOpenSim }) => (
             [ SIMULATION ]
           </button>
         </li>
-        */}
         <li role="none">
           <a href="#team" className="nav-link" role="menuitem" aria-label="Navigate to leadership team section">
             LEADERSHIP
