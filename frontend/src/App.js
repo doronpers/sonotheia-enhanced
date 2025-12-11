@@ -7,7 +7,6 @@ import RiskScoreBox from "./components/RiskScoreBox";
 import Dashboard from "./components/Dashboard";
 import AuthenticationForm from "./components/AuthenticationForm";
 import Laboratory from "./components/Laboratory";
-import ForensicViewer from "./components/ForensicViewer";
 
 function HomePage() {
   const [loading, setLoading] = useState(false);
@@ -151,16 +150,13 @@ function NavTabs() {
 
   let tabValue = 0;
   if (currentPath === '/dashboard') tabValue = 1;
-  if (currentPath === '/dashboard') tabValue = 1;
   if (currentPath === '/lab') tabValue = 2;
-  if (currentPath === '/forensics') tabValue = 3;
 
   return (
     <Tabs value={tabValue} textColor="inherit" indicatorColor="secondary">
       <Tab label="Authentication" component={Link} to="/" />
       <Tab label="Dashboard" component={Link} to="/dashboard" />
       <Tab label="Lab" component={Link} to="/lab" />
-      <Tab label="Forensics" component={Link} to="/forensics" />
     </Tabs>
   );
 }
@@ -182,11 +178,6 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lab" element={<Laboratory />} />
-          <Route path="/forensics" element={
-            <Container maxWidth="xl" sx={{ py: 4 }}>
-              <ForensicViewer />
-            </Container>
-          } />
         </Routes>
       </Box>
     </Router>
