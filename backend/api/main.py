@@ -156,26 +156,60 @@ app = FastAPI(
 )
 
 # CORS Configuration - Improved security with configurable origins
-ALLOWED_ORIGINS = [
+import os
+
+# Default allowed origins for development
+DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001", 
     "http://localhost:3002",
     "http://localhost:3003",
     "http://localhost:3004",
     "http://localhost:5173", # Website-Sonotheia Vite Dev Server
-    # Add production domains here
-    # "https://yourdomain.com",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:5173",
 ]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    # Security: Restrict to necessary headers only
-    allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
-    expose_headers=["X-Request-ID", "X-Response-Time"]
-)
+# Get CORS origins from environment variable or use defaults
+# Format: CORS_ORIGINS="http://example.com,https://app.example.com"
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+if cors_origins_env:
+    # If environment variable is set, use it (comma-separated list)
+    ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+else:
+    # Otherwise use defaults
+    ALLOWED_ORIGINS = DEFAULT_ALLOWED_ORIGINS
+
+# In demo mode, allow all origins for development convenience
+# SECURITY WARNING: Never use allow_origins=["*"] with allow_credentials=True in production
+DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
+if DEMO_MODE:
+    # For demo/development, use regex pattern to allow any localhost or local network IPs
+    import re
+    # This allows localhost, 127.0.0.1, and private network IPs (10.x, 172.16-31.x, 192.168.x)
+    allow_origin_regex = r"^https?://(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$"
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=allow_origin_regex,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        # Security: Restrict to necessary headers only
+        allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
+        expose_headers=["X-Request-ID", "X-Response-Time"]
+    )
+else:
+    # Production mode: use strict origin list
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        # Security: Restrict to necessary headers only
+        allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
+        expose_headers=["X-Request-ID", "X-Response-Time"]
+    )
 
 # Global exception handler for security
 @app.exception_handler(Exception)
