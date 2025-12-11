@@ -96,14 +96,66 @@ const DataFactoryController = ({ isOpen, onClose }) => {
         }
     };
 
-    // Authentication removed for Internal Dashboard (sonotheia-enhanced)
-    // const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [passcode, setPasscode] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
 
     // ... [existing useEffects]
 
     if (!isOpen) return null;
 
-    // Direct Access for Internal Dashboard
+    if (!isAuthenticated) {
+        return (
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                <div className="bg-[#050505] border border-red-500/20 rounded-xl p-8 max-w-md w-full shadow-2xl ring-1 ring-red-900/20 flex flex-col items-center gap-6 animate-in zoom-in duration-300">
+                    <div className="p-4 rounded-full bg-red-500/10 border border-red-500/20">
+                        <Lock className="w-8 h-8 text-red-500" />
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h2 className="text-xl font-bold text-white tracking-widest font-mono">RESTRICTED ACCESS</h2>
+                        <p className="text-sm text-white/40">Secure Engineering Environment</p>
+                    </div>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            // Hardcoded for demo simplicity, can be moved to env
+                            if (passcode === "admin123" || passcode === "incode") {
+                                setIsAuthenticated(true);
+                                setErrorMsg("");
+                            } else {
+                                setErrorMsg("ACCESS DENIED");
+                                setPasscode("");
+                            }
+                        }}
+                        className="w-full space-y-4"
+                    >
+                        <input
+                            type="password"
+                            placeholder="ENTER PASSCODE"
+                            value={passcode}
+                            onChange={(e) => setPasscode(e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-center text-white font-mono tracking-[0.5em] focus:border-red-500 focus:outline-none placeholder:tracking-normal placeholder:text-white/20 transition-colors"
+                            autoFocus
+                        />
+                        {errorMsg && (
+                            <div className="text-red-500 text-xs font-bold text-center animate-pulse">
+                                {errorMsg}
+                            </div>
+                        )}
+                        <button
+                            type="submit"
+                            className="w-full py-3 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white font-bold text-xs uppercase tracking-widest rounded-lg border border-white/5 transition-all"
+                        >
+                            Authenticate
+                        </button>
+                    </form>
+                    <button onClick={onClose} className="text-white/20 hover:text-white text-xs uppercase tracking-wider mt-4">
+                        Cancel Connection
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">

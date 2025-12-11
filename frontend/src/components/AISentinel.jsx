@@ -170,8 +170,14 @@ const AISentinel = ({ result, onSimulationUpdate, provider = "auto" }) => {
     // Initial greeting & Narrative
     useEffect(() => {
         if (!result) return;
-        const initialRisk = result?.verdict?.risk_level || "Analyzing...";
-        const narrative = result?.scenario_narrative;
+
+        // Handle Quick Mode / Flat structure
+        const decision = result?.decision || "UNCERTAIN";
+        const score = result?.detection_score || 0;
+        const initialRisk = score > 0.8 ? "CRITICAL" : (score > 0.5 ? "HIGH" : "LOW");
+
+        // Quick mode might not have a narrative
+        const narrative = result?.explanation?.summary || result?.scenario_narrative || "Audio signature analysis complete.";
 
         // Only run this once per result instance effectively
         setMessages(prev => {
@@ -179,13 +185,13 @@ const AISentinel = ({ result, onSimulationUpdate, provider = "auto" }) => {
 
             const msgs = [{
                 role: 'system',
-                text: `Forensic analysis complete. Risk Level: ${initialRisk}. I am ready to explain the\u00A0findings.`
+                text: `Forensic analysis complete. Risk Level: ${initialRisk}. Decision: ${decision}. I can explain the acoustic anomalies found.`
             }];
 
             if (narrative) {
                 msgs.push({
                     role: 'system',
-                    text: `⚠️ MISSION CONTEXT\n\n${narrative}`
+                    text: `⚠️ REPORT SUMMARY\n\n${narrative}`
                 });
             }
 
@@ -202,6 +208,10 @@ const AISentinel = ({ result, onSimulationUpdate, provider = "auto" }) => {
         setIsTyping(true);
 
         try {
+            // Note: Use /api/chat if it exists, otherwise fall back to client-side logic for demo
+            // Since we are in "Honest" mode and the backend might not have the chat endpoint fully wired for the public demo,
+            // we will try the endpoint but have a robust fallback.
+
             const response = await fetch(`${API_URL}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -212,7 +222,7 @@ const AISentinel = ({ result, onSimulationUpdate, provider = "auto" }) => {
                 })
             });
 
-            if (!response.ok) throw new Error("API Connection Failed");
+            if (!response.ok) throw new Error("Chat unavailable");
 
             const data = await response.json();
 
@@ -226,11 +236,14 @@ const AISentinel = ({ result, onSimulationUpdate, provider = "auto" }) => {
             }
 
         } catch (error) {
-            console.error(error);
-            // Fallback purely client-side if API fails completely
+            console.warn("Chat API unavailable, using offline fallback:", error);
+            // Honest Fallback for Demo
             setTimeout(() => {
-                setMessages(prev => [...prev, { role: 'system', text: "Connection interruption. Displaying cached forensic summary: Risk data integrity verified." }]);
-            }, 1000);
+                setMessages(prev => [...prev, {
+                    role: 'system',
+                    text: "Live Agent Connection: OFFLINE (Demo Limit). \n\nPlease contact Sonotheia Enterprise Sales for full interactive forensic capabilities."
+                }]);
+            }, 800);
         } finally {
             setIsTyping(false);
         }

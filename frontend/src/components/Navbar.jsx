@@ -1,4 +1,4 @@
-const Navbar = ({ onOpenLab, onOpenSim }) => (
+const Navbar = ({ onOpenLab }) => (
   <nav className="navbar" role="navigation" aria-label="Main navigation">
     <div className="nav-container">
       <a href="#home" className="nav-logo" aria-label="Sonotheia - Return to home">
@@ -12,15 +12,6 @@ const Navbar = ({ onOpenLab, onOpenSim }) => (
             role="menuitem"
           >
             [ R&D LAB ]
-          </button>
-        </li>
-        <li role="none">
-          <button
-            onClick={onOpenSim}
-            className="nav-link text-purple-400 hover:text-purple-300 font-mono text-sm tracking-wider mr-4"
-            role="menuitem"
-          >
-            [ SIMULATION ]
           </button>
         </li>
         <li role="none">

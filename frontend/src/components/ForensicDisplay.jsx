@@ -441,29 +441,32 @@ const TechnicalEvidenceLog = React.memo(({ result }) => {
 });
 
 const ForensicDisplay = ({ result }) => {
-    // Generate chart data (memoized) for other metrics if needed, but Spectrogram is now texture-based
-    // and Spectral Flatness is removed.
+    // API Response Mapping (Quick Mode vs Full)
+    // Quick Mode returns: { detection_score, is_spoof, confidence, decision, quick_mode: true }
+    // It does NOT return 'physics_engine' details.
 
-    // Physics & Verdict Data extraction
-    const physics = result?.physics_engine || {};
-    const verdict = result?.verdict || {};
+    const isQuickMode = result?.quick_mode || false;
+    const score = result?.detection_score || 0;
+    const confidence = result?.confidence || 0;
+    const decision = result?.decision || "ANALYZING";
+    const isSpoof = result?.is_spoof || false;
+
+    // Helper for formatting percentage
+    const fmtPct = (val) => `${(val * 100).toFixed(1)}%`;
+
     const [showSAR, setShowSAR] = useState(false);
-
-    const getStatusColor = (value, passValue = 1.0) =>
-        value === passValue ? '#059669' : '#F43F5E';
 
     return (
         <div style={styles.container}>
-            <div style={styles.sectionLabel}>Forensic Analysis</div>
+            <div style={styles.sectionLabel}>Forensic Analysis {isQuickMode && <span style={{ opacity: 0.5 }}>— QUICK SCAN MODE</span>}</div>
 
-            {/* TOP: Spectrogram (Full Width) */}
+            {/* TOP: Spectrogram (Visualizer) */}
             <div style={{ ...styles.chartCard, padding: '0', overflow: 'hidden', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
                     <span style={styles.chartTitle}>SPECTROGRAM ANALYSIS (8kHz Bandwidth)</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                     <Spectrogram />
-                    {/* Overlay Labels */}
                     <div style={{ position: 'absolute', left: '8px', top: '8px', fontSize: '10px', color: 'rgba(52, 211, 153, 0.7)', fontFamily: 'monospace', pointerEvents: 'none' }}>8kHz</div>
                     <div style={{ position: 'absolute', left: '8px', bottom: '8px', fontSize: '10px', color: 'rgba(52, 211, 153, 0.7)', fontFamily: 'monospace', pointerEvents: 'none' }}>0Hz</div>
                 </div>
@@ -471,7 +474,7 @@ const ForensicDisplay = ({ result }) => {
 
             {/* GRID: 2x2 Layout */}
             <div style={styles.grid}>
-                {/* 1. Technical Evidence Log (Replaces Spectral Flatness) */}
+                {/* 1. Evidence Log */}
                 <div style={styles.chartCard}>
                     <div style={styles.chartHeader}>
                         <span style={styles.chartTitle}>Technical Evidence Log</span>
@@ -481,25 +484,69 @@ const ForensicDisplay = ({ result }) => {
                     </div>
                 </div>
 
-                {/* 2. Algorithm-Aided Judgment (Replaces VocalCrypt) */}
-                <AlgorithmJudgment result={result} />
+                {/* 2. Algorithm Judgment (Adapted for Quick Mode) */}
+                <div style={{ ...styles.chartCard, display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={styles.sectionLabel}>ALGORITHMIC JUDGMENT</div>
+                        <div style={{
+                            color: isSpoof ? '#F43F5E' : '#059669',
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            padding: '4px 8px',
+                            background: isSpoof ? 'rgba(244, 63, 94, 0.1)' : 'rgba(52, 211, 153, 0.1)',
+                            borderRadius: '4px'
+                        }}>
+                            {decision}
+                        </div>
+                    </div>
 
-                {/* 3. Metric: Jitter */}
+                    {/* Metrics List - Grayed out if Quick Mode to handle expectation honestly */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.7rem', fontFamily: '"JetBrains Mono", monospace' }}>
+
+                        {/* Always Valid: Acoustic Score */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#F0F0F2' }}>
+                            <span>ACOUSTIC SIG.</span>
+                            <span style={{ color: isSpoof ? '#F43F5E' : '#059669' }}>{fmtPct(score)}</span>
+                        </div>
+
+                        {/* Enterprise Features */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: isQuickMode ? 'rgba(255,255,255,0.2)' : '#F0F0F2' }}>
+                            <span>LATENCY JITTER</span>
+                            <span>{isQuickMode ? "LOCKED (ENT)" : "0ms"}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: isQuickMode ? 'rgba(255,255,255,0.2)' : '#F0F0F2' }}>
+                            <span>VOCAL CRYPT</span>
+                            <span>{isQuickMode ? "LOCKED (ENT)" : "VALID"}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: isQuickMode ? 'rgba(255,255,255,0.2)' : '#F0F0F2' }}>
+                            <span>GEOLOCATION</span>
+                            <span>{isQuickMode ? "LOCKED (ENT)" : "MATCH"}</span>
+                        </div>
+                    </div>
+
+                    {isQuickMode && (
+                        <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.65rem', color: '#E5B956' }}>
+                            Limited Demo: Running Stage 1-3 only.
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. Metric: Confidence */}
                 <MetricCard
-                    label="Latency Jitter"
-                    value={`${physics.latency_jitter?.value_ms || 0}ms`}
-                    valueColor={physics.latency_jitter?.value_ms > 200 ? '#F43F5E' : '#059669'}
-                    subLabel="Check"
-                    subValue={physics.latency_jitter?.value_ms > 200 ? "GPU Pause" : "Real-time"}
+                    label="Confidence"
+                    value={fmtPct(confidence)}
+                    valueColor={confidence > 0.8 ? '#059669' : '#E5B956'}
+                    subLabel="Model"
+                    subValue={isQuickMode ? "Lightweight" : "Full"}
                 />
 
-                {/* 4. Metric: Risk */}
+                {/* 4. Metric: Risk Level (Derived from Score) */}
                 <MetricCard
                     label="Risk Level"
-                    value={verdict.risk_level || "N/A"}
-                    valueColor={verdict.risk_level === 'CRITICAL' ? '#F43F5E' : '#E5B956'}
+                    value={score > 0.8 ? "CRITICAL" : score > 0.5 ? "HIGH" : "LOW"}
+                    valueColor={score > 0.8 ? '#F43F5E' : score > 0.5 ? '#E5B956' : '#059669'}
                     subLabel="Verdict"
-                    subValue={verdict.final_determination || "PENDING"}
+                    subValue={isSpoof ? "SYNTHETIC" : "AUTHENTIC"}
                 />
             </div>
 

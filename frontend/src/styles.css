@@ -34,131 +34,61 @@
 
 :root {
   color-scheme: dark;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #050508;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: #050505;
   color: #F0F0F2;
 
-  /* Color tokens - Sonotheia Radar System (Style Guide 2.2) */
-  --midnight-purple: #050508;
-  /* Deep space black with subtle warmth */
-  --navy-blue: #0A1628;
-  /* Institutional authority: headers, navigation, primary UI */
-  --acoustic-silver: #F0F0F2;
-  /* Canvas: backgrounds, waveform containers */
-  --verification-green: #059669;
-  /* Status: Verified - darker, authoritative emerald */
-  --trust-green: #059669;
-  /* Logo Green - Trust indicators */
-  --alert-red: #F43F5E;
-  /* Status: Block - modern rose-red */
-  --signal-gold: #E5B956;
-  /* Moment of detection - warmer, more visible gold */
-  --signal-gold-hover: #F5D06B;
-  /* Hover state for Signal Gold */
-  --deep-charcoal: #1A1A1F;
-  /* Body text */
-  --light-gray: #F8F8FA;
-  /* Borders, backgrounds */
-  --medium-gray: #8B8B99;
-  /* Disabled, inactive text/buttons */
+  /* --- PALETTE: REDUCED & PRECISE --- */
+  /* Backgrounds */
+  --midnight-purple: #050505;
+  /* Deepest Void */
+  --navy-blue: #0A0A0C;
+  /* Surface */
 
-  /* Alpha variations for consistent opacity usage */
-  --signal-gold-alpha-06: rgba(229, 185, 86, 0.06);
-  --signal-gold-alpha-08: rgba(229, 185, 86, 0.08);
-  --signal-gold-alpha-15: rgba(229, 185, 86, 0.15);
-  --signal-gold-alpha-20: rgba(229, 185, 86, 0.2);
-  --signal-gold-alpha-30: rgba(229, 185, 86, 0.3);
-  --signal-gold-alpha-50: rgba(229, 185, 86, 0.5);
-  --signal-gold-alpha-85: rgba(229, 185, 86, 0.85);
-  --verification-green-alpha-15: rgba(52, 211, 153, 0.15);
-  --verification-green-alpha-40: rgba(52, 211, 153, 0.4);
-  --alert-red-alpha-15: rgba(244, 63, 94, 0.15);
-  --alert-red-alpha-40: rgba(244, 63, 94, 0.4);
+  /* Typography */
+  --acoustic-silver: #EAEAEA;
+  /* Primary Text */
+  --medium-gray: #888888;
+  /* Secondary Text */
+  --subtle-gray: #444444;
+  /* Borders / Lines */
 
-  /* Mapped tokens for backward compatibility */
-  --page-background: var(--midnight-purple);
-  --gradient-top: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(229, 185, 86, 0.08), transparent 50%);
-  /* Unified section background with subtle color variation */
-  --section-background: var(--midnight-purple);
-  --section-gradient: linear-gradient(180deg, var(--midnight-purple) 0%, #080810 100%);
-  --accent-primary: var(--signal-gold);
-  --accent-secondary: var(--verification-green);
-  --error-red: var(--alert-red);
-  --surface-elevated: rgba(255, 255, 255, 0.04);
-  --surface-muted: rgba(255, 255, 255, 0.06);
-  --surface-border: rgba(255, 255, 255, 0.08);
-  --text-primary: var(--acoustic-silver);
-  --text-secondary: rgba(240, 240, 242, 0.7);
+  /* Functional Colors (Only use for meaning) */
+  --trust-green: #10B981;
+  /* Verified / Safe */
+  --alert-red: #EF4444;
+  /* Danger / Fake */
+  --signal-gold: #D4AF37;
+  /* Action / Insight */
 
-  /* Opacity scale - semantic opacity values */
-  --opacity-subtle: 0.6;
-  --opacity-muted: 0.7;
-  --opacity-medium: 0.85;
-  --opacity-strong: 0.9;
-  --opacity-full: 0.95;
-
-  /* Glass morphism */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-
-  /* Spacing scale - refined for better vertical rhythm */
-  --space-xxs: 0.25rem;
+  /* Spacing System (4px Grid) */
   --space-xs: 0.5rem;
-  --space-sm: 0.75rem;
-  --space-md: 1rem;
-  --space-md-lg: 1.25rem;
-  /* Between md and lg */
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-xl-plus: 2.25rem;
-  /* Between xl and xxl */
-  --space-xxl: 3rem;
-  --space-xxxl: 5rem;
+  /* 8px */
+  --space-sm: 1rem;
+  /* 16px */
+  --space-md: 1.5rem;
+  /* 24px */
+  --space-lg: 3rem;
+  /* 48px */
+  --space-xl: 6rem;
+  /* 96px */
 
-  /* Border radius scale - consistent sizing */
-  --radius-sm: 0.25rem;
-  /* 4px - small elements */
-  --radius-md: 0.5rem;
-  /* 8px - inputs */
-  --radius-lg: 0.75rem;
-  /* 12px - cards */
-  --radius-xl: 1rem;
-  /* 16px - large cards */
-  --radius-2xl: 1.5rem;
-  /* 24px - hero elements */
-  --radius-full: 9999px;
-  /* circular */
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 2rem;
+  --text-2xl: 3.5rem;
 
-  /* Typography scale - systematic font sizes */
-  --text-xs: 0.7rem;
-  --text-sm: 0.85rem;
-  --text-base: 0.95rem;
-  --text-md: 1rem;
-  --text-lg: 1.1rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2.4rem;
+  /* UI Tokens */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --focus-ring-color: var(--acoustic-silver);
+  --focus-ring-offset: 2px;
 
-  /* Transition tokens */
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* CRITICAL FIX: Optimal line lengths for readability */
-  --text-measure: 65ch;
-  /* Optimal line length */
-  --text-measure-wide: 75ch;
-  /* Slightly wider for certain contexts */
-  --text-measure-narrow: 45ch;
-  /* Tighter for emphasis */
-  --content-max: 760px;
-  /* Main content max-width */
-  --section-max: 1140px;
-  /* Section container max-width */
-
-  /* Focus + transitions */
-  --focus-ring-color: var(--signal-gold-alpha-85);
-  --focus-ring-offset: 4px;
-  --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Transition */
+  --transition-smooth: 0.2s ease-out;
 }
 
 * {
@@ -182,28 +112,20 @@
   .mobile-only {
     display: block !important;
   }
-
-  .mobile-only-flex {
-    display: flex !important;
-  }
 }
 
 body {
   margin: 0;
-  background: var(--midnight-purple);
-  background-image:
-    var(--gradient-top),
-    radial-gradient(ellipse 100% 100% at 50% 100%, rgba(10, 22, 40, 0.5), transparent 60%),
-    linear-gradient(180deg, var(--midnight-purple) 0%, #080810 100%);
-  background-attachment: fixed;
+  background-color: var(--midnight-purple);
+  /* "Less but Better": No noisy gradients. Just pure, deep darkness. */
+  color: var(--acoustic-silver);
   min-height: 100vh;
-  /* Prevent word breaking/hyphenation globally */
-  hyphens: none;
-  -webkit-hyphens: none;
-  -moz-hyphens: none;
-  -ms-hyphens: none;
-  word-break: normal;
-  overflow-wrap: normal;
+
+  /* Typography Rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+
   /* Smooth scrolling */
   scroll-behavior: smooth;
 }
@@ -352,39 +274,16 @@ main {
   background: transparent;
 }
 
+/* --- NAVIGATION: UNOBTRUSIVE --- */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(5, 5, 8, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-.nav-logo {
-  font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.3rem;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, var(--signal-gold) 0%, var(--acoustic-silver) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  transition: var(--transition-smooth);
-}
-
-.nav-logo:hover {
-  filter: brightness(1.1);
-}
-
-/* Brand name styling - Space Grotesk for all "Sonotheia" text instances */
-.sonotheia-brand {
-  font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.3rem;
+  background: rgba(5, 5, 5, 0.9);
+  /* Solid structure, slight transparency */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--subtle-gray);
 }
 
 .nav-container {
@@ -393,230 +292,132 @@ main {
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-md) var(--space-lg);
-  gap: 2rem;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.nav-logo {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.2rem;
+  font-size: 1.25rem;
+  color: var(--acoustic-silver);
+  text-decoration: none;
 }
 
 .nav-menu {
   list-style: none;
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-md);
   margin: 0;
   padding: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
   align-items: center;
-  flex: 1;
-  justify-content: flex-end;
 }
 
-/* Unified Navigation Link Style - All nav items use identical styling */
+/* Nav Links: Pure Typography */
 .nav-link {
-  /* Geometry */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  border-radius: 4px;
-
-  /* Typography - JetBrains Mono for all action elements (Style Guide 2.3) */
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-family: "Inter", sans-serif;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.06rem;
+  letter-spacing: 0.05rem;
   text-transform: uppercase;
+  color: var(--medium-gray);
   text-decoration: none;
-  white-space: nowrap;
-
-  /* 3D Effect - Light shading and texture */
-  background: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(0, 0, 0, 0.05) 100%);
-  color: var(--acoustic-silver);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.2) inset;
-
-  /* Accessibility: 44px minimum target size */
-  min-height: 44px;
-
-  /* Interaction */
-  cursor: pointer;
-  transition: all 0.15s ease;
-  opacity: 1 !important;
-}
-
-.nav-link::after {
-  display: none !important;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  min-height: auto;
 }
 
 .nav-link:hover {
-  background: linear-gradient(180deg,
-      rgba(232, 232, 232, 0.95) 0%,
-      rgba(232, 232, 232, 0.85) 50%,
-      rgba(200, 200, 200, 0.9) 100%);
-  border-color: var(--acoustic-silver);
-  color: var(--navy-blue);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.1) inset;
-  opacity: 1 !important;
+  color: var(--acoustic-silver);
+  background: none;
+  box-shadow: none;
+  border: none;
 }
 
-.nav-link:active {
-  transform: translateY(1px);
-  box-shadow:
-    0 0px 1px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset;
-}
-
-/* Primary nav link - highlighted CTA */
+/* Primary Link (Highlighted plain text) */
 .nav-link-primary {
-  background: linear-gradient(180deg,
-      rgba(212, 175, 55, 0.2) 0%,
-      rgba(212, 175, 55, 0.1) 50%,
-      rgba(180, 145, 35, 0.15) 100%);
-  border-color: var(--signal-gold-alpha-50);
   color: var(--signal-gold);
 }
 
 .nav-link-primary:hover {
-  background: linear-gradient(180deg,
-      rgba(212, 175, 55, 0.95) 0%,
-      rgba(212, 175, 55, 0.85) 50%,
-      rgba(180, 145, 35, 0.9) 100%);
-  border-color: var(--signal-gold);
-  color: var(--deep-charcoal);
+  color: #FFF;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   UNIFIED BUTTON SYSTEM - Style Guide 4.2
-   All buttons share consistent typography, sizing, and interaction patterns
-   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Base Button - Foundation for all button variants */
+/* --- BUTTONS: HONEST & TACTILE --- */
 .btn {
-  /* Geometry */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  /* Minimal radius */
 
-  /* Typography - JetBrains Mono for all action elements (Style Guide 2.3) */
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "Inter", sans-serif;
   font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.08rem;
+  font-weight: 600;
+  letter-spacing: 0.02rem;
   text-transform: uppercase;
   text-decoration: none;
 
-  /* Accessibility: 44px minimum target size */
-  min-height: 44px;
-  min-width: 44px;
-
-  /* Interaction */
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
-
-  /* Reset */
-  border: 2px solid transparent;
-  outline: none;
-  opacity: 1 !important;
 }
 
-.btn::after {
-  display: none !important;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Primary Button - Main actions (Outline style with fill on hover) */
+/* Primary: High Contrast */
 .btn-primary {
-  background: transparent;
-  color: var(--acoustic-silver);
+  background: var(--acoustic-silver);
+  color: var(--midnight-purple);
   border-color: var(--acoustic-silver);
 }
 
 .btn-primary:hover {
-  background: var(--acoustic-silver);
-  color: var(--navy-blue);
-  border-color: var(--acoustic-silver);
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  transform: translateY(-1px);
 }
 
-/* Secondary Button - Supporting actions (Subtle ghost style) */
+/* Secondary: Subtle Outline */
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
   color: var(--acoustic-silver);
-  border-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--subtle-gray);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: var(--acoustic-silver);
+  border-color: var(--acoustic-silver);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Accent Button - High emphasis actions (Signal Gold) */
+/* Accent: Signal Gold (Use sparingly) */
 .btn-accent {
   background: var(--signal-gold);
-  color: var(--deep-charcoal);
-  border-color: var(--signal-gold);
+  color: #000;
 }
 
 .btn-accent:hover {
-  background: var(--signal-gold-hover);
-  border-color: var(--signal-gold-hover);
-  color: var(--deep-charcoal);
+  background: #F5D06B;
 }
 
-/* Size Variants */
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  min-height: 36px;
+.hero-logo {
+  /* Kept structure, removed excessive filters in JS logic mostly */
+  margin: 0 auto var(--space-lg);
+  width: 200px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.btn-lg {
-  padding: 14px 28px;
-  font-size: 0.9rem;
-}
-
-/* Navigation-specific button (smaller, compact) */
-.nav-menu .btn {
-  padding: 8px 16px;
-  font-size: 0.75rem;
-  min-height: 44px;
-  /* Maintain accessibility standard */
-}
-
-.nav-menu li a::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
+.hero-logo-video {
   width: 100%;
-  height: 1px;
-  background: var(--signal-gold);
-  transform: scaleX(0);
-  transition: transform 0.2s ease;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: lighten;
 }
 
 /* Legacy class alias - maps to .btn.btn-primary for backward compatibility */
