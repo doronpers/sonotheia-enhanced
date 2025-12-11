@@ -12,8 +12,17 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements and install Python dependencies
 # Install Python dependencies (Optimized for CPU-only Torch)
+# Copy requirements
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+
+# 1. Install Core Numerical Libs (Binary Wheels, Fast)
+RUN pip install --no-cache-dir numpy scipy pandas
+
+# 2. Install PyTorch CPU (Heavy, but isolated to prevent resolution limits)
+RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# 3. Install remaining dependencies (FastAPI, etc)
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
