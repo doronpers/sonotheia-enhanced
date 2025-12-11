@@ -5,7 +5,7 @@
 # Configuration
 # Adjust these paths if your folder structure differs
 BACKEND_DIR="$(pwd)/backend"
-FRONTEND_DIR="$(pwd)/../Website-Sonotheia-v251120/frontend"
+FRONTEND_DIR="$(pwd)/frontend"
 
 # Colors
 GREEN='\033[0;32m'

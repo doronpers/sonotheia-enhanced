@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonotheia - True Voice. Verified.</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1a2e'/%3E%3Ctext x='50' y='70' font-size='60' font-weight='bold' text-anchor='middle' fill='%2300d4ff'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">SONOTHEIA</div>
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#technology">Technology</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">True Voice. Verified.</h1>
+            <p class="hero-subtitle">Explainable audio analysis based on deterministic physics-based sensors</p>
+            <a href="#demo" class="cta-button">Try A Demo</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="section-container">
+            <h2 class="section-title">About Sonotheia</h2>
+            <p class="section-text">
+                Sonotheia builds custom biometric authentication solutions for financial service providers.
+            </p>
+            <p class="section-text">
+                In an era where deepfakes and synthetic media pose increasing risks to information integrity,
+                Sonotheia provides the tools organizations need to verify audio authenticity with confidence.
+            </p>
+        </div>
+    </section>
+
+    <!-- Technology Section -->
+    <section id="technology" class="technology">
+        <div class="section-container">
+            <h2 class="section-title">Our Technology</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Bandwidth Analysis</h3>
+                    <p>Detects frequency rolloff patterns that indicate AI-generated content, analyzing the spectral characteristics of audio signals.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Dynamic Range Sensors</h3>
+                    <p>Measures crest factor and compression artifacts typical of synthetic speech generation systems.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Breath Detection</h3>
+                    <p>Identifies biologically impossible phonation patterns that exceed human respiratory capabilities.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Physics-Based Verification</h3>
+                    <p>All sensors are grounded in fundamental physics, providing deterministic and explainable results.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="section-container">
+            <h2 class="section-title">Live Demo</h2>
+            <p class="section-text">Upload an audio file to analyze it using our forensic detection suite</p>
+
+            <div class="demo-container">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-instructions">
+                        <p>UPLOAD AUDIO</p>
+                        <span>Drag & Drop or Click to Select File</span>
+                    </div>
+                    <input type="file" id="audioFile" accept="audio/*" hidden/>
+                </div>
+                <div class="results-area" id="resultsArea" style="display: none;">
+                    <div id="spinner" class="spinner" style="display: none;"></div>
+                    <div id="resultsContent"></div>
+                    <button id="resetButton" class="reset-button">Analyze Another File</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="section-container">
+            <h2 class="section-title">Get In Touch</h2>
+            <p class="section-text">Interested in integrating our technology into your workflow?</p>
+            <p class="contact-info">Email: inquiries@sonotheia.ai</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Sonotheia, Inc. All rights reserved. Audio analysis is for demonstration purposes only. It does not constitute legal advice.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const resultsArea = document.getElementById('resultsArea');
+            const audioFile = document.getElementById('audioFile');
+            const resultsContent = document.getElementById('resultsContent');
+            const spinner = document.getElementById('spinner');
+            const resetButton = document.getElementById('resetButton');
+
+            // Smooth scroll for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+
+            uploadArea.addEventListener('click', () => audioFile.click());
+            audioFile.addEventListener('change', handleFileUpload);
+            resetButton.addEventListener('click', resetView);
+
+            function handleFileUpload() {
+                const file = audioFile.files[0];
+                if (!file) return;
+
+                uploadArea.style.display = 'none';
+                resultsArea.style.display = 'block';
+                spinner.style.display = 'block';
+                resultsContent.innerHTML = '';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/v2/detect/quick', { method: 'POST', body: formData })
+                .then(async response => {
+                    const isJson = response.headers.get('content-type')?.includes('application/json');
+                    const data = isJson ? await response.json() : await response.text();
+                    if (!response.ok) {
+                        const errorDetail = (isJson && data.detail) ? data.detail : data;
+                        throw new Error(errorDetail);
+                    }
+                    return data;
+                })
+                .then(data => {
+                    spinner.style.display = 'none';
+                    displayResults(data);
+                })
+                .catch(error => {
+                    spinner.style.display = 'none';
+                    resultsContent.innerHTML = `<p class="error-text"><b>API Error:</b> ${error.message}</p>`;
+                });
+            }
+
+            function displayResults(data) {
+                const { verdict, detail, evidence } = data;
+                const dynamics = evidence.check_dynamic_range_sensor;
+                const breath = evidence.check_breath_sensor;
+                const bandwidth = evidence.check_bandwidth_sensor;
+
+                const dynamicsClass = dynamics.passed ? 'pass' : 'fail';
+                const breathClass = breath.passed ? 'pass' : 'fail';
+                const bandwidthClass = bandwidth.type === 'NARROWBAND' ? 'fail' : 'pass';
+
+                resultsContent.innerHTML = `
+                    <div class="verdict-section verdict-${verdict}">
+                        <p class="verdict-label">Verdict</p>
+                        <p class="verdict-text">${verdict}</p>
+                    </div>
+                    <div class="evidence-section">
+                        <p class="evidence-title">Forensic Evidence</p>
+                        <div class="evidence-grid">
+                            <div class="grid-item label">Bandwidth Type</div>
+                            <div class="grid-item value ${bandwidthClass}">${bandwidth.type} <span>(Rolloff: ${bandwidth.value} Hz)</span></div>
+                            <div class="grid-item label">Dynamic Range (Crest Factor)</div>
+                            <div class="grid-item value ${dynamicsClass}">${dynamics.value} <span>(Thresh: >${dynamics.threshold})</span></div>
+                            <div class="grid-item label">Breath Sensor (Max Phonation)</div>
+                            <div class="grid-item value ${breathClass}">${breath.value}s <span>(Limit: ${breath.threshold}s)</span></div>
+                        </div>
+                        <p class="detail-text">${detail}</p>
+                    </div>
+                `;
+            }
+
+            function resetView() {
+                uploadArea.style.display = 'block';
+                resultsArea.style.display = 'none';
+                audioFile.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

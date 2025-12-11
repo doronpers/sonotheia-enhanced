@@ -1,25 +1,43 @@
-# Stage 1: Build the React Application
-FROM node:22-alpine AS build
-
+# Build stage
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Install dependencies (use npm)
-COPY package.json ./
-# Generate package-lock.json if missing and install dependencies
-RUN npm install
+# Use lockfile if present for reproducible builds
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN \
+  if [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
+  elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+  else npm ci; fi
 
-# Copy source code and build
+# Copy source and build
 COPY . .
+# Ensure vite.svg exists if referenced at /vite.svg; or remove the reference in your app.
+RUN mkdir -p public && (test -f public/vite.svg || echo '<svg xmlns="http://www.w3.org/2000/svg"/>' > public/vite.svg)
+# Accept build argument
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+# Then build
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Production stage
+FROM nginx:1.27-alpine
+WORKDIR /usr/share/nginx/html
 
-# Copy built artifacts from the build stage
-COPY --from=build /app/build /usr/share/nginx/html
+# SSL trust roots for HTTPS proxying (coding standard)
+RUN apk add --no-cache ca-certificates && update-ca-certificates
 
-# Expose port 80
+# Copy built app
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Ensure only our config is present; remove stock configs and templates
+RUN rm -f /etc/nginx/conf.d/*.conf && rm -rf /etc/nginx/templates
+
+# Copy nginx config and entrypoint
+# Ship our config as default.conf so the stock entrypoint scripts only process our file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]
