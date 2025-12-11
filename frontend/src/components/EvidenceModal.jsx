@@ -9,6 +9,7 @@ import {
   Typography,
   Paper
 } from "@mui/material";
+import ArtifactViewer from "./ArtifactViewer";
 
 function TabPanel({ children, value, index }) {
   return (
@@ -142,11 +143,20 @@ export default function EvidenceModal({ open, onClose, segment, evidence }) {
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>
-          <img
-            src={evidence?.spectrogramImg || '/placeholder-spectrogram.png'}
-            alt="Spectrogram"
-            style={{ width: "100%" }}
-          />
+          {evidence?.artifacts && evidence.artifacts.length > 0 ? (
+            <ArtifactViewer 
+              audioData={evidence?.audioData}
+              artifacts={evidence.artifacts}
+              sampleRate={evidence?.sampleRate || 44100}
+              duration={evidence?.duration || 5.0}
+            />
+          ) : (
+            <img
+              src={evidence?.spectrogramImg || '/placeholder-spectrogram.png'}
+              alt="Spectrogram"
+              style={{ width: "100%" }}
+            />
+          )}
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
