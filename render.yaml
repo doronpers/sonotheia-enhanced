@@ -16,8 +16,9 @@ services:
         sync: false
 
   # Frontend Static Site
-  - type: static
+  - type: web
     name: sonotheia-frontend
+    env: static
     plan: free
     buildCommand: |
         cd frontend
