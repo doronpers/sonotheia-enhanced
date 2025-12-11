@@ -1,26 +1,32 @@
-# render.yaml
-
 services:
-  # Backend API Service
+  # Backend API Service (Docker)
   - type: web
     name: sonotheia-backend
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: starter
-    healthCheckPath: /
-    # PORT is automatically set by Render, no need to specify
-
-  # Frontend Service (Docker with nginx serving static HTML/CSS/JS)
-  - type: web
-    name: sonotheia-frontend
-    runtime: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
-    plan: starter
+    healthCheckPath: /api/v1/health
     envVars:
-      - key: VITE_API_BASE_URL
+      - key: PORT
+        value: 10000
+      - key: ALLOWED_ORIGINS
+        value: https://sonotheia-frontend.onrender.com
+      - key: ADDITIONAL_ORIGINS
+        sync: false
+
+  # Frontend Static Site
+  - type: static
+    name: sonotheia-frontend
+    runtime: static
+    buildCommand: |
+        cd frontend
+        npm install
+        npm run build
+    publishDir: frontend/dist
+    envVars:
+      - key: VITE_API_URL
         fromService:
           type: web
           name: sonotheia-backend
-          property: hostport
+          property: url
