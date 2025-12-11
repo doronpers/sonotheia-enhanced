@@ -464,3 +464,216 @@ DEBUG: ENF Sensor raw value: 0.3
 DEBUG: Phase Coherence Sensor raw value: 0.3
 Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 6.630, clamped to 1.000
 Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 7.329999923706055
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 5913
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.31428571428571467
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.449
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 7.330, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 5.0
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 5915
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.19999999999999948
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 2.7333333333333343
+DEBUG: Two-Mouth Sensor raw value: 0.271
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 5.000, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.733, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 9.109999656677246
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 2051
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.21571428571428633
+DEBUG: Digital Silence Sensor raw value: 1.0
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 2.9390625000000004
+DEBUG: Two-Mouth Sensor raw value: 0.073
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 9.110, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.939, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 11.949999809265137
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 4682
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.3365714285714291
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 2.944010416666668
+DEBUG: Two-Mouth Sensor raw value: 0.484
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 11.950, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.944, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 6.820000171661377
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 2057
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.1714285714285721
+DEBUG: Digital Silence Sensor raw value: 1.0
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 2.7531250000000007
+DEBUG: Two-Mouth Sensor raw value: 0.37
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 6.820, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.753, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 8.5
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 5919
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.34457142857142736
+DEBUG: Digital Silence Sensor raw value: 0.6
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 2.9848958333333333
+DEBUG: Two-Mouth Sensor raw value: 0.488
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 8.500, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.985, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 6.010000228881836
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 2781
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.2857142857142863
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 6.010, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Breath Sensor (Max Phonation) raw value: 1.9
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 6.429999828338623
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 3571
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.1714285714285712
+DEBUG: Digital Silence Sensor raw value: 0.3
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.231
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Breath Sensor (Max Phonation) returned out-of-range value: 1.900, clamped to 1.000
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 6.430, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 6.670000076293945
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 3129
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.4000000000000001
+DEBUG: Digital Silence Sensor raw value: 0.6
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.585
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 6.670, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 5.679999828338623
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 3717
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.3597142857142833
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.318
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 5.680, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 9.140000343322754
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 2704
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.20799999999999857
+DEBUG: Digital Silence Sensor raw value: 0.7
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.228
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 9.140, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 7.949999809265137
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 3874
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.32742857142857196
+DEBUG: Digital Silence Sensor raw value: 1.0
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 3.0
+DEBUG: Two-Mouth Sensor raw value: 0.559
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 7.950, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 3.000, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 9.229999542236328
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 3516
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.35085714285714215
+DEBUG: Digital Silence Sensor raw value: 0.3
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.66
+DEBUG: FormantTrajectory raw value: 2.950260416666667
+DEBUG: Two-Mouth Sensor raw value: 0.227
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 9.230, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.950, clamped to 1.000
+DEBUG: Dynamic Range Sensor (Crest Factor) raw value: 5.340000152587891
+DEBUG: Bandwidth Sensor (Rolloff Frequency) raw value: 4573
+DEBUG: Pitch Velocity Sensor (Larynx Analysis) raw value: 0.2571428571428573
+DEBUG: Digital Silence Sensor raw value: 0.6
+DEBUG: Global Formant Stats raw value: 0.4
+DEBUG: Coarticulation Sensor raw value: 0.522
+DEBUG: FormantTrajectory raw value: 2.936458333333333
+DEBUG: Two-Mouth Sensor raw value: 0.511
+DEBUG: ProsodicContinuitySensor raw value: 1.0
+DEBUG: ENF Sensor raw value: 0.3
+DEBUG: Phase Coherence Sensor raw value: 0.3
+Sensor Dynamic Range Sensor (Crest Factor) returned out-of-range value: 5.340, clamped to 1.000
+Sensor FormantTrajectory returned out-of-range value: 2.936, clamped to 1.000
+
+============================================================
+   RESULTS SUMMARY
+============================================================
+Total Processed: 50
+Errors:          0
+------------------------------------------------------------
+Accuracy:        50.00%
+Precision:       50.00%
+Recall:          100.00%
+------------------------------------------------------------
+True Positives (Caught Fakes): 25
+True Negatives (Cleared Real): 0
+False Positives (Real->Fake):  25
+False Negatives (Fake->Real):  0
+============================================================
+============================================================
+
+Score Analysis:
+True Positives (Avg Score: 0.8783)
+  - openai_shimmer_1765336594_479_mobile.wav: 0.6075
+  - openai_echo_1765333012_148_landline.wav: 1.0000
+  - openai_nova_1765330632_167_voip.wav: 0.7678
+  - openai_echo_1765334242_411_landline.wav: 1.0000
+  - openai_alloy_1765330900_267_landline.wav: 1.0000
+False Positives (Avg Score: 0.8050)
+  - libri_1462-170142-0017.flac: 0.7723
+    Breakdown: {'feature_extraction': 0.7326348423957825, 'temporal_analysis': 0.3, 'artifact_detection': 0.46, 'physics_analysis': 0.6, 'rawnet3': 0.772335946559906}
+  - libri_3081-166546-0053.flac: 0.5754
+    Breakdown: {'feature_extraction': 0.7293170173962911, 'temporal_analysis': 0.47500000000000003, 'artifact_detection': 0.35, 'physics_analysis': 0.6, 'rawnet3': 0.6978866457939148}
+  - libri_2902-9006-0005.flac: 0.8973
+    Breakdown: {'feature_extraction': 0.7234791914621989, 'temporal_analysis': 0.7, 'artifact_detection': 0.55, 'physics_analysis': 1.0, 'rawnet3': 0.6690852642059326}
+  - libri_2428-83705-0043.flac: 0.9021
+    Breakdown: {'feature_extraction': 0.7464098612467448, 'temporal_analysis': 0.505, 'artifact_detection': 0.77, 'physics_analysis': 1.0, 'rawnet3': 0.7149565815925598}
+  - libri_84-121123-0007.flac: 0.8788
+    Breakdown: {'feature_extraction': 0.733258295059204, 'temporal_analysis': 0.03, 'artifact_detection': 0.5, 'physics_analysis': 0.6, 'rawnet3': 0.8787797093391418}
+Recalibration needed. Suggested Threshold > 0.9214
