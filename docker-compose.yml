@@ -74,7 +74,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     # container_name: sonotheia-celery-worker
-    command: celery -A backend.api.celery_app worker --loglevel=info --concurrency=4
+    command: celery -A backend.celery_app worker --loglevel=info --concurrency=4
     environment:
       - DEMO_MODE=${DEMO_MODE:-false}
       - PYTHONUNBUFFERED=1
@@ -106,7 +106,7 @@ services:
       dockerfile: Dockerfile
     # container_name: sonotheia-flower
     # SECURITY: Add basic auth for production
-    command: celery -A backend.api.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
+    command: celery -A backend.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
     ports:
       - "5555:5555"
     environment:
