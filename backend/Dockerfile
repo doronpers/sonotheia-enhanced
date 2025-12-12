@@ -25,7 +25,11 @@ RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pyt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+# Copy application code into 'backend' directory to preserve package structure
+COPY . backend/
+
+# Set PYTHONPATH so 'backend' is recognized as a package
+ENV PYTHONPATH=/app
 
 # Expose port (Internal documentation)
 EXPOSE 8000
@@ -35,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import sys; import os; import httpx; port = os.getenv('PORT', '8000'); sys.exit(0 if httpx.get(f'http://localhost:{port}/', timeout=5).status_code == 200 else 1)" || exit 1
 
 # Run the application using shell form to allow variable expansion
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn backend.api.main:app --host 0.0.0.0 --port ${PORT:-8000}

@@ -14,7 +14,7 @@ services:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_redis_password}", "ping"]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_redis_password}", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -47,13 +47,14 @@ services:
       - API_KEYS=${API_KEYS:-}
     volumes:
       # SECURITY: Remove bind mounts in production - use COPY in Dockerfile instead
-      - ./backend:/app
-      - /app/__pycache__
+      # Mount to /app/backend to match PYTHONPATH=/app and package structure
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
     depends_on:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; import httpx; sys.exit(0 if httpx.get('http://localhost:8000/', timeout=5).status_code == 200 else 1)"]
+      test: [ "CMD", "python", "-c", "import sys; import httpx; sys.exit(0 if httpx.get('http://localhost:8000/', timeout=5).status_code == 200 else 1)" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -73,7 +74,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: sonotheia-celery-worker
-    command: celery -A celery_app worker --loglevel=info --concurrency=4
+    command: celery -A backend.api.celery_app worker --loglevel=info --concurrency=4
     environment:
       - DEMO_MODE=${DEMO_MODE:-false}
       - PYTHONUNBUFFERED=1
@@ -81,8 +82,8 @@ services:
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-changeme_redis_password}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_redis_password}
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
     depends_on:
       - redis
       - backend
@@ -105,7 +106,7 @@ services:
       dockerfile: Dockerfile
     container_name: sonotheia-flower
     # SECURITY: Add basic auth for production
-    command: celery -A celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
+    command: celery -A backend.api.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
     ports:
       - "5555:5555"
     environment:
@@ -134,7 +135,7 @@ services:
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     restart: unless-stopped
@@ -149,6 +150,7 @@ services:
 
 volumes:
   redis_data:
+
 
 networks:
   default:
