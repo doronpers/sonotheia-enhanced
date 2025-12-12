@@ -2,7 +2,7 @@ services:
   # Redis Message Broker for Celery
   redis:
     image: redis:7-alpine
-    container_name: sonotheia-redis
+    # container_name: sonotheia-redis
     # SECURITY: Port commented out for production - use internal network only
     # Uncomment only for development/debugging
     # ports:
@@ -32,7 +32,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: sonotheia-backend
+    # container_name: sonotheia-backend
     ports:
       - "8000:8000"
     environment:
@@ -73,7 +73,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: sonotheia-celery-worker
+    # container_name: sonotheia-celery-worker
     command: celery -A backend.api.celery_app worker --loglevel=info --concurrency=4
     environment:
       - DEMO_MODE=${DEMO_MODE:-false}
@@ -104,7 +104,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: sonotheia-flower
+    # container_name: sonotheia-flower
     # SECURITY: Add basic auth for production
     command: celery -A backend.api.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme_flower_password}
     ports:
@@ -131,7 +131,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: sonotheia-frontend
+    # container_name: sonotheia-frontend
     ports:
       - "3000:80"
     environment:

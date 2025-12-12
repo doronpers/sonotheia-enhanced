@@ -3,12 +3,6 @@ import ForensicDisplay from './ForensicDisplay';
 import AISentinel from './AISentinel';
 import DashboardTopBar from './DashboardTopBar';
 
-
-import React, { useState } from 'react';
-import ForensicDisplay from './ForensicDisplay';
-import AISentinel from './AISentinel';
-import DashboardTopBar from './DashboardTopBar';
-
 const ForensicButler = () => {
     const [analysisResult, setAnalysisResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
