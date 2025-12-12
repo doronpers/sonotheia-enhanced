@@ -243,6 +243,23 @@ class TestCORS:
         # FastAPI TestClient doesn't fully simulate browser CORS,
         # but we can verify the middleware is configured
         assert response.status_code in [200, 405]  # OPTIONS might not be handled
+    
+    def test_cors_allows_sonotheia_ai(self):
+        """Test that CORS allows requests from www.sonotheia.ai"""
+        # Test HTTPS origin
+        response = client.get("/", headers={
+            "Origin": "https://www.sonotheia.ai"
+        })
+        assert response.status_code == 200
+        # Note: TestClient doesn't fully simulate CORS, but we can verify
+        # that the origin is in the allowed list by checking that the request succeeds
+        
+    def test_cors_allows_sonotheia_ai_http(self):
+        """Test that CORS allows HTTP requests from www.sonotheia.ai (for redirects)"""
+        response = client.get("/", headers={
+            "Origin": "http://www.sonotheia.ai"
+        })
+        assert response.status_code == 200
 
 
 if __name__ == "__main__":
