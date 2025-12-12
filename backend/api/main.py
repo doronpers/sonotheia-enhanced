@@ -170,6 +170,8 @@ ALLOWED_ORIGINS = [
     "http://localhost:5173", # Website-Sonotheia Vite Dev Server
     "https://website-sonotheia-v251120.onrender.com", # Likely Frontend URL
     "https://sonotheia-frontend.onrender.com",       # Generic Frontend URL
+    "https://www.sonotheia.ai",                      # Production website
+    "http://www.sonotheia.ai",                       # Production website (HTTP redirect)
     *env_origins # Expand any environment-provided origins
 ]
 
