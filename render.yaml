@@ -27,7 +27,4 @@ services:
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: sonotheia-backend
-          property: url
+        value: https://sonotheia-backend.onrender.com
