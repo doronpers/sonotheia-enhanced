@@ -4,7 +4,8 @@ Main entry point for Celery task queue application.
 """
 
 from celery import Celery, signals
-from celery_config import get_celery_config
+from .celery_config import get_celery_config
+
 import logging
 import sys
 from pathlib import Path
