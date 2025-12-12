@@ -24,7 +24,7 @@ services:
         cd frontend
         npm install
         npm run build
-    publishDir: frontend/dist
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:
