@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir numpy scipy pandas
 RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # 3. Install remaining dependencies (FastAPI, etc)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Copy application code
 # Copy application code into 'backend' directory to preserve package structure
